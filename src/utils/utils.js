@@ -1,0 +1,75 @@
+import { useCallback, useEffect, useState } from 'react';
+
+export async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function getDecimalCount(value) {
+  if (Math.floor(value) !== value)
+    return value.toString().split('.')[1].length || 0;
+  return 0;
+}
+
+export function useLocalStorageState(key, defaultState = null) {
+  const [state, setState] = useState(() => {
+    // NOTE: Not sure if this is ok
+    const storedState = localStorage.getItem(key);
+    if (storedState) {
+      return JSON.parse(storedState);
+    }
+    return defaultState;
+  });
+
+  const setLocalStorageState = useCallback(
+    (newState) => {
+      const changed = state !== newState;
+      if (!changed) {
+        return;
+      }
+      setState(newState);
+      if (newState === null) {
+        localStorage.removeItem(key);
+      } else {
+        localStorage.setItem(key, JSON.stringify(newState));
+      }
+    },
+    [state, key],
+  );
+
+  return [state, setLocalStorageState];
+}
+
+export function useEffectAfterTimeout(effect, timeout) {
+  useEffect(() => {
+    const handle = setTimeout(effect, timeout);
+    return () => clearTimeout(handle);
+  });
+}
+
+export function useListener(emitter, eventName) {
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const listener = () => forceUpdate((i) => i + 1);
+    emitter.on(eventName, listener);
+    return () => emitter.removeListener(eventName, listener);
+  }, [emitter, eventName]);
+}
+
+export function abbreviateAddress(address) {
+  const base58 = address.toBase58();
+  return base58.slice(0, 4) + '…' + base58.slice(-4);
+}
+
+export function isEqual(obj1, obj2, keys) {
+  if (!keys && Object.keys(obj1).length !== Object.keys(obj2).length) {
+    return false;
+  }
+  keys = keys || Object.keys(obj1);
+  for (const k of keys) {
+    if (obj1[k] !== obj2[k]) {
+      // shallow comparison
+      return false;
+    }
+  }
+  return true;
+}
