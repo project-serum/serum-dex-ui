@@ -1,10 +1,11 @@
-import { UserOutlined } from '@ant-design/icons';
-import { Button, Select } from 'antd';
+import { UserOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Button, Select, Popover } from 'antd';
 import React from 'react';
 import logo from '../assets/logo.svg';
 import styled from 'styled-components';
 import { useWallet, WALLET_PROVIDERS } from '../utils/wallet';
 import { useConnectionConfig, ENDPOINTS } from '../utils/connection';
+import LinkAddress from './LinkAddress';
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -28,6 +29,9 @@ const LogoWrapper = styled.div`
 export default function TopBar() {
   const [connected, wallet, providerUrl, setProvider] = useWallet();
   const { endpoint, setEndpoint } = useConnectionConfig();
+
+  const publicKey = wallet?.publicKey?.toBase58();
+
   return (
     <Wrapper>
       <div>
@@ -64,6 +68,16 @@ export default function TopBar() {
           <UserOutlined />
           {!connected ? 'Connect wallet' : 'Disconnect'}
         </Button>
+        {connected && (
+          <Popover
+            content={<LinkAddress address={publicKey} />}
+            placement="bottomRight"
+            title="Wallet public key"
+            trigger="click"
+          >
+            <InfoCircleOutlined style={{ color: '#2abdd2' }} />
+          </Popover>
+        )}
       </div>
     </Wrapper>
   );

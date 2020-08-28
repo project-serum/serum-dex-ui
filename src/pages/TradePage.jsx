@@ -1,17 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Button, Col, Row, Select } from 'antd';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Button, Col, Input, Row, Select } from 'antd';
 import styled from 'styled-components';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
-import React from 'react';
 import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
 import { useMarket, useMarketsList } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
-import { Input } from 'antd';
 import { useLocalStorageState } from '../utils/utils';
 import TradesTable from '../components/TradesTable';
 import { InfoCircleOutlined } from '@ant-design/icons';
-import MarketInfoDialog from '../components/MarketInfoDialog';
 
 const { Option } = Select;
 
@@ -107,10 +104,6 @@ export default function TradePage() {
 
   return (
     <>
-      <MarketInfoDialog
-        visible={marketInfoVisible}
-        onClose={() => setMarketInfoVisible(false)}
-      />
       <Wrapper>
         <Row>
           <Col>
