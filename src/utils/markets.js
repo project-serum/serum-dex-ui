@@ -524,3 +524,54 @@ export function useOpenOrdersForAllMarkets() {
     { refreshInterval: _SLOW_REFRESH_INTERVAL },
   );
 }
+
+export function useBalances() {
+  const [baseCurrencyBalances] = useBaseCurrencyBalances();
+  const [quoteCurrencyBalances] = useQuoteCurrencyBalances();
+  const openOrdersAccount = useSelectedOpenOrdersAccount(true);
+  const { baseCurrency, quoteCurrency, market } = useMarket();
+  const baseExists =
+    openOrdersAccount &&
+    openOrdersAccount.baseTokenTotal &&
+    openOrdersAccount.baseTokenFree;
+  const quoteExists =
+    openOrdersAccount &&
+    openOrdersAccount.quoteTokenTotal &&
+    openOrdersAccount.quoteTokenFree;
+  return [
+    {
+      key: baseCurrency,
+      coin: baseCurrency,
+      wallet: baseCurrencyBalances,
+      orders:
+        baseExists && market
+          ? market.baseSplSizeToNumber(
+              openOrdersAccount.baseTokenTotal.sub(
+                openOrdersAccount.baseTokenFree,
+              ),
+            )
+          : null,
+      unsettled:
+        baseExists && market
+          ? market.baseSplSizeToNumber(openOrdersAccount.baseTokenFree)
+          : null,
+    },
+    {
+      key: quoteCurrency,
+      coin: quoteCurrency,
+      wallet: quoteCurrencyBalances,
+      orders:
+        quoteExists && market
+          ? market.quoteSplSizeToNumber(
+              openOrdersAccount.quoteTokenTotal.sub(
+                openOrdersAccount.quoteTokenFree,
+              ),
+            )
+          : null,
+      unsettled:
+        quoteExists && market
+          ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
+          : null,
+    },
+  ];
+}

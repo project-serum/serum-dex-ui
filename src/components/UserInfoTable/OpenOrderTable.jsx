@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMarket, useOpenOrders } from '../../utils/markets';
+import { useMarket } from '../../utils/markets';
 import DataTable from '../layout/DataTable';
 
 import styled from 'styled-components';
@@ -15,14 +15,12 @@ const CancelButton = styled(Button)`
   border: 1px solid #f23b69;
 `;
 
-export default function OpenOrderTable() {
+export default function OpenOrderTable({ openOrders }) {
   let { market } = useMarket();
   let [, wallet] = useWallet();
   let connection = useConnection();
 
   const [cancelId, setCancelId] = useState(null);
-
-  const openOrders = useOpenOrders();
 
   async function cancel(order) {
     try {

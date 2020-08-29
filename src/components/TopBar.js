@@ -1,10 +1,11 @@
-import { UserOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Button, Select, Popover } from 'antd';
-import React from 'react';
+import { InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Menu, Popover, Select } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.svg';
 import styled from 'styled-components';
 import { useWallet, WALLET_PROVIDERS } from '../utils/wallet';
-import { useConnectionConfig, ENDPOINTS } from '../utils/connection';
+import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
 import LinkAddress from './LinkAddress';
 
 const Wrapper = styled.div`
@@ -27,10 +28,25 @@ const LogoWrapper = styled.div`
 `;
 
 export default function TopBar() {
+  const [current, setCurrent] = useState('/');
   const [connected, wallet, providerUrl, setProvider] = useWallet();
   const { endpoint, setEndpoint } = useConnectionConfig();
+  const location = useLocation();
+  const history = useHistory();
 
   const publicKey = wallet?.publicKey?.toBase58();
+
+  const handleClick = useCallback((e) => {
+    history.push(e.key);
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname.includes('/orders')) {
+      setCurrent('/orders');
+    } else if (location.pathname.includes('/balances')) {
+      setCurrent('/balances');
+    }
+  }, [location]);
 
   return (
     <Wrapper>
@@ -40,6 +56,22 @@ export default function TopBar() {
           {'SERUM'}
         </LogoWrapper>
       </div>
+      <Menu
+        mode="horizontal"
+        onClick={handleClick}
+        selectedKeys={[current]}
+        style={{
+          borderBottom: 'none',
+          backgroundColor: 'transparent',
+          display: 'flex',
+          alignItems: 'flex-end',
+          flex: 1,
+        }}
+      >
+        <Menu.Item key="/">TRADE</Menu.Item>
+        <Menu.Item key="/orders">ORDERS</Menu.Item>
+        <Menu.Item key="/balances">BALANCES</Menu.Item>
+      </Menu>
       <div style={{ display: 'block' }}>
         <Select
           onSelect={setEndpoint}

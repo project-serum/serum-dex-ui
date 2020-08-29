@@ -1,8 +1,6 @@
 import { Button } from 'antd';
 import React from 'react';
 import {
-  useBaseCurrencyBalances,
-  useQuoteCurrencyBalances,
   useSelectedOpenOrdersAccount,
   useMarket,
   useSelectedBaseCurrencyAccount,
@@ -13,59 +11,13 @@ import { useConnection } from '../../utils/connection';
 import { useWallet } from '../../utils/wallet';
 import { settleFunds } from '../../utils/send';
 
-export default function BalancesTable() {
-  const [baseCurrencyBalances] = useBaseCurrencyBalances();
-  const [quoteCurrencyBalances] = useQuoteCurrencyBalances();
+export default function BalancesTable({ balances }) {
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const connection = useConnection();
   const [, wallet] = useWallet();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
-  const { baseCurrency, quoteCurrency, market } = useMarket();
-  const baseExists =
-    openOrdersAccount &&
-    openOrdersAccount.baseTokenTotal &&
-    openOrdersAccount.baseTokenFree;
-  const quoteExists =
-    openOrdersAccount &&
-    openOrdersAccount.quoteTokenTotal &&
-    openOrdersAccount.quoteTokenFree;
-  const dataSource = [
-    {
-      key: baseCurrency,
-      coin: baseCurrency,
-      wallet: baseCurrencyBalances,
-      orders:
-        baseExists && market
-          ? market.baseSplSizeToNumber(
-              openOrdersAccount.baseTokenTotal.sub(
-                openOrdersAccount.baseTokenFree,
-              ),
-            )
-          : null,
-      unsettled:
-        baseExists && market
-          ? market.baseSplSizeToNumber(openOrdersAccount.baseTokenFree)
-          : null,
-    },
-    {
-      key: quoteCurrency,
-      coin: quoteCurrency,
-      wallet: quoteCurrencyBalances,
-      orders:
-        quoteExists && market
-          ? market.quoteSplSizeToNumber(
-              openOrdersAccount.quoteTokenTotal.sub(
-                openOrdersAccount.quoteTokenFree,
-              ),
-            )
-          : null,
-      unsettled:
-        quoteExists && market
-          ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
-          : null,
-    },
-  ];
+  const { market } = useMarket();
 
   async function onSettleFunds() {
     return await settleFunds({
@@ -113,7 +65,7 @@ export default function BalancesTable() {
   return (
     <DataTable
       emptyLabel="No balances"
-      dataSource={dataSource}
+      dataSource={balances}
       columns={columns}
       pagination={false}
     />
