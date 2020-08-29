@@ -16,14 +16,18 @@ import { notify } from './notifications';
 const DEFAULT_MARKET_NAME = 'BASE/QUOTE';
 
 export const COIN_MINTS = {
-  EQePeYJUV9dQd5PWrPzgWMYvqaok8R8s5Cpa16VDPZxw: 'BASE',
-  Ff7neGEVckMNcvhnazvWZ41TJoNmwXS4xz1XDNd46s22: 'QUOTE',
+  '4VRGNMGJP2tg1g5nzUPXy5DjvKiXx2G4ebVUgrdzjbqN': 'BASE',
+  EWe1BKUEA5PM8ZAgyrkY1Jw9pSqayg82b8tXiFZYQ9V8: 'QUOTE',
 };
 
 export const MARKET_INFO_BY_NAME = {
   'BASE/QUOTE': {
     name: 'BASE/QUOTE',
-    address: '6ibUz1BqSD3f8XP4wEGwoRH4YbYRZ1KDZBeXmrp3KosD',
+    address: '2tJ2LVReFCZF81Ej4MAQHEr1kRSmk6QQ5XSnzjC9KJNj',
+  },
+  'TEST/QUOTE': {
+    name: 'TEST/QUOTE',
+    address: 'EaXayt4gh5VMuRPTj8rdcGU6U4tqhrvfeb2ep8CGuFjF',
   },
 };
 
