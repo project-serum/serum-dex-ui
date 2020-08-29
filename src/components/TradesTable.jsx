@@ -31,7 +31,7 @@ export default function PublicTrades({ smallScreen }) {
           : { marginTop: '10px', height: 'calc(100% - 520px)' }
       }
     >
-      <Title>Market trades</Title>
+      <Title>Recent Market trades</Title>
       <SizeTitle>
         <Col span={12} style={{ textAlign: 'left' }}>
           Size ({baseCurrency})

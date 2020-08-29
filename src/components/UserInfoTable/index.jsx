@@ -15,7 +15,7 @@ export default function Index() {
         <TabPane tab="Open Orders" key="orders">
           <OpenOrdersTab />
         </TabPane>
-        <TabPane tab="Trade History" key="fills">
+        <TabPane tab="Recent Trade History" key="fills">
           <FillsTable />
         </TabPane>
         <TabPane tab="Balances" key="balances">
