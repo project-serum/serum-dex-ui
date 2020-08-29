@@ -661,17 +661,14 @@ async function getBalanceForMarket(
   if (!market) {
     return;
   }
-  const findTokenAccountsForOwner = base
-    ? market.findBaseTokenAccountsForOwner
-    : market.findQuoteTokenAccountsForOwner;
-  const currencyAccounts = await findTokenAccountsForOwner(
-    connection,
-    wallet.publicKey,
-  );
+  const currencyAccounts = base
+    ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
+    : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
   const currencyAccount = currencyAccounts && currencyAccounts[0];
-  const currencyBalances = await connection.getTokenAccountBalance(
+  const tokenAccountBalances = await connection.getTokenAccountBalance(
     currencyAccount.pubkey,
   );
+  const currencyBalances = tokenAccountBalances?.value?.uiAmount;
   const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
     connection,
     wallet.publicKey,
