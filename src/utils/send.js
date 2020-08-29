@@ -283,16 +283,15 @@ async function getSignatureStatus(connection, txid) {
         // eslint-disable-next-line
         (async () => {
           try {
+            console.log('Send REST request for txid', txid);
             const results = await connection.getSignatureStatuses([txid]);
-            const result = results && results[0];
-            if (
-              !result ||
-              (!result.value?.confirmations && !result.value?.err)
-            ) {
+            const result = results && results.value && results.value[0];
+            console.log('Received REST response for txid', txid, result);
+            if (!result || (!result?.confirmations && !result?.err)) {
               return;
             }
             if (!done) {
-              console.log('REST update for txid', txid, results);
+              console.log('REST update for txid', txid, result);
               done = true;
               resolve(result);
             }
