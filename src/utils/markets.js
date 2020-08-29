@@ -176,7 +176,7 @@ export function useMarkPrice() {
   return markPrice;
 }
 
-export function _useUnfilteredTrades(limit = 100000) {
+export function _useUnfilteredTrades(limit = 10000) {
   const { market } = useMarket();
   const connection = useConnection();
   async function getUnfilteredTrades() {
