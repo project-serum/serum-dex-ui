@@ -52,13 +52,21 @@ export function useAllMarkets() {
       const marketList = Object.values(MARKET_INFO_BY_NAME);
       let marketInfo;
       for (marketInfo of marketList) {
-        const market = await Market.load(
-          connection,
-          new PublicKey(marketInfo.address),
-          {},
-          new PublicKey(selectedDexProgramID),
-        );
-        markets.push({ market, marketName: marketInfo.name });
+        try {
+          const market = await Market.load(
+            connection,
+            new PublicKey(marketInfo.address),
+            {},
+            new PublicKey(selectedDexProgramID),
+          );
+          markets.push({ market, marketName: marketInfo.name });
+        } catch (e) {
+          notify({
+            message: 'Error loading market',
+            description: e.message,
+            type: 'error',
+          });
+        }
       }
       setMarkets(markets);
     };
@@ -582,4 +590,114 @@ export function useBalances() {
           : null,
     },
   ];
+}
+
+export function useBalancesForAllMarkets() {
+  const [connected, wallet] = useWallet();
+
+  const connection = useConnection();
+  const allMarkets = useAllMarkets();
+
+  async function getBalancesForAllMarkets() {
+    let balances = [];
+    if (!connected) {
+      return balances;
+    }
+
+    let marketData;
+    for (marketData of allMarkets) {
+      const { market, marketName } = marketData;
+      if (!market) {
+        return balances;
+      }
+      const baseCurrency = marketName.includes('/') && marketName.split('/')[0];
+      if (!balances.find((balance) => balance.coin === baseCurrency)) {
+        const baseBalance = await getBalanceForMarket(
+          market,
+          connection,
+          wallet,
+          baseCurrency,
+          true,
+        );
+        balances.push(baseBalance);
+      }
+      const quoteCurrency =
+        marketName.includes('/') && marketName.split('/')[1];
+      if (!balances.find((balance) => balance.coin === quoteCurrency)) {
+        const quoteBalance = await getBalanceForMarket(
+          market,
+          connection,
+          wallet,
+          quoteCurrency,
+          false,
+        );
+        balances.push(quoteBalance);
+      }
+    }
+
+    return balances;
+  }
+
+  return useAsyncData(
+    getBalancesForAllMarkets,
+    tuple(
+      'getBalancesForAllMarkets',
+      connected,
+      connection,
+      wallet,
+      allMarkets,
+    ),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  );
+}
+
+async function getBalanceForMarket(
+  market,
+  connection,
+  wallet,
+  currency,
+  base = true,
+) {
+  if (!market) {
+    return;
+  }
+  const findTokenAccountsForOwner = base
+    ? market.findBaseTokenAccountsForOwner
+    : market.findQuoteTokenAccountsForOwner;
+  const currencyAccounts = await findTokenAccountsForOwner(
+    connection,
+    wallet.publicKey,
+  );
+  const currencyAccount = currencyAccounts && currencyAccounts[0];
+  const currencyBalances = await connection.getTokenAccountBalance(
+    currencyAccount.pubkey,
+  );
+  const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
+    connection,
+    wallet.publicKey,
+  );
+  const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
+  const inOrders = base
+    ? openOrdersAccount?.baseTokenTotal &&
+      openOrdersAccount?.baseTokenFree &&
+      market.baseSplSizeToNumber(
+        openOrdersAccount.baseTokenTotal.sub(openOrdersAccount.baseTokenFree),
+      )
+    : openOrdersAccount?.quoteTokenTotal &&
+      openOrdersAccount?.quoteTokenFree &&
+      market.quoteSplSizeToNumber(
+        openOrdersAccount.quoteTokenTotal.sub(openOrdersAccount.quoteTokenFree),
+      );
+  const unsettled = base
+    ? openOrdersAccount?.baseTokenFree &&
+      market.baseSplSizeToNumber(openOrdersAccount.baseTokenFree)
+    : openOrdersAccount?.quoteTokenFree &&
+      market.baseSplSizeToNumber(openOrdersAccount.baseTokenFree);
+  return {
+    key: currency,
+    coin: currency,
+    wallet: currencyBalances,
+    orders: inOrders,
+    unsettled: unsettled,
+  };
 }
