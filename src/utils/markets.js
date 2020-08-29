@@ -18,6 +18,8 @@ const DEFAULT_MARKET_NAME = 'BASE/QUOTE';
 export const COIN_MINTS = {
   '4VRGNMGJP2tg1g5nzUPXy5DjvKiXx2G4ebVUgrdzjbqN': 'BASE',
   EWe1BKUEA5PM8ZAgyrkY1Jw9pSqayg82b8tXiFZYQ9V8: 'QUOTE',
+  '544N54S1vKf4q1YRc6fwM19Yzcgt3LPQ8cgFpoGfMx8Y': 'XRP',
+  CqQu8uWjbraVccQU3U5xcixiV8bJfFHFtdTY9KF9e2ed: 'USDT',
 };
 
 export const MARKET_INFO_BY_NAME = {
@@ -25,9 +27,9 @@ export const MARKET_INFO_BY_NAME = {
     name: 'BASE/QUOTE',
     address: '2tJ2LVReFCZF81Ej4MAQHEr1kRSmk6QQ5XSnzjC9KJNj',
   },
-  'TEST/QUOTE': {
-    name: 'TEST/QUOTE',
-    address: 'EaXayt4gh5VMuRPTj8rdcGU6U4tqhrvfeb2ep8CGuFjF',
+  'XRP/USDT': {
+    name: 'XRP/USDT',
+    address: '2UcxiYZWaZsn1MGsHkujbttkNuMsbZsSbvadNZGEuVCg',
   },
 };
 
@@ -74,6 +76,8 @@ const _SLOW_REFRESH_INTERVAL = 1000 * 1000;
 
 // For things that change frequently
 const _FAST_REFRESH_INTERVAL = 5 * 1000;
+
+const _MEDIUM_REFRESH_INTERVAL = 5 * 1000;
 
 export function MarketProvider({ children }) {
   const [marketName, setMarketName] = useLocalStorageState(
@@ -176,7 +180,7 @@ export function _useUnfilteredTrades(limit = 100000) {
   const [trades] = useAsyncData(
     getUnfilteredTrades,
     tuple('getUnfilteredTrades', market, connection),
-    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+    { refreshInterval: _MEDIUM_REFRESH_INTERVAL },
   );
   return trades;
   // NOTE: For now, websocket is too expensive since the event queue is large

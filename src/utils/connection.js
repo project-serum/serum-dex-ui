@@ -101,7 +101,7 @@ export function useAccountInfo(publicKey) {
     let previousData = null;
     const id = connection.onAccountChange(publicKey, (e) => {
       if (e.data) {
-        if (previousData && !previousData.equals(e.data)) {
+        if (!previousData || !previousData.equals(e.data)) {
           setCache(cacheKey, e);
         }
         previousData = e.data;
