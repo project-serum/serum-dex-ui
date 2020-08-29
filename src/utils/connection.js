@@ -14,6 +14,8 @@ export const ENDPOINTS = [
   { name: 'localnet', endpoint: 'http://127.0.0.1:8899' },
 ];
 
+const accountChangeListeners = new Map();
+
 const ConnectionContext = React.createContext(null);
 
 export function ConnectionProvider({ children }) {
@@ -91,6 +93,9 @@ export function useAccountInfo(publicKey) {
     if (!publicKey) {
       return () => {};
     }
+    if (accountChangeListeners.has(cacheKey)) {
+      return () => {};
+    }
     let previousData = null;
     // TODO: Just pipe the websocket data instead of re-fetching over REST
     const id = connection.onAccountChange(publicKey, (e) => {
@@ -101,7 +106,11 @@ export function useAccountInfo(publicKey) {
         previousData = e.data;
       }
     });
-    return () => connection.removeAccountChangeListener(id);
+    accountChangeListeners.set(cacheKey, id);
+    return () => {
+      connection.removeAccountChangeListener(id);
+      accountChangeListeners.delete(cacheKey);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connection, publicKey?.toBase58(), cacheKey]);
   return [accountInfo, loaded];
