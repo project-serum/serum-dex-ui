@@ -6,6 +6,7 @@ export default function DataTable({
   columns,
   emptyLabel = 'No data',
   pagination = false,
+  loading = false,
   pageSize = 10,
 }) {
   const customizeRenderEmpty = () => (
@@ -27,6 +28,7 @@ export default function DataTable({
         dataSource={dataSource}
         columns={columns}
         pagination={pagination ? { pagination: true, pageSize } : false}
+        loading={loading}
       />
     </ConfigProvider>
   );

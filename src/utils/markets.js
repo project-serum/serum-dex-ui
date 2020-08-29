@@ -592,13 +592,13 @@ export function useBalances() {
   ];
 }
 
-export function useBalancesForAllMarkets() {
+export function useWalletBalancesForAllMarkets() {
   const [connected, wallet] = useWallet();
 
   const connection = useConnection();
   const allMarkets = useAllMarkets();
 
-  async function getBalancesForAllMarkets() {
+  async function getWalletBalancesForAllMarkets() {
     let balances = [];
     if (!connected) {
       return balances;
@@ -612,26 +612,32 @@ export function useBalancesForAllMarkets() {
       }
       const baseCurrency = marketName.includes('/') && marketName.split('/')[0];
       if (!balances.find((balance) => balance.coin === baseCurrency)) {
-        const baseBalance = await getBalanceForMarket(
+        const baseBalance = await getCurrencyBalance(
           market,
           connection,
           wallet,
-          baseCurrency,
           true,
         );
-        balances.push(baseBalance);
+        balances.push({
+          key: baseCurrency,
+          coin: baseCurrency,
+          wallet: baseBalance,
+        });
       }
       const quoteCurrency =
         marketName.includes('/') && marketName.split('/')[1];
       if (!balances.find((balance) => balance.coin === quoteCurrency)) {
-        const quoteBalance = await getBalanceForMarket(
+        const quoteBalance = await getCurrencyBalance(
           market,
           connection,
           wallet,
-          quoteCurrency,
           false,
         );
-        balances.push(quoteBalance);
+        balances.push({
+          key: quoteCurrency,
+          coin: quoteCurrency,
+          wallet: quoteBalance,
+        });
       }
     }
 
@@ -639,9 +645,9 @@ export function useBalancesForAllMarkets() {
   }
 
   return useAsyncData(
-    getBalancesForAllMarkets,
+    getWalletBalancesForAllMarkets,
     tuple(
-      'getBalancesForAllMarkets',
+      'getWalletBalancesForAllMarkets',
       connected,
       connection,
       wallet,
@@ -651,16 +657,7 @@ export function useBalancesForAllMarkets() {
   );
 }
 
-async function getBalanceForMarket(
-  market,
-  connection,
-  wallet,
-  currency,
-  base = true,
-) {
-  if (!market) {
-    return;
-  }
+async function getCurrencyBalance(market, connection, wallet, base = true) {
   const currencyAccounts = base
     ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
     : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
@@ -668,33 +665,90 @@ async function getBalanceForMarket(
   const tokenAccountBalances = await connection.getTokenAccountBalance(
     currencyAccount.pubkey,
   );
-  const currencyBalances = tokenAccountBalances?.value?.uiAmount;
-  const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
-    connection,
-    wallet.publicKey,
-  );
-  const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
-  const inOrders = base
-    ? openOrdersAccount?.baseTokenTotal &&
-      openOrdersAccount?.baseTokenFree &&
-      market.baseSplSizeToNumber(
-        openOrdersAccount.baseTokenTotal.sub(openOrdersAccount.baseTokenFree),
-      )
-    : openOrdersAccount?.quoteTokenTotal &&
-      openOrdersAccount?.quoteTokenFree &&
-      market.quoteSplSizeToNumber(
-        openOrdersAccount.quoteTokenTotal.sub(openOrdersAccount.quoteTokenFree),
+  return tokenAccountBalances?.value?.uiAmount;
+}
+
+export function useOpenOrderAccountBalancesForAllMarkets() {
+  const [connected, wallet] = useWallet();
+
+  const connection = useConnection();
+  const allMarkets = useAllMarkets();
+
+  async function getOpenOrderAccountsForAllMarkets() {
+    let accounts = [];
+    if (!connected) {
+      return accounts;
+    }
+
+    let marketData;
+    for (marketData of allMarkets) {
+      const { market, marketName } = marketData;
+      if (!market) {
+        return accounts;
+      }
+      const openOrderAccounts = await market.findOpenOrdersAccountsForOwner(
+        connection,
+        wallet.publicKey,
       );
-  const unsettled = base
-    ? openOrdersAccount?.baseTokenFree &&
-      market.baseSplSizeToNumber(openOrdersAccount.baseTokenFree)
-    : openOrdersAccount?.quoteTokenFree &&
-      market.baseSplSizeToNumber(openOrdersAccount.baseTokenFree);
-  return {
-    key: currency,
-    coin: currency,
-    wallet: currencyBalances,
-    orders: inOrders,
-    unsettled: unsettled,
-  };
+      if (!openOrderAccounts) {
+        continue;
+      }
+      const baseCurrency = marketName.includes('/') && marketName.split('/')[0];
+      const quoteCurrency =
+        marketName.includes('/') && marketName.split('/')[1];
+
+      const openOrderAccountBalances = [];
+      openOrderAccounts.forEach((openOrdersAccount) => {
+        const inOrdersBase =
+          openOrdersAccount?.baseTokenTotal &&
+          openOrdersAccount?.baseTokenFree &&
+          market.baseSplSizeToNumber(
+            openOrdersAccount.baseTokenTotal.sub(
+              openOrdersAccount.baseTokenFree,
+            ),
+          );
+        const inOrdersQuote =
+          openOrdersAccount?.quoteTokenTotal &&
+          openOrdersAccount?.quoteTokenFree &&
+          market.baseSplSizeToNumber(
+            openOrdersAccount.quoteTokenTotal.sub(
+              openOrdersAccount.quoteTokenFree,
+            ),
+          );
+        const unsettledBase =
+          openOrdersAccount?.baseTokenFree &&
+          market.baseSplSizeToNumber(openOrdersAccount.baseTokenFree);
+        const unsettledQuote =
+          openOrdersAccount?.quoteTokenFree &&
+          market.baseSplSizeToNumber(openOrdersAccount.quoteTokenFree);
+        openOrderAccountBalances.push({
+          key: baseCurrency,
+          coin: baseCurrency,
+          orders: inOrdersBase,
+          unsettled: unsettledBase,
+        });
+        openOrderAccountBalances.push({
+          key: quoteCurrency,
+          coin: quoteCurrency,
+          orders: inOrdersQuote,
+          unsettled: unsettledQuote,
+        });
+      });
+      accounts = accounts.concat(openOrderAccountBalances);
+    }
+
+    return accounts;
+  }
+
+  return useAsyncData(
+    getOpenOrderAccountsForAllMarkets,
+    tuple(
+      'getOpenOrderAccountsForAllMarkets',
+      connected,
+      connection,
+      wallet,
+      allMarkets,
+    ),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  );
 }
