@@ -32,9 +32,9 @@ export default function AccountsTable({ accountBalances }) {
 
   const columns = [
     {
-      title: 'Key',
-      dataIndex: 'key',
-      key: 'key',
+      title: 'Market',
+      dataIndex: 'market',
+      key: 'market',
     },
     {
       title: 'Coin',
@@ -66,7 +66,10 @@ export default function AccountsTable({ accountBalances }) {
     <DataTable
       emptyLabel="No balances"
       dataSource={accountBalances}
-      columns={columns}
+      columns={columns.map((data) => ({
+        ...data,
+        key: `${data.market}${data.coin}`,
+      }))}
       pagination={false}
     />
   );

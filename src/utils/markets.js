@@ -722,13 +722,13 @@ export function useOpenOrderAccountBalancesForAllMarkets() {
           openOrdersAccount?.quoteTokenFree &&
           market.baseSplSizeToNumber(openOrdersAccount.quoteTokenFree);
         openOrderAccountBalances.push({
-          key: baseCurrency,
+          market: marketName,
           coin: baseCurrency,
           orders: inOrdersBase,
           unsettled: unsettledBase,
         });
         openOrderAccountBalances.push({
-          key: quoteCurrency,
+          market: marketName,
           coin: quoteCurrency,
           orders: inOrdersQuote,
           unsettled: unsettledQuote,

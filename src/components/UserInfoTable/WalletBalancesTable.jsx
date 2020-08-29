@@ -7,11 +7,6 @@ export default function WalletBalancesTable({
 }) {
   const columns = [
     {
-      title: 'Key',
-      dataIndex: 'key',
-      key: 'key',
-    },
-    {
       title: 'Coin',
       dataIndex: 'coin',
       key: 'coin',
