@@ -10,6 +10,8 @@ import TradeForm from '../components/TradeForm';
 import { Input } from 'antd';
 import { useLocalStorageState } from '../utils/utils';
 import TradesTable from '../components/TradesTable';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import MarketInfoDialog from '../components/MarketInfoDialog';
 
 const { Option } = Select;
 
@@ -40,8 +42,8 @@ export default function TradePage() {
     'submittedPassword5',
     false,
   );
+  const [marketInfoVisible, setMarketInfoVisible] = useState(false);
   const [password, setPassword] = useState('password');
-
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
     width: window.innerWidth,
@@ -104,20 +106,34 @@ export default function TradePage() {
   }
 
   return (
-    <Wrapper>
-      <Row>
-        <Col>
-          <Select bordered={false} onSelect={setMarketName} value={marketName}>
-            {markets.map(({ name, address }) => (
-              <Option value={name} key={address}>
-                {name}
-              </Option>
-            ))}
-          </Select>
-        </Col>
-      </Row>
-      {getComponent()}
-    </Wrapper>
+    <>
+      <MarketInfoDialog
+        visible={marketInfoVisible}
+        onClose={() => setMarketInfoVisible(false)}
+      />
+      <Wrapper>
+        <Row>
+          <Col>
+            <InfoCircleOutlined
+              style={{ marginLeft: 12 }}
+              onClick={() => setMarketInfoVisible(true)}
+            />
+            <Select
+              bordered={false}
+              onSelect={setMarketName}
+              value={marketName}
+            >
+              {markets.map(({ name, address }) => (
+                <Option value={name} key={address}>
+                  {name}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+        </Row>
+        {getComponent()}
+      </Wrapper>
+    </>
   );
 }
 

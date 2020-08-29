@@ -162,14 +162,30 @@ export function useMarkPrice() {
 
 export function _useUnfilteredTrades(limit = 100000) {
   const { market } = useMarket();
-  let data = useAccountData(market && market._decoded.eventQueue);
-  if (!data) {
-    return null;
+  const connection = useConnection();
+  async function getUnfilteredTrades() {
+    if (!market || !connection) {
+      return null;
+    }
+    return await market.loadFills(connection, limit);
   }
-  const events = decodeEventQueue(data, limit);
-  return events
-    .filter((event) => event.eventFlags.fill && event.nativeQuantityPaid.gtn(0))
-    .map(market.parseFillEvent.bind(market));
+  const [trades] = useAsyncData(
+    getUnfilteredTrades,
+    tuple('getUnfilteredTrades', market, connection),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  );
+  return trades;
+  // NOTE: For now, websocket is too expensive since the event queue is large
+  // and updates very frequently
+
+  // let data = useAccountData(market && market._decoded.eventQueue);
+  // if (!data) {
+  //   return null;
+  // }
+  // const events = decodeEventQueue(data, limit);
+  // return events
+  //   .filter((event) => event.eventFlags.fill && event.nativeQuantityPaid.gtn(0))
+  //   .map(market.parseFillEvent.bind(market));
 }
 
 export function useOrderbookAccounts() {

@@ -25,14 +25,14 @@ export default function OpenOrderTable() {
   const openOrders = useOpenOrders();
 
   async function cancel(order) {
-    setCancelId(order?.orderId);
     try {
       await cancelOrder({
         order,
         market,
         connection,
         wallet,
-        callback: () => setCancelId(null),
+        onBeforeSendCallBack: () => setCancelId(order?.orderId),
+        onConfirmCallBack: () => setCancelId(null),
       });
     } catch (e) {
       notify({
@@ -79,7 +79,7 @@ export default function OpenOrderTable() {
           <CancelButton
             icon={<DeleteOutlined />}
             onClick={() => cancel(order)}
-            loading={cancelId === order.orderId}
+            loading={cancelId + '' === order?.orderId + ''}
           >
             Cancel
           </CancelButton>

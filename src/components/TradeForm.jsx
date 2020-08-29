@@ -13,7 +13,7 @@ import {
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
 import { getDecimalCount } from '../utils/utils';
-import { useConnection } from '../utils/connection';
+import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { placeOrder } from '../utils/send';
 
@@ -51,7 +51,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
   const [, wallet] = useWallet();
-  const connection = useConnection();
+  const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
 
   const [postOnly, setPostOnly] = useState(false);
@@ -136,12 +136,13 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         size: parsedSize,
         orderType: ioc ? 'ioc' : postOnly ? 'postOnly' : 'limit',
         market,
-        connection,
+        connection: sendConnection,
         wallet,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey?.toBase58(),
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey?.toBase58(),
         openOrdersAccount: openOrdersAccount?.pubkey?.toBase58(),
-        callback: () => setSubmitting(false),
+        onBeforeSendCallBack: () => setSubmitting(true),
+        onConfirmCallBack: () => setSubmitting(false),
       })) && setSubmitting(false);
     } catch (e) {
       notify({ message: 'Error placing order: ' + e.message, type: 'error' });

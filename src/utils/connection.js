@@ -25,6 +25,9 @@ export function ConnectionProvider({ children }) {
   const connection = useMemo(() => new Connection(endpoint, 'recent'), [
     endpoint,
   ]);
+  const sendConnection = useMemo(() => new Connection(endpoint, 'recent'), [
+    endpoint,
+  ]);
 
   // The websocket library solana/web3.js uses closes its websocket connection when the subscription list
   // is empty after opening its first time, preventing subsequent subscriptions from receiving responses.
@@ -41,9 +44,23 @@ export function ConnectionProvider({ children }) {
     );
     return () => connection.removeSignatureListener(id);
   }, [connection]);
+  useEffect(() => {
+    const id = sendConnection.onSignature(
+      'do not worry, this is expected to yield warning logs',
+      (result) => {
+        console.log(
+          'Received onSignature responses from does-not-exist',
+          result,
+        );
+      },
+    );
+    return () => sendConnection.removeSignatureListener(id);
+  }, [sendConnection]);
 
   return (
-    <ConnectionContext.Provider value={{ endpoint, setEndpoint, connection }}>
+    <ConnectionContext.Provider
+      value={{ endpoint, setEndpoint, connection, sendConnection }}
+    >
       {children}
     </ConnectionContext.Provider>
   );
@@ -51,6 +68,10 @@ export function ConnectionProvider({ children }) {
 
 export function useConnection() {
   return useContext(ConnectionContext).connection;
+}
+
+export function useSendConnection() {
+  return useContext(ConnectionContext).sendConnection;
 }
 
 export function useConnectionConfig() {

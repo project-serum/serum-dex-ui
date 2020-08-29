@@ -58,7 +58,9 @@ export async function cancelOrders({
   wallet,
   connection,
   orders,
-  callback,
+  onBeforeSendCallBack,
+  onAfterSendCallBack,
+  onConfirmCallBack,
 }) {
   const transaction = new Transaction();
   transaction.add(market.makeMatchOrdersInstruction(5));
@@ -87,14 +89,20 @@ export async function cancelOrders({
         type: 'success',
       });
     }
-    callback && callback();
+    onConfirmCallBack && onConfirmCallBack();
   };
-  const onBeforeSend = () => notify({ message: 'Sending cancel...' });
-  const onAfterSend = () =>
+  const onBeforeSend = () => {
+    notify({ message: 'Sending cancel...' });
+    onBeforeSendCallBack && onBeforeSendCallBack();
+  };
+  const onAfterSend = () => {
     notify({
       message: orders.length > 1 ? 'Orders cancelled' : 'Order cancelled',
       type: 'success',
     });
+    onAfterSendCallBack && onAfterSendCallBack();
+  };
+
   return await sendTransaction({
     transaction,
     wallet,
@@ -113,10 +121,12 @@ export async function placeOrder({
   market,
   connection,
   wallet,
-  callback,
   baseCurrencyAccount,
   quoteCurrencyAccount,
   openOrdersAccount,
+  onBeforeSendCallBack,
+  onAfterSendCallBack,
+  onConfirmCallBack,
 }) {
   const isIncrement = (num, step) =>
     Math.abs((num / step) % 1) < 1e-10 ||
@@ -204,10 +214,16 @@ export async function placeOrder({
     } else {
       notify({ message: 'Order confirmed', type: 'success' });
     }
-    callback && callback();
+    onConfirmCallBack && onConfirmCallBack();
   };
-  const onBeforeSend = () => notify({ message: 'Sending order...' });
-  const onAfterSend = () => notify({ message: 'Order sent', type: 'success' });
+  const onBeforeSend = () => {
+    notify({ message: 'Sending order...' });
+    onBeforeSendCallBack && onBeforeSendCallBack();
+  };
+  const onAfterSend = () => {
+    notify({ message: 'Order sent', type: 'success' });
+    onAfterSendCallBack && onAfterSendCallBack();
+  };
 
   return await sendTransaction({
     transaction,
@@ -249,6 +265,7 @@ async function sendTransaction({
   const txid = await connection.sendRawTransaction(signed.serialize(), {
     skipPreflight: true,
   });
+  console.log('Sent raw transaction, received TXID: ', txid);
   const sentAt = new Date().getTime();
   onAfterSend();
 
