@@ -79,7 +79,11 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
   let totalSize = totalAskSize + totalBidSize;
 
   return (
-    <FloatingElement style={smallScreen ? { flex: 1 } : { height: '500px' }}>
+    <FloatingElement
+      style={
+        smallScreen ? { flex: 1 } : { height: '500px', overflow: 'hidden' }
+      }
+    >
       <Title>Orderbook</Title>
       <SizeTitle>
         <Col span={12} style={{ textAlign: 'left' }}>
@@ -89,9 +93,9 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
           Price ({quoteCurrency})
         </Col>
       </SizeTitle>
-      {asksToDisplay.map(({ price, size, cumulativeSize }) => (
+      {asksToDisplay.map(({ price, size, cumulativeSize }, index) => (
         <OrderbookRow
-          key={price}
+          index={index}
           price={price}
           size={size}
           side={'sell'}
@@ -101,9 +105,9 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
         />
       ))}
       <MarkPriceComponent markPrice={markPrice} />
-      {bidsToDisplay.map(({ price, size, cumulativeSize }) => (
+      {bidsToDisplay.map(({ price, size, cumulativeSize }, index) => (
         <OrderbookRow
-          key={price}
+          index={index}
           price={price}
           size={size}
           side={'buy'}
@@ -117,7 +121,7 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
 }
 
 const OrderbookRow = React.memo(
-  ({ side, price, size, sizePercent, onSizeClick, onPriceClick }) => {
+  ({ index, side, price, size, sizePercent, onSizeClick, onPriceClick }) => {
     const element = useRef();
 
     useEffect(() => {
@@ -127,8 +131,13 @@ const OrderbookRow = React.memo(
     }, [price, size]);
 
     return (
-      <Row ref={element} id={price + ''} style={{ marginBottom: 1 }}>
-        <Col span={12} style={{ textAlign: 'left' }} onClick={onSizeClick}>
+      <Row
+        ref={element}
+        id={index + ''}
+        style={{ marginBottom: 1 }}
+        onClick={onSizeClick}
+      >
+        <Col span={12} style={{ textAlign: 'left' }}>
           {size}
         </Col>
         <Col span={12} style={{ textAlign: 'right' }}>

@@ -166,7 +166,7 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
         <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
           <Orderbook
             smallScreen={true}
-            depth={11}
+            depth={12}
             onPrice={onPrice}
             onSize={onSize}
           />
