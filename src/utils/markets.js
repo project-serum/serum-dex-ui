@@ -693,6 +693,15 @@ export function useOpenOrderAccountBalancesForAllMarkets() {
       if (!openOrderAccounts) {
         continue;
       }
+      const baseCurrencyAccounts = await market.findBaseTokenAccountsForOwner(
+        connection,
+        wallet.publicKey,
+      );
+      const quoteCurrencyAccounts = await market.findQuoteTokenAccountsForOwner(
+        connection,
+        wallet.publicKey,
+      );
+
       const baseCurrency = marketName.includes('/') && marketName.split('/')[0];
       const quoteCurrency =
         marketName.includes('/') && marketName.split('/')[1];
@@ -726,12 +735,22 @@ export function useOpenOrderAccountBalancesForAllMarkets() {
           coin: baseCurrency,
           orders: inOrdersBase,
           unsettled: unsettledBase,
+          market: market,
+          openOrdersAccount: openOrdersAccount,
+          baseCurrencyAccount: baseCurrencyAccounts && baseCurrencyAccounts[0],
+          quoteCurrencyAccount:
+            quoteCurrencyAccounts && quoteCurrencyAccounts[0],
         });
         openOrderAccountBalances.push({
           market: marketName,
           coin: quoteCurrency,
           orders: inOrdersQuote,
           unsettled: unsettledQuote,
+          market: market,
+          openOrdersAccount: openOrdersAccount,
+          baseCurrencyAccount: baseCurrencyAccounts && baseCurrencyAccounts[0],
+          quoteCurrencyAccount:
+            quoteCurrencyAccounts && quoteCurrencyAccounts[0],
         });
       });
       accounts = accounts.concat(openOrderAccountBalances);

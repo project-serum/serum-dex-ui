@@ -1,25 +1,16 @@
 import { Button } from 'antd';
 import React from 'react';
-import {
-  useSelectedOpenOrdersAccount,
-  useMarket,
-  useSelectedBaseCurrencyAccount,
-  useSelectedQuoteCurrencyAccount,
-} from '../../utils/markets';
 import DataTable from '../layout/DataTable';
 import { useConnection } from '../../utils/connection';
 import { useWallet } from '../../utils/wallet';
 import { settleFunds } from '../../utils/send';
 
 export default function AccountsTable({ accountBalances }) {
-  const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
-  const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const connection = useConnection();
   const [, wallet] = useWallet();
-  const openOrdersAccount = useSelectedOpenOrdersAccount(true);
-  const { market } = useMarket();
 
-  async function onSettleFunds() {
+  async function onSettleFunds(account) {
+    const { market, openOrdersAccount, baseCurrencyAccount, quoteCurrencyAccount } = account;
     return await settleFunds({
       market,
       openOrders: openOrdersAccount,
@@ -33,13 +24,8 @@ export default function AccountsTable({ accountBalances }) {
   const columns = [
     {
       title: 'Market',
-      dataIndex: 'market',
-      key: 'market',
-    },
-    {
-      title: 'Coin',
-      dataIndex: 'coin',
-      key: 'coin',
+      dataIndex: 'key',
+      key: 'key',
     },
     {
       title: 'Orders',
@@ -53,9 +39,9 @@ export default function AccountsTable({ accountBalances }) {
     },
     {
       key: 'action',
-      render: () => (
+      render: (account) => (
         <div style={{ textAlign: 'right' }}>
-          <Button ghost style={{ marginRight: 12 }} onClick={onSettleFunds}>
+          <Button ghost style={{ marginRight: 12 }} onClick={() => onSettleFunds(account)}>
             Settle
           </Button>
         </div>

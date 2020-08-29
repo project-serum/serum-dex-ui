@@ -8,8 +8,13 @@ export default function WalletBalancesTable({
   const columns = [
     {
       title: 'Coin',
+<<<<<<< HEAD
       dataIndex: 'coin',
       key: 'coin',
+=======
+      dataIndex: 'key',
+      key: 'key',
+>>>>>>> Fix balance page settle
     },
     {
       title: 'Wallet Balance',
