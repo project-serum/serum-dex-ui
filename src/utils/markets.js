@@ -235,7 +235,7 @@ export function _useUnfilteredTrades(limit = 10000) {
   const [trades] = useAsyncData(
     getUnfilteredTrades,
     tuple('getUnfilteredTrades', market, connection),
-    { refreshInterval: _MEDIUM_REFRESH_INTERVAL },
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
   );
   return trades;
   // NOTE: For now, websocket is too expensive since the event queue is large
