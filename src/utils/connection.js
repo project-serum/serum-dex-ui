@@ -7,7 +7,7 @@ import tuple from 'immutable-tuple';
 export const ENDPOINTS = [
   {
     name: 'mainnet-beta',
-    endpoint: clusterApiUrl('mainnet-beta'),
+    endpoint: 'https://solana-api.projectserum.com',
   },
   { name: 'testnet', endpoint: clusterApiUrl('testnet') },
   { name: 'devnet', endpoint: clusterApiUrl('devnet') },
@@ -21,7 +21,7 @@ const ConnectionContext = React.createContext(null);
 export function ConnectionProvider({ children }) {
   const [endpoint, setEndpoint] = useLocalStorageState(
     'connectionEndpts',
-    clusterApiUrl('mainnet-beta'),
+    ENDPOINTS[0].endpoint,
   );
 
   const connection = useMemo(() => new Connection(endpoint, 'recent'), [
