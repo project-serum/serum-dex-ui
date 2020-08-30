@@ -13,7 +13,7 @@ import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
 import { notify } from './notifications';
 
-const DEFAULT_MARKET_NAME = 'BASE/QUOTE';
+const DEFAULT_MARKET_NAME = 'SRM/USDC';
 
 export const COIN_MINTS = {
   '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E': 'BTC',
@@ -29,49 +29,61 @@ export const COIN_MINTS = {
 };
 
 export const MARKET_INFO_BY_NAME = {
+  'MSRM/USDC': {
+    address: '7kgkDyW7dmyMeP8KFXzbcUZz1R2WHsovDZ7n3ihZuNDS',
+    name: 'MSRM/USDC',
+  },
+  'MSRM/USDT': {
+    address: 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ',
+    name: 'MSRM/USDT',
+  },
+  'BTC/USDC': {
+    address: 'CAgAeMD7quTdnr6RPa7JySQpjf3irAmefYNdTb6anemq',
+    name: 'BTC/USDC',
+  },
+  'BTC/USDT': {
+    address: '8AcVjMG2LTbpkjNoyq8RwysokqZunkjy3d5JDzxC6BJa',
+    name: 'BTC/USDT',
+  },
+  'ETH/USDC': {
+    address: 'ASKiV944nKg1W9vsf7hf3fTsjawK6DwLwrnB2LH9n61c',
+    name: 'ETH/USDC',
+  },
   'ETH/USDT': {
+    address: 'HfCZdJ1wfsWKfYP2qyWdXTT5PWAGWFctzFjLH48U1Hsd',
     name: 'ETH/USDT',
-    address: '9LHKc4aDTxEMdpaz6yo3icbcbudzSExVuzKfTiv4vP1e',
   },
   'SRM/USDC': {
+    address: '68J6nkWToik6oM9rTatKSR5ibVSykAtzftBUEAvpRsys',
     name: 'SRM/USDC',
-    address: '2iRmJigP8rbbJqTSykGSDVBPTAbx1dHp7hAqv2G8Gd6o',
   },
   'SRM/USDT': {
+    address: 'HARFLhSq8nECZk4DVFKvzqXMNMA9a3hjvridGMFizeLa',
     name: 'SRM/USDT',
-    address: '6rjKXdu9oH7m2LQ7NGT48HoWC7tBXzvyPcaxkE5C7gZg',
   },
   'FTT/USDC': {
+    address: 'FZqrBXz7ADGsmDf1TM9YgysPUfvtG8rJiNUrqDpHc9Au',
     name: 'FTT/USDC',
-    address: 'oW3ckJsf9jLkXVUVMwib9mqWUVNvozy8wSUPMVceU3A',
   },
   'FTT/USDT': {
+    address: 'DHDdghmkBhEpReno3tbzBPtsxCt6P3KrMzZvxavTktJt',
     name: 'FTT/USDT',
-    address: '3xWp1N71uwKNh57zp9vLDkWzyhtQGrkZZAPe9rZ4AHm4',
   },
   'YFI/USDC': {
+    address: 'FJg9FUtbN3fg3YFbMCFiZKjGh5Bn4gtzxZmtxFzmz9kT',
     name: 'YFI/USDC',
-    address: '5hH3EybqEkjLop9tkqdJhn9LRRJHMX7Yb4U8MxABpgZQ',
   },
   'YFI/USDT': {
+    address: '5zu5bTZZvqESAAgFsr12CUMxdQvMrvU9CgvC1GW8vJdf',
     name: 'YFI/USDT',
-    address: '7G7NHnpJrtqPxEXqEgLu8nfPrGr6qSt2p1EyrhDtfizd',
   },
   'LINK/USDC': {
+    address: '7GZ59DMgJ7D6dfoJTpszPayTRyua9jwcaGJXaRMMF1my',
     name: 'LINK/USDC',
-    address: '3MrRgswm4YUeXx2cToHgYvzDeKLVkfmwQCm9VQ1PPQf8',
   },
   'LINK/USDT': {
+    address: 'F5xschQBMpu1gD2q1babYEAVJHR1buj1YazLiXyQNqSW',
     name: 'LINK/USDT',
-    address: 'B4YnRj9LtUQFfgd3w5xWJsNGeQYLhcizoAwpRgdjRBKQ',
-  },
-  'XRP/USDC': {
-    name: 'XRP/USDC',
-    address: 'BzDXAUC2BRcmxBnt3tEYrzgQT8vdhKvsdiFYYjTd7B69',
-  },
-  'XRP/USDT': {
-    name: 'XRP/USDT',
-    address: '9eQgbbzmTiFpybS6hSCUQ7w7qapQzPj5s5YQuYCTuznK',
   },
 };
 
@@ -80,10 +92,7 @@ export function useMarketsList() {
 }
 
 export function useAllMarkets() {
-  const [selectedDexProgramID] = useLocalStorageState(
-    'selectedDexProgramID',
-    DEX_PROGRAM_ID.toBase58(),
-  );
+  const selectedDexProgramID = DEX_PROGRAM_ID.toBase58();
 
   const connection = useConnection();
   const [markets, setMarkets] = useState([]);
@@ -134,10 +143,7 @@ export function MarketProvider({ children }) {
     'selectedMarketName',
     DEFAULT_MARKET_NAME,
   );
-  const [selectedDexProgramID, setSelectedDexProgramID] = useLocalStorageState(
-    'selectedDexProgramID',
-    DEX_PROGRAM_ID.toBase58(),
-  );
+  const selectedDexProgramID = DEX_PROGRAM_ID.toBase58();
 
   const connection = useConnection();
   const marketInfo = MARKET_INFO_BY_NAME[marketName];
@@ -182,7 +188,6 @@ export function MarketProvider({ children }) {
         baseCurrency,
         quoteCurrency,
         selectedDexProgramID,
-        setSelectedDexProgramID,
       }}
     >
       {children}

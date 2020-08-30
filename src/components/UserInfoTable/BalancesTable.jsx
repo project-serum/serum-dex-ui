@@ -7,14 +7,14 @@ import {
   useSelectedQuoteCurrencyAccount,
 } from '../../utils/markets';
 import DataTable from '../layout/DataTable';
-import { useConnection } from '../../utils/connection';
+import { useSendConnection } from '../../utils/connection';
 import { useWallet } from '../../utils/wallet';
 import { settleFunds } from '../../utils/send';
 
 export default function BalancesTable({ balances }) {
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
-  const connection = useConnection();
+  const connection = useSendConnection();
   const [, wallet] = useWallet();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
   const { market } = useMarket();

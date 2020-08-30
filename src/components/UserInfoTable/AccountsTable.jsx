@@ -10,7 +10,12 @@ export default function AccountsTable({ accountBalances }) {
   const [, wallet] = useWallet();
 
   async function onSettleFunds(account) {
-    const { market, openOrdersAccount, baseCurrencyAccount, quoteCurrencyAccount } = account;
+    const {
+      market,
+      openOrdersAccount,
+      baseCurrencyAccount,
+      quoteCurrencyAccount,
+    } = account;
     return await settleFunds({
       market,
       openOrders: openOrdersAccount,
@@ -41,7 +46,11 @@ export default function AccountsTable({ accountBalances }) {
       key: 'action',
       render: (account) => (
         <div style={{ textAlign: 'right' }}>
-          <Button ghost style={{ marginRight: 12 }} onClick={() => onSettleFunds(account)}>
+          <Button
+            ghost
+            style={{ marginRight: 12 }}
+            onClick={() => onSettleFunds(account)}
+          >
             Settle
           </Button>
         </div>

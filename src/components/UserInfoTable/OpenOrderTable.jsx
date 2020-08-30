@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { Button, Row, Col, Tag } from 'antd';
 import { cancelOrder } from '../../utils/send';
 import { useWallet } from '../../utils/wallet';
-import { useConnection } from '../../utils/connection';
+import { useSendConnection } from '../../utils/connection';
 import { notify } from '../../utils/notifications';
 import { DeleteOutlined } from '@ant-design/icons';
 
@@ -18,7 +18,7 @@ const CancelButton = styled(Button)`
 export default function OpenOrderTable({ openOrders }) {
   let { market } = useMarket();
   let [, wallet] = useWallet();
-  let connection = useConnection();
+  let connection = useSendConnection();
 
   const [cancelId, setCancelId] = useState(null);
 
@@ -85,8 +85,7 @@ export default function OpenOrderTable({ openOrders }) {
       ),
     },
   ];
-  let orders = openOrders;
-  const dataSource = (orders || []).map((order) =>
+  const dataSource = (openOrders || []).map((order) =>
     Object.assign(order, { key: order.orderId }),
   );
 
