@@ -5,7 +5,7 @@ export async function sleep(ms) {
 }
 
 export function getDecimalCount(value) {
-  if (Math.floor(value) !== value)
+  if (!isNaN(value) && Math.floor(value) !== value)
     return value.toString().split('.')[1].length || 0;
   return 0;
 }
