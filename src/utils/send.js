@@ -1,6 +1,6 @@
 import { notify } from './notifications';
 import nacl from 'tweetnacl';
-import { sleep } from './utils';
+import { sleep, getDecimalCount } from './utils';
 import { Transaction } from '@solana/web3.js';
 
 export async function settleFunds({
@@ -138,6 +138,12 @@ export async function placeOrder({
   onAfterSendCallBack,
   onConfirmCallBack,
 }) {
+  let formattedMinOrderSize =
+    market?.minOrderSize?.toFixed(getDecimalCount(market.minOrderSize)) ||
+    market?.minOrderSize;
+  let formattedTickSize =
+    market?.tickSize?.toFixed(getDecimalCount(market.tickSize)) ||
+    market?.tickSize;
   const isIncrement = (num, step) =>
     Math.abs((num / step) % 1) < 1e-10 ||
     Math.abs(((num / step) % 1) - 1) < 1e-10;
@@ -159,7 +165,7 @@ export async function placeOrder({
   }
   if (!isIncrement(size, market.minOrderSize)) {
     notify({
-      message: `Size must be an increment of ${market.minOrderSize}`,
+      message: `Size must be an increment of ${formattedMinOrderSize}`,
       type: 'error',
     });
     return;
@@ -170,7 +176,7 @@ export async function placeOrder({
   }
   if (!isIncrement(price, market.tickSize)) {
     notify({
-      message: `Price must be an increment of ${market.tickSize}`,
+      message: `Price must be an increment of ${formattedTickSize}`,
       type: 'error',
     });
     return;
