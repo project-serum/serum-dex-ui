@@ -29,61 +29,61 @@ export const COIN_MINTS = {
 };
 
 export const MARKET_INFO_BY_NAME = {
-  'MSRM/USDC': {
-    address: '7kgkDyW7dmyMeP8KFXzbcUZz1R2WHsovDZ7n3ihZuNDS',
-    name: 'MSRM/USDC',
-  },
   'MSRM/USDT': {
     address: 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ',
     name: 'MSRM/USDT',
   },
-  'BTC/USDC': {
-    address: 'CAgAeMD7quTdnr6RPa7JySQpjf3irAmefYNdTb6anemq',
-    name: 'BTC/USDC',
+  'MSRM/USDC': {
+    address: '7kgkDyW7dmyMeP8KFXzbcUZz1R2WHsovDZ7n3ihZuNDS',
+    name: 'MSRM/USDC',
   },
   'BTC/USDT': {
     address: '8AcVjMG2LTbpkjNoyq8RwysokqZunkjy3d5JDzxC6BJa',
     name: 'BTC/USDT',
   },
-  'ETH/USDC': {
-    address: 'ASKiV944nKg1W9vsf7hf3fTsjawK6DwLwrnB2LH9n61c',
-    name: 'ETH/USDC',
+  'BTC/USDC': {
+    address: 'CAgAeMD7quTdnr6RPa7JySQpjf3irAmefYNdTb6anemq',
+    name: 'BTC/USDC',
   },
   'ETH/USDT': {
     address: 'HfCZdJ1wfsWKfYP2qyWdXTT5PWAGWFctzFjLH48U1Hsd',
     name: 'ETH/USDT',
   },
-  'SRM/USDC': {
-    address: '68J6nkWToik6oM9rTatKSR5ibVSykAtzftBUEAvpRsys',
-    name: 'SRM/USDC',
+  'ETH/USDC': {
+    address: 'ASKiV944nKg1W9vsf7hf3fTsjawK6DwLwrnB2LH9n61c',
+    name: 'ETH/USDC',
   },
   'SRM/USDT': {
     address: 'HARFLhSq8nECZk4DVFKvzqXMNMA9a3hjvridGMFizeLa',
     name: 'SRM/USDT',
   },
-  'FTT/USDC': {
-    address: 'FZqrBXz7ADGsmDf1TM9YgysPUfvtG8rJiNUrqDpHc9Au',
-    name: 'FTT/USDC',
+  'SRM/USDC': {
+    address: '68J6nkWToik6oM9rTatKSR5ibVSykAtzftBUEAvpRsys',
+    name: 'SRM/USDC',
   },
   'FTT/USDT': {
     address: 'DHDdghmkBhEpReno3tbzBPtsxCt6P3KrMzZvxavTktJt',
     name: 'FTT/USDT',
   },
-  'YFI/USDC': {
-    address: 'FJg9FUtbN3fg3YFbMCFiZKjGh5Bn4gtzxZmtxFzmz9kT',
-    name: 'YFI/USDC',
+  'FTT/USDC': {
+    address: 'FZqrBXz7ADGsmDf1TM9YgysPUfvtG8rJiNUrqDpHc9Au',
+    name: 'FTT/USDC',
   },
   'YFI/USDT': {
     address: '5zu5bTZZvqESAAgFsr12CUMxdQvMrvU9CgvC1GW8vJdf',
     name: 'YFI/USDT',
   },
-  'LINK/USDC': {
-    address: '7GZ59DMgJ7D6dfoJTpszPayTRyua9jwcaGJXaRMMF1my',
-    name: 'LINK/USDC',
+  'YFI/USDC': {
+    address: 'FJg9FUtbN3fg3YFbMCFiZKjGh5Bn4gtzxZmtxFzmz9kT',
+    name: 'YFI/USDC',
   },
   'LINK/USDT': {
     address: 'F5xschQBMpu1gD2q1babYEAVJHR1buj1YazLiXyQNqSW',
     name: 'LINK/USDT',
+  },
+  'LINK/USDC': {
+    address: '7GZ59DMgJ7D6dfoJTpszPayTRyua9jwcaGJXaRMMF1my',
+    name: 'LINK/USDC',
   },
 };
 

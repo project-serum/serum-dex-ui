@@ -145,8 +145,8 @@ export async function placeOrder({
     market?.tickSize?.toFixed(getDecimalCount(market.tickSize)) ||
     market?.tickSize;
   const isIncrement = (num, step) =>
-    Math.abs((num / step) % 1) < 1e-10 ||
-    Math.abs(((num / step) % 1) - 1) < 1e-10;
+    Math.abs((num / step) % 1) < 1e-5 ||
+    Math.abs(((num / step) % 1) - 1) < 1e-5;
   if (isNaN(price)) {
     notify({ message: 'Invalid price', type: 'error' });
     return;

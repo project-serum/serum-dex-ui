@@ -1,6 +1,6 @@
 import { useLocalStorageState } from './utils';
-import { clusterApiUrl, Connection } from '@solana/web3.js';
-import React, { useContext, useMemo, useEffect } from 'react';
+import { Account, clusterApiUrl, Connection } from '@solana/web3.js';
+import React, { useContext, useEffect, useMemo } from 'react';
 import { setCache, useAsyncData } from './fetch-loop';
 import tuple from 'immutable-tuple';
 
@@ -34,30 +34,10 @@ export function ConnectionProvider({ children }) {
   // The websocket library solana/web3.js uses closes its websocket connection when the subscription list
   // is empty after opening its first time, preventing subsequent subscriptions from receiving responses.
   // This is a hack to prevent the list from every getting empty
-  // useEffect(() => {
-  //   const id = connection.onSignature(
-  //     'do not worry, this is expected to yield warning logs',
-  //     (result) => {
-  //       console.log(
-  //         'Received onSignature responses from does-not-exist',
-  //         result,
-  //       );
-  //     },
-  //   );
-  //   return () => connection.removeSignatureListener(id);
-  // }, [connection]);
-  // useEffect(() => {
-  //   const id = sendConnection.onSignature(
-  //     'do not worry, this is expected to yield warning logs',
-  //     (result) => {
-  //       console.log(
-  //         'Received onSignature responses from does-not-exist',
-  //         result,
-  //       );
-  //     },
-  //   );
-  //   return () => sendConnection.removeSignatureListener(id);
-  // }, [sendConnection]);
+  useEffect(() => {
+    const id = connection.onAccountChange(new Account().publicKey, () => {});
+    return () => connection.removeAccountChangeListener(id);
+  }, [connection]);
 
   return (
     <ConnectionContext.Provider
@@ -87,7 +67,7 @@ export function useAccountInfo(publicKey) {
   const [accountInfo, loaded] = useAsyncData(
     async () => (publicKey ? connection.getAccountInfo(publicKey) : null),
     cacheKey,
-    { refreshInterval: 60000000 },
+    { refreshInterval: 60_000 },
   );
   let id = publicKey?.toBase58();
   useEffect(() => {
@@ -97,10 +77,7 @@ export function useAccountInfo(publicKey) {
     if (accountListenerCount.has(cacheKey)) {
       let currentItem = accountListenerCount.get(cacheKey);
       console.log('Incrementing', id, currentItem.count + 1);
-      accountListenerCount.set(cacheKey, {
-        count: currentItem.count + 1,
-        subscriptionId: currentItem.subscriptionId,
-      });
+      ++currentItem.count;
     } else {
       let previousData = null;
       console.log('Subscribing to ', id);
@@ -127,10 +104,7 @@ export function useAccountInfo(publicKey) {
         accountListenerCount.delete(cacheKey);
       } else {
         console.log('Decrementing', id, nextCount);
-        accountListenerCount.set(cacheKey, {
-          count: nextCount,
-          subscriptionId: currentItem.subscriptionId,
-        });
+        --currentItem.count;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
