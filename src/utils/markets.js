@@ -136,8 +136,6 @@ const _SLOW_REFRESH_INTERVAL = 5 * 1000;
 // For things that change frequently
 const _FAST_REFRESH_INTERVAL = 1000;
 
-const _MEDIUM_REFRESH_INTERVAL = 3 * 1000;
-
 export function MarketProvider({ children }) {
   const [marketName, setMarketName] = useLocalStorageState(
     'selectedMarketName',
