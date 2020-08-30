@@ -75,10 +75,10 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     setChangeOrderRef && setChangeOrderRef(doChangeOrder);
   }, [setChangeOrderRef]);
 
-  useEffect(() => {
-    sizeFraction && onSliderChange(sizeFraction);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [side, sizeFraction]);
+  // useEffect(() => {
+  //   sizeFraction && onSliderChange(sizeFraction);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [side, sizeFraction]);
 
   const doChangeOrder = ({ size, price }) => {
     size && setSize(size);
@@ -203,12 +203,12 @@ export default function TradeForm({ style, setChangeOrderRef }) {
           step={market?.minOrderSize || 1}
           onChange={(e) => setSize(e.target.value)}
         />
-        <Slider
-          value={sizeFraction}
-          tipFormatter={(value) => `${value}%`}
-          marks={sliderMarks}
-          onChange={onSliderChange}
-        />
+        {/*<Slider*/}
+        {/*  value={sizeFraction}*/}
+        {/*  tipFormatter={(value) => `${value}%`}*/}
+        {/*  marks={sliderMarks}*/}
+        {/*  onChange={onSliderChange}*/}
+        {/*/>*/}
         <div style={{ paddingTop: 18 }}>
           {'POST '}
           <Switch

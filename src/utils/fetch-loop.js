@@ -7,10 +7,11 @@ const pageLoadTime = new Date();
 const globalCache = new Map();
 
 class FetchLoopListener {
-  constructor(cacheKey, fn, refreshInterval, callback) {
+  constructor(cacheKey, fn, refreshInterval, refreshIntervalOnError, callback) {
     this.cacheKey = cacheKey;
     this.fn = fn;
     this.refreshInterval = refreshInterval;
+    this.refreshIntervalOnError = refreshIntervalOnError;
     this.callback = callback;
   }
 }
@@ -27,6 +28,14 @@ class FetchLoopInternal {
   get refreshInterval() {
     return Math.min(
       ...[...this.listeners].map((listener) => listener.refreshInterval),
+    );
+  }
+
+  get refreshIntervalOnError() {
+    return Math.min(
+      ...[...this.listeners]
+        .map((listener) => listener.refreshIntervalOnError)
+        .filter((x) => x),
     );
   }
 
@@ -65,6 +74,7 @@ class FetchLoopInternal {
       return;
     }
 
+    let errored = false;
     try {
       const data = await this.fn();
       globalCache.set(this.cacheKey, data);
@@ -74,9 +84,17 @@ class FetchLoopInternal {
     } catch (error) {
       ++this.errors;
       console.warn(error);
+      errored = true;
     } finally {
       if (!this.timeoutId && !this.stopped) {
         let waitTime = this.refreshInterval;
+        if (
+          errored &&
+          this.refreshIntervalOnError &&
+          this.refreshIntervalOnError > 0
+        ) {
+          waitTime = this.refreshIntervalOnError;
+        }
 
         // Back off on errors.
         if (this.errors > 0) {
@@ -141,7 +159,7 @@ const globalLoops = new FetchLoops();
 export function useAsyncData(
   asyncFn,
   cacheKey,
-  { refreshInterval = 60000 } = {},
+  { refreshInterval = 60000, refreshIntervalOnError = null } = {},
 ) {
   const [, rerender] = useReducer((i) => i + 1, 0);
 
@@ -154,6 +172,7 @@ export function useAsyncData(
       cacheKey,
       asyncFn,
       refreshInterval,
+      refreshIntervalOnError,
       rerender,
     );
     globalLoops.addListener(listener);

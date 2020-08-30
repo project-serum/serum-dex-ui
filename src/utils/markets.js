@@ -131,12 +131,12 @@ export function useAllMarkets() {
 const MarketContext = React.createContext(null);
 
 // For things that don't really change
-const _SLOW_REFRESH_INTERVAL = 1000 * 1000;
+const _SLOW_REFRESH_INTERVAL = 5 * 1000;
 
 // For things that change frequently
-const _FAST_REFRESH_INTERVAL = 5 * 1000;
+const _FAST_REFRESH_INTERVAL = 1000;
 
-const _MEDIUM_REFRESH_INTERVAL = 5 * 1000;
+const _MEDIUM_REFRESH_INTERVAL = 3 * 1000;
 
 export function MarketProvider({ children }) {
   const [marketName, setMarketName] = useLocalStorageState(
@@ -601,9 +601,12 @@ export function useBalances() {
     openOrdersAccount &&
     openOrdersAccount.quoteTokenTotal &&
     openOrdersAccount.quoteTokenFree;
+  if (baseCurrency === 'UNKNOWN' || quoteCurrency === 'UNKNOWN') {
+    return [];
+  }
   return [
     {
-      key: baseCurrency,
+      key: `${baseCurrency}${quoteCurrency}${baseCurrency}`,
       coin: baseCurrency,
       wallet: baseCurrencyBalances,
       orders:
@@ -620,7 +623,7 @@ export function useBalances() {
           : null,
     },
     {
-      key: quoteCurrency,
+      key: `${quoteCurrency}${baseCurrency}${quoteCurrency}`,
       coin: quoteCurrency,
       wallet: quoteCurrencyBalances,
       orders:

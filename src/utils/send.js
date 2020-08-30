@@ -19,7 +19,17 @@ export async function settleFunds({
     !baseCurrencyAccount ||
     !quoteCurrencyAccount
   ) {
-    notify({ message: 'Not connected' });
+    if (
+      (baseCurrencyAccount && !quoteCurrencyAccount) ||
+      (quoteCurrencyAccount && !baseCurrencyAccount)
+    ) {
+      notify({
+        message: 'Add token account',
+        description: 'Add accounts for both currencies on sollet.io',
+      });
+    } else {
+      notify({ message: 'Not connected' });
+    }
     return;
   }
   const transaction = await market.makeSettleFundsTransaction(
