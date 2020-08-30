@@ -16,20 +16,62 @@ import { notify } from './notifications';
 const DEFAULT_MARKET_NAME = 'BASE/QUOTE';
 
 export const COIN_MINTS = {
-  '4VRGNMGJP2tg1g5nzUPXy5DjvKiXx2G4ebVUgrdzjbqN': 'BASE',
-  EWe1BKUEA5PM8ZAgyrkY1Jw9pSqayg82b8tXiFZYQ9V8: 'QUOTE',
-  '544N54S1vKf4q1YRc6fwM19Yzcgt3LPQ8cgFpoGfMx8Y': 'XRP',
-  CqQu8uWjbraVccQU3U5xcixiV8bJfFHFtdTY9KF9e2ed: 'USDT',
+  '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E': 'BTC',
+  '2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk': 'ETH',
+  AGFEad2et2ZJif9jaGpdMixQqvW5i81aBdvKe7PHNfz3: 'FTT',
+  '3JSf5tPeuscJGtaCp5giEiDhv51gQ4v3zWg8DGgyLfAB': 'YFI',
+  CWE8jPTUYhdCTZYWPTe1o5DFqfdjzWKc9WKz6rSjQUdG: 'LINK',
+  Ga2AXHpfAF6mv2ekZwcsJFqu7wB4NV331qNH7fW9Nst8: 'XRP',
+  BQcdHdAQW1hczDbBi9hiegXAR7A98Q9jx3X3iBBBDiq4: 'USDT',
+  BXXkv6z8ykpG1yuvUDPgh732wzVHB69RnB9YgSYh3itW: 'USDC',
+  MSRMcoVyrFxnSgo5uXwone5SKcGhT1KEJMFEkMEWf9L: 'MSRM',
+  SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt: 'SRM',
 };
 
 export const MARKET_INFO_BY_NAME = {
-  'BASE/QUOTE': {
-    name: 'BASE/QUOTE',
-    address: '2tJ2LVReFCZF81Ej4MAQHEr1kRSmk6QQ5XSnzjC9KJNj',
+  'ETH/USDT': {
+    name: 'ETH/USDT',
+    address: '9LHKc4aDTxEMdpaz6yo3icbcbudzSExVuzKfTiv4vP1e',
+  },
+  'SRM/USDC': {
+    name: 'SRM/USDC',
+    address: '2iRmJigP8rbbJqTSykGSDVBPTAbx1dHp7hAqv2G8Gd6o',
+  },
+  'SRM/USDT': {
+    name: 'SRM/USDT',
+    address: '6rjKXdu9oH7m2LQ7NGT48HoWC7tBXzvyPcaxkE5C7gZg',
+  },
+  'FTT/USDC': {
+    name: 'FTT/USDC',
+    address: 'oW3ckJsf9jLkXVUVMwib9mqWUVNvozy8wSUPMVceU3A',
+  },
+  'FTT/USDT': {
+    name: 'FTT/USDT',
+    address: '3xWp1N71uwKNh57zp9vLDkWzyhtQGrkZZAPe9rZ4AHm4',
+  },
+  'YFI/USDC': {
+    name: 'YFI/USDC',
+    address: '5hH3EybqEkjLop9tkqdJhn9LRRJHMX7Yb4U8MxABpgZQ',
+  },
+  'YFI/USDT': {
+    name: 'YFI/USDT',
+    address: '7G7NHnpJrtqPxEXqEgLu8nfPrGr6qSt2p1EyrhDtfizd',
+  },
+  'LINK/USDC': {
+    name: 'LINK/USDC',
+    address: '3MrRgswm4YUeXx2cToHgYvzDeKLVkfmwQCm9VQ1PPQf8',
+  },
+  'LINK/USDT': {
+    name: 'LINK/USDT',
+    address: 'B4YnRj9LtUQFfgd3w5xWJsNGeQYLhcizoAwpRgdjRBKQ',
+  },
+  'XRP/USDC': {
+    name: 'XRP/USDC',
+    address: 'BzDXAUC2BRcmxBnt3tEYrzgQT8vdhKvsdiFYYjTd7B69',
   },
   'XRP/USDT': {
     name: 'XRP/USDT',
-    address: '2UcxiYZWaZsn1MGsHkujbttkNuMsbZsSbvadNZGEuVCg',
+    address: '9eQgbbzmTiFpybS6hSCUQ7w7qapQzPj5s5YQuYCTuznK',
   },
 };
 
@@ -89,7 +131,7 @@ const _MEDIUM_REFRESH_INTERVAL = 5 * 1000;
 
 export function MarketProvider({ children }) {
   const [marketName, setMarketName] = useLocalStorageState(
-    'marketName',
+    'selectedMarketName',
     DEFAULT_MARKET_NAME,
   );
   const [selectedDexProgramID, setSelectedDexProgramID] = useLocalStorageState(
