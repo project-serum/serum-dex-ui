@@ -95,6 +95,7 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
       </SizeTitle>
       {asksToDisplay.map(({ price, size, cumulativeSize }, index) => (
         <OrderbookRow
+          key={index}
           index={index}
           price={price}
           size={size}
@@ -107,6 +108,7 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
       <MarkPriceComponent markPrice={markPrice} />
       {bidsToDisplay.map(({ price, size, cumulativeSize }, index) => (
         <OrderbookRow
+          key={index}
           index={index}
           price={price}
           size={size}
@@ -124,11 +126,23 @@ const OrderbookRow = React.memo(
   ({ index, side, price, size, sizePercent, onSizeClick, onPriceClick }) => {
     const element = useRef();
 
+    const { market } = useMarket();
+
     useEffect(() => {
       // eslint-disable-next-line
       let _ = element.current?.classList.add('flash');
       setTimeout(() => element.current?.classList.remove('flash'), 500);
     }, [price, size]);
+
+    let formattedSize =
+      market?.minOrderSize && !isNaN(size)
+        ? Number(size).toFixed(getDecimalCount(market.minOrderSize))
+        : size;
+
+    let formattedPrice =
+      market?.tickSize && !isNaN(price)
+        ? Number(price).toFixed(getDecimalCount(market.tickSize))
+        : price;
 
     return (
       <Row
@@ -138,7 +152,7 @@ const OrderbookRow = React.memo(
         onClick={onSizeClick}
       >
         <Col span={12} style={{ textAlign: 'left' }}>
-          {size}
+          {formattedSize}
         </Col>
         <Col span={12} style={{ textAlign: 'right' }}>
           <Line
@@ -149,7 +163,7 @@ const OrderbookRow = React.memo(
                 : 'rgba(242, 60, 105, 0.6)'
             }
           />
-          <Price onClick={onPriceClick}>{price}</Price>
+          <Price onClick={onPriceClick}>{formattedPrice}</Price>
         </Col>
       </Row>
     );
@@ -160,7 +174,7 @@ const OrderbookRow = React.memo(
 
 const MarkPriceComponent = React.memo(
   ({ markPrice }) => {
-    const { priceStep } = useMarket();
+    const { market } = useMarket();
     const previousMarkPrice = usePrevious(markPrice);
 
     let markPriceColor =
@@ -169,6 +183,11 @@ const MarkPriceComponent = React.memo(
         : markPrice < previousMarkPrice
         ? '#F23B69'
         : 'white';
+
+    let formattedMarkPrice =
+      markPrice &&
+      market?.tickSize &&
+      markPrice.toFixed(getDecimalCount(market.tickSize));
 
     return (
       <MarkPriceTitle justify="center">
@@ -179,11 +198,7 @@ const MarkPriceComponent = React.memo(
           {markPrice < previousMarkPrice && (
             <ArrowDownOutlined style={{ marginRight: 5 }} />
           )}
-          {markPrice
-            ? priceStep
-              ? markPrice.toFixed(getDecimalCount(priceStep))
-              : markPrice
-            : '----'}
+          {formattedMarkPrice || '----'}
         </Col>
       </MarkPriceTitle>
     );

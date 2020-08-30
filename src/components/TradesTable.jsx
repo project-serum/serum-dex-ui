@@ -2,6 +2,7 @@ import { Col, Row } from 'antd';
 import React from 'react';
 import styled from 'styled-components';
 import { useMarket, useTrades } from '../utils/markets';
+import { getDecimalCount } from '../utils/utils';
 import FloatingElement from './layout/FloatingElement';
 
 const Title = styled.div`
@@ -21,7 +22,7 @@ const TradesContainer = styled.div`
 `;
 
 export default function PublicTrades({ smallScreen }) {
-  const { baseCurrency, quoteCurrency } = useMarket();
+  const { baseCurrency, quoteCurrency, market } = useMarket();
   const trades = useTrades();
   return (
     <FloatingElement
@@ -45,7 +46,11 @@ export default function PublicTrades({ smallScreen }) {
           {trades.map((trade, i) => (
             <Row key={i} style={{ marginBottom: 4 }}>
               <Col span={12} style={{ textAlign: 'left' }}>
-                {trade.size}
+                {market?.minOrderSize && !isNaN(trade.size)
+                  ? Number(trade.size).toFixed(
+                      getDecimalCount(market.minOrderSize),
+                    )
+                  : trade.size}
               </Col>
               <Col
                 span={12}
@@ -54,7 +59,11 @@ export default function PublicTrades({ smallScreen }) {
                   color: trade.side === 'buy' ? '#41C77A' : '#F23B69',
                 }}
               >
-                {trade.price}
+                {market?.tickSize && !isNaN(trade.price)
+                  ? Number(trade.price).toFixed(
+                      getDecimalCount(market.tickSize),
+                    )
+                  : trade.price}
               </Col>
             </Row>
           ))}
