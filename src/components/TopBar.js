@@ -69,8 +69,6 @@ export default function TopBar() {
         }}
       >
         <Menu.Item key="/">TRADE</Menu.Item>
-        <Menu.Item key="/orders">ORDERS</Menu.Item>
-        <Menu.Item key="/balances">BALANCES</Menu.Item>
       </Menu>
       <div style={{ display: 'block' }}>
         <Select
