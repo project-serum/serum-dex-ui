@@ -267,15 +267,11 @@ export function useOrderbook(depth = 20) {
   const bids =
     !bidOrderbook || !market
       ? []
-      : bidOrderbook
-          .getL2(depth)
-          .map(([price, size]) => [price.toFixed(2), size]);
+      : bidOrderbook.getL2(depth).map(([price, size]) => [price, size]);
   const asks =
     !askOrderbook || !market
       ? []
-      : askOrderbook
-          .getL2(depth)
-          .map(([price, size]) => [price.toFixed(2), size]);
+      : askOrderbook.getL2(depth).map(([price, size]) => [price, size]);
   return [{ bids, asks }, !!bids || !!asks];
 }
 
