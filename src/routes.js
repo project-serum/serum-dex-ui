@@ -4,7 +4,7 @@ import OpenOrdersPage from './pages/OpenOrdersPage';
 import React from 'react';
 import { Layout } from 'antd';
 import TopBar from './components/TopBar';
-import CustomFooter from './components/Footer';
+import { CustomFooter } from './components/Footer';
 import BalancesPage from './pages/BalancesPage';
 
 const { Header, Content } = Layout;

@@ -8,7 +8,6 @@ import { useMarket, useMarketsList } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import { useLocalStorageState } from '../utils/utils';
 import TradesTable from '../components/TradesTable';
-import { InfoCircleOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -39,7 +38,6 @@ export default function TradePage() {
     'submittedPassword5',
     false,
   );
-  const [marketInfoVisible, setMarketInfoVisible] = useState(false);
   const [password, setPassword] = useState('password');
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
@@ -107,10 +105,6 @@ export default function TradePage() {
       <Wrapper>
         <Row>
           <Col>
-            <InfoCircleOutlined
-              style={{ marginLeft: 12 }}
-              onClick={() => setMarketInfoVisible(true)}
-            />
             <Select
               bordered={false}
               onSelect={setMarketName}
