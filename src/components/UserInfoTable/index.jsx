@@ -1,27 +1,25 @@
 import BalancesTable from './BalancesTable';
 import OpenOrderTable from './OpenOrderTable';
 import React from 'react';
-import { Tabs, Typography, Col, Row } from 'antd';
+import { Tabs, Typography } from 'antd';
 import FillsTable from './FillsTable';
 import FloatingElement from '../layout/FloatingElement';
 import { useOpenOrders, useBalances } from '../../utils/markets';
-import { InfoCircleOutlined } from '@ant-design/icons';
 
-const { Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 export default function Index() {
   return (
-    <FloatingElement style={{ flex: 1, paddingTop: 20 }}>
+    <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
       <Typography>
-        <Paragraph style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Make sure to go to Balances and click Settle to send out your funds.
-        </Paragraph>
-        <Paragraph style={{ color: 'rgba(255,255,255,0.5)' }}>
-          To fund your wallet, use sollet.io. You can get SOL from FTX, Binance,
-          BitMax, and others. You can get other tokens from FTX.{' '}
-        </Paragraph>
+        Make sure to go to Balances and click Settle to send out your funds
       </Typography>
+      <br />
+      <Typography>
+        To fund your wallet, use sollet.io. You can get SOL from FTX, Binance,
+        BitMax, and others. You can get other tokens from FTX.
+      </Typography>
+      <br />
       <Tabs defaultActiveKey="orders">
         <TabPane tab="Open Orders" key="orders">
           <OpenOrdersTab />

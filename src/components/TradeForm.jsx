@@ -59,25 +59,26 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   const [size, setSize] = useState(null);
   const [price, setPrice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [sizeFraction, setSizeFraction] = useState(0);
 
   const availableQuote = openOrdersAccount
     ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
     : 0;
 
-  let quoteBalance = (quoteCurrencyBalances || 0) + (availableQuote || 0);
-  let baseBalance = baseCurrencyBalances || 0;
-  let sizeDecimalCount =
-    market?.minOrderSize && getDecimalCount(market.minOrderSize);
+  const maxQuoteSize = quoteCurrencyBalances + availableQuote;
+
+  const sizeFraction =
+    (price && size && maxQuoteSize && baseCurrencyBalances && side === 'buy'
+      ? ((price * size) / Math.floor(maxQuoteSize)) * 100
+      : (size / baseCurrencyBalances) * 100) || 0;
 
   useEffect(() => {
     setChangeOrderRef && setChangeOrderRef(doChangeOrder);
   }, [setChangeOrderRef]);
 
-  useEffect(() => {
-    sizeFraction && onSliderChange(sizeFraction);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [side, sizeFraction]);
+  // useEffect(() => {
+  //   sizeFraction && onSliderChange(sizeFraction);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [side, sizeFraction]);
 
   const doChangeOrder = ({ size, price }) => {
     size && setSize(size);
@@ -85,6 +86,10 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   };
 
   const onSliderChange = (value) => {
+    if (!maxQuoteSize || !baseCurrencyBalances) {
+      return;
+    }
+
     if (!price) {
       markPrice && setPrice(markPrice);
     }
@@ -92,19 +97,18 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     let newSize;
     if (side === 'buy') {
       if (price || markPrice) {
-        newSize = ((quoteBalance / (price || markPrice)) * value) / 100;
+        newSize =
+          ((Math.floor(maxQuoteSize) / (price || markPrice)) * value) / 100;
       }
     } else {
-      newSize = (baseBalance * value) / 100;
+      newSize = (Math.floor(baseCurrencyBalances) * value) / 100;
     }
 
-    // round down to minOrderSize increment
-    let formatted = sizeDecimalCount
-      ? Math.floor(newSize * 10 ** sizeDecimalCount) / 10 ** sizeDecimalCount
-      : newSize;
-
-    setSize(formatted);
-    setSizeFraction(value);
+    setSize(
+      market?.minOrderSize
+        ? newSize.toFixed(getDecimalCount(market.minOrderSize))
+        : newSize,
+    );
   };
 
   const postOnChange = (checked) => {
@@ -199,12 +203,12 @@ export default function TradeForm({ style, setChangeOrderRef }) {
           step={market?.minOrderSize || 1}
           onChange={(e) => setSize(e.target.value)}
         />
-        <Slider
-          value={sizeFraction}
-          tipFormatter={(value) => `${value}%`}
-          marks={sliderMarks}
-          onChange={onSliderChange}
-        />
+        {/*<Slider*/}
+        {/*  value={sizeFraction}*/}
+        {/*  tipFormatter={(value) => `${value}%`}*/}
+        {/*  marks={sliderMarks}*/}
+        {/*  onChange={onSliderChange}*/}
+        {/*/>*/}
         <div style={{ paddingTop: 18 }}>
           {'POST '}
           <Switch
