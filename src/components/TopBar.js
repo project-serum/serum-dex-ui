@@ -12,8 +12,9 @@ const Wrapper = styled.div`
   background-color: #0d1017;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0px 30px;
+  flex-wrap: wrap;
 `;
 const LogoWrapper = styled.div`
   display: flex;
@@ -50,12 +51,10 @@ export default function TopBar() {
 
   return (
     <Wrapper>
-      <div>
-        <LogoWrapper>
-          <img src={logo} alt="" />
-          {'SERUM'}
-        </LogoWrapper>
-      </div>
+      <LogoWrapper>
+        <img src={logo} alt="" />
+        {'SERUM'}
+      </LogoWrapper>
       <Menu
         mode="horizontal"
         onClick={handleClick}
@@ -70,7 +69,7 @@ export default function TopBar() {
       >
         <Menu.Item key="/">TRADE</Menu.Item>
       </Menu>
-      <div style={{ display: 'block' }}>
+      <div>
         <Select
           onSelect={setEndpoint}
           value={endpoint}
@@ -82,6 +81,8 @@ export default function TopBar() {
             </Select.Option>
           ))}
         </Select>
+      </div>
+      <div>
         <Select onSelect={setProvider} value={providerUrl}>
           {WALLET_PROVIDERS.map(({ name, url }) => (
             <Select.Option value={url} key={url}>
@@ -89,6 +90,8 @@ export default function TopBar() {
             </Select.Option>
           ))}
         </Select>
+      </div>
+      <div>
         <Button
           type="text"
           size="large"

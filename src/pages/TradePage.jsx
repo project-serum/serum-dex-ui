@@ -60,11 +60,10 @@ export default function TradePage() {
 
   const width = dimensions?.width;
   const componentProps = {
-    onChangeOrderRef: (ref) => (changeOrderRef.current = ref),
-    onPrice: (price) =>
+    onChangeOrderRef: ref => (changeOrderRef.current = ref),
+    onPrice: price =>
       changeOrderRef.current && changeOrderRef.current({ price }),
-    onSize: (size) =>
-      changeOrderRef.current && changeOrderRef.current({ size }),
+    onSize: size => changeOrderRef.current && changeOrderRef.current({ size }),
   };
   const getComponent = useCallback(() => {
     if (width < 1000) {
@@ -82,7 +81,7 @@ export default function TradePage() {
         <Input.Password
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
         />
         <Button
           onClick={() => {
@@ -190,18 +189,18 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
       <Row>
-        <Col span={12} style={{ height: '100%', display: 'flex' }}>
+        <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <TradeForm style={{ flex: 1 }} setChangeOrderRef={onChangeOrderRef} />
         </Col>
-        <Col span={12}>
+        <Col xs={24} sm={12}>
           <StandaloneBalancesDisplay />
         </Col>
       </Row>
       <Row style={{ minHeight: '500px' }}>
-        <Col span={12} style={{ height: '100%', display: 'flex' }}>
+        <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <Orderbook smallScreen={true} onPrice={onPrice} onSize={onSize} />
         </Col>
-        <Col span={12} style={{ height: '100%', display: 'flex' }}>
+        <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <TradesTable smallScreen={true} />
         </Col>
       </Row>
