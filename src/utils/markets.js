@@ -13,7 +13,7 @@ import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
 import { notify } from './notifications';
 
-const DEFAULT_MARKET_NAME = 'SRM/USDC';
+const DEFAULT_MARKET_NAME = 'SRM/USDT';
 
 export const COIN_MINTS = {
   '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E': 'BTC',
@@ -138,7 +138,7 @@ const _FAST_REFRESH_INTERVAL = 1000;
 
 export function MarketProvider({ children }) {
   const [marketName, setMarketName] = useLocalStorageState(
-    'selectedMarketName',
+    'market',
     DEFAULT_MARKET_NAME,
   );
   const selectedDexProgramID = DEX_PROGRAM_ID.toBase58();
