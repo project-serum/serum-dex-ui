@@ -7,6 +7,7 @@ import {
   useSelectedQuoteCurrencyAccount,
 } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
+import Link from './Link';
 
 export default function DepositDialog({ onClose, depositCoin }) {
   let coinMint =
@@ -15,7 +16,7 @@ export default function DepositDialog({ onClose, depositCoin }) {
       (address) => COIN_MINTS[address] === depositCoin,
     );
   const { market } = useMarket();
-  const [, , , , providerName] = useWallet();
+  const { providerName, providerUrl } = useWallet();
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   let account;
@@ -42,7 +43,7 @@ export default function DepositDialog({ onClose, depositCoin }) {
           <p style={{ color: 'rgba(255,255,255,0.5)' }}>
             {account
               ? account.pubkey.toBase58()
-              : `Visit ${providerName} to create an account for this mint`}
+              : <>Visit <Link external to={providerUrl}>{providerName}</Link> to create an account for this mint</>}
           </p>
         </div>
       </div>

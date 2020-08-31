@@ -29,7 +29,7 @@ const LogoWrapper = styled.div`
 
 export default function TopBar() {
   const [current, setCurrent] = useState('/');
-  const [connected, wallet, providerUrl, setProvider] = useWallet();
+  const { connected, wallet, providerUrl, setProvider } = useWallet();
   const { endpoint, setEndpoint } = useConnectionConfig();
   const location = useLocation();
   const history = useHistory();

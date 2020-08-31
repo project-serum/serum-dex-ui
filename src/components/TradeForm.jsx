@@ -50,7 +50,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
-  const [, wallet] = useWallet();
+  const {wallet} = useWallet();
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
 

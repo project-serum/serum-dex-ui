@@ -17,7 +17,7 @@ const CancelButton = styled(Button)`
 
 export default function OpenOrderTable({ openOrders }) {
   let { market } = useMarket();
-  let [, wallet] = useWallet();
+  let { wallet } = useWallet();
   let connection = useSendConnection();
 
   const [cancelId, setCancelId] = useState(null);

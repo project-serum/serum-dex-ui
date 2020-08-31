@@ -1,14 +1,11 @@
-import { Button, Col, Row, Divider } from 'antd';
+import { Button, Col, Divider, Row } from 'antd';
 import React, { useState } from 'react';
 import FloatingElement from './layout/FloatingElement';
 import styled from 'styled-components';
-import {
-  useBaseCurrencyBalances,
-  useQuoteCurrencyBalances,
-  useMarket,
-} from '../utils/markets';
+import { useBaseCurrencyBalances, useMarket, useQuoteCurrencyBalances } from '../utils/markets';
 import DepositDialog from './DepositDialog';
-import { useWallet, WALLET_PROVIDERS } from '../utils/wallet';
+import { useWallet } from '../utils/wallet';
+import Link from './Link';
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -16,7 +13,6 @@ const RowBox = styled(Row)`
 
 const Tip = styled.p`
   font-size: 12px;
-  color: #2abdd2;
   padding-top: 6px;
 `;
 
@@ -31,10 +27,8 @@ export default function StandaloneBalancesDisplay() {
 
   const [baseCurrencyBalances] = useBaseCurrencyBalances();
   const [quoteCurrencyBalances] = useQuoteCurrencyBalances();
-  let [, , providerUrl] = useWallet();
+  const { providerUrl, providerName } = useWallet();
   const [depositCoin, setDepositCoin] = useState('');
-  const providerName = WALLET_PROVIDERS.find(({ url }) => url === providerUrl)
-    ?.name;
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
       <Divider style={{ borderColor: 'white' }}>{baseCurrency}</Divider>
@@ -62,7 +56,7 @@ export default function StandaloneBalancesDisplay() {
         {/*  </ActionButton>*/}
         {/*</Col>*/}
       </RowBox>
-      <Tip>All deposits go to your {providerName} wallet</Tip>
+      <Tip>All deposits go to your <Link external to={providerUrl}>{providerName}</Link> wallet</Tip>
       <Divider>{quoteCurrency}</Divider>
       <RowBox
         align="middle"
@@ -88,7 +82,7 @@ export default function StandaloneBalancesDisplay() {
         {/*  </ActionButton>*/}
         {/*</Col>*/}
       </RowBox>
-      <Tip>All deposits go to your {providerName} wallet</Tip>
+      <Tip>All deposits go to your <Link external to={providerUrl}>{providerName}</Link> wallet</Tip>
       <DepositDialog
         depositCoin={depositCoin}
         onClose={() => setDepositCoin('')}

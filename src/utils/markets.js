@@ -277,7 +277,7 @@ export function useOrderbook(depth = 20) {
 // TODO: Update to use websocket
 export function useOpenOrdersAccounts(fast = false) {
   const { market } = useMarket();
-  const [connected, wallet] = useWallet();
+  const { connected, wallet } = useWallet();
   const connection = useConnection();
   async function getTokenAccounts() {
     if (!connected) {
@@ -317,7 +317,7 @@ export function useOpenOrdersAddresses() {
 // This is okay to poll
 export function useBaseCurrencyAccounts() {
   const { market } = useMarket();
-  const [connected, wallet] = useWallet();
+  const { connected, wallet } = useWallet();
   const connection = useConnection();
   async function getTokenAccounts() {
     if (!connected) {
@@ -341,7 +341,7 @@ export function useBaseCurrencyAccounts() {
 // This is okay to poll
 export function useQuoteCurrencyAccounts() {
   const { market } = useMarket();
-  const [connected, wallet] = useWallet();
+  const { connected, wallet } = useWallet();
   const connection = useConnection();
   async function getTokenAccounts() {
     if (!connected) {
@@ -470,7 +470,7 @@ export function useFills(limit = 100) {
 
 // TODO: Update to use websocket
 export function useFillsForAllMarkets(limit = 100) {
-  const [connected, wallet] = useWallet();
+  const { connected, wallet } = useWallet();
 
   const connection = useConnection();
   const allMarkets = useAllMarkets();
@@ -527,7 +527,7 @@ export function useFillsForAllMarkets(limit = 100) {
 
 // TODO: Update to use websocket
 export function useOpenOrdersForAllMarkets() {
-  const [connected, wallet] = useWallet();
+  const { connected, wallet } = useWallet();
 
   const connection = useConnection();
   const allMarkets = useAllMarkets();
@@ -637,7 +637,7 @@ export function useBalances() {
 }
 
 export function useWalletBalancesForAllMarkets() {
-  const [connected, wallet] = useWallet();
+  const { connected, wallet } = useWallet();
 
   const connection = useConnection();
   const allMarkets = useAllMarkets();
@@ -713,7 +713,7 @@ async function getCurrencyBalance(market, connection, wallet, base = true) {
 }
 
 export function useOpenOrderAccountBalancesForAllMarkets() {
-  const [connected, wallet] = useWallet();
+  const { connected, wallet } = useWallet();
 
   const connection = useConnection();
   const allMarkets = useAllMarkets();
