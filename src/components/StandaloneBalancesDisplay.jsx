@@ -2,10 +2,18 @@ import { Button, Col, Divider, Row } from 'antd';
 import React, { useState } from 'react';
 import FloatingElement from './layout/FloatingElement';
 import styled from 'styled-components';
-import { useBaseCurrencyBalances, useMarket, useQuoteCurrencyBalances } from '../utils/markets';
+import {
+  useBalances,
+  useMarket,
+  useSelectedBaseCurrencyAccount,
+  useSelectedOpenOrdersAccount,
+  useSelectedQuoteCurrencyAccount,
+} from '../utils/markets';
 import DepositDialog from './DepositDialog';
 import { useWallet } from '../utils/wallet';
 import Link from './Link';
+import { settleFunds } from '../utils/send';
+import { useSendConnection } from '../utils/connection';
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -23,66 +31,79 @@ const ActionButton = styled(Button)`
 `;
 
 export default function StandaloneBalancesDisplay() {
-  const { baseCurrency, quoteCurrency } = useMarket();
-
-  const [baseCurrencyBalances] = useBaseCurrencyBalances();
-  const [quoteCurrencyBalances] = useQuoteCurrencyBalances();
-  const { providerUrl, providerName } = useWallet();
+  const { baseCurrency, quoteCurrency, market } = useMarket();
+  const balances = useBalances();
+  const openOrdersAccount = useSelectedOpenOrdersAccount(true);
+  const connection = useSendConnection();
+  const { providerUrl, providerName, wallet } = useWallet();
   const [depositCoin, setDepositCoin] = useState('');
+  const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
+  const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
+  const baseCurrencyBalances =
+    balances && balances.find((b) => b.coin === baseCurrency);
+  const quoteCurrencyBalances =
+    balances && balances.find((b) => b.coin === quoteCurrency);
+
+  async function onSettleFunds() {
+    return await settleFunds({
+      market,
+      openOrders: openOrdersAccount,
+      connection,
+      wallet,
+      baseCurrencyAccount,
+      quoteCurrencyAccount,
+    });
+  }
+
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
-      <Divider style={{ borderColor: 'white' }}>{baseCurrency}</Divider>
-      <RowBox
-        align="middle"
-        justify="space-between"
-        style={{ paddingBottom: 12 }}
-      >
-        <Col>{baseCurrency} wallet balance:</Col>
-        <Col>{baseCurrencyBalances}</Col>
-      </RowBox>
-      <RowBox align="middle" justify="space-around">
-        <Col style={{ width: 150 }}>
-          <ActionButton
-            block
-            size="large"
-            onClick={() => setDepositCoin(baseCurrency)}
+      {[
+        [baseCurrency, baseCurrencyBalances],
+        [quoteCurrency, quoteCurrencyBalances],
+      ].map(([currency, balances]) => (
+        <React.Fragment>
+          <Divider style={{ borderColor: 'white' }}>{currency}</Divider>
+          <RowBox
+            align="middle"
+            justify="space-between"
+            style={{ paddingBottom: 12 }}
           >
-            Deposit
-          </ActionButton>
-        </Col>
-        {/*<Col style={{ width: 150 }}>*/}
-        {/*  <ActionButton block size="large">*/}
-        {/*    Send*/}
-        {/*  </ActionButton>*/}
-        {/*</Col>*/}
-      </RowBox>
-      <Tip>All deposits go to your <Link external to={providerUrl}>{providerName}</Link> wallet</Tip>
-      <Divider>{quoteCurrency}</Divider>
-      <RowBox
-        align="middle"
-        justify="space-between"
-        style={{ paddingBottom: 12 }}
-      >
-        <Col>{quoteCurrency} wallet balance:</Col>
-        <Col>{quoteCurrencyBalances}</Col>
-      </RowBox>
-      <RowBox align="middle" justify="space-around">
-        <Col style={{ width: 150 }}>
-          <ActionButton
-            block
-            size="large"
-            onClick={() => setDepositCoin(quoteCurrency)}
+            <Col>Wallet balance:</Col>
+            <Col>{balances && balances.wallet}</Col>
+          </RowBox>
+          <RowBox
+            align="middle"
+            justify="space-between"
+            style={{ paddingBottom: 12 }}
           >
-            Deposit
-          </ActionButton>
-        </Col>
-        {/*<Col style={{ width: 150 }}>*/}
-        {/*  <ActionButton block size="large">*/}
-        {/*    Send*/}
-        {/*  </ActionButton>*/}
-        {/*</Col>*/}
-      </RowBox>
-      <Tip>All deposits go to your <Link external to={providerUrl}>{providerName}</Link> wallet</Tip>
+            <Col>Unsettled balance:</Col>
+            <Col>{balances && balances.unsettled}</Col>
+          </RowBox>
+          <RowBox align="middle" justify="space-around">
+            <Col style={{ width: 150 }}>
+              <ActionButton
+                block
+                size="large"
+                onClick={() => setDepositCoin(currency)}
+              >
+                Deposit
+              </ActionButton>
+            </Col>
+            <Col style={{ width: 150 }}>
+              <ActionButton block size="large" onClick={onSettleFunds}>
+                Settle
+              </ActionButton>
+            </Col>
+          </RowBox>
+          <Tip>
+            All deposits go to your{' '}
+            <Link external to={providerUrl}>
+              {providerName}
+            </Link>{' '}
+            wallet
+          </Tip>
+        </React.Fragment>
+      ))}
       <DepositDialog
         depositCoin={depositCoin}
         onClose={() => setDepositCoin('')}

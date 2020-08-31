@@ -60,10 +60,11 @@ export default function TradePage() {
 
   const width = dimensions?.width;
   const componentProps = {
-    onChangeOrderRef: ref => (changeOrderRef.current = ref),
-    onPrice: price =>
+    onChangeOrderRef: (ref) => (changeOrderRef.current = ref),
+    onPrice: (price) =>
       changeOrderRef.current && changeOrderRef.current({ price }),
-    onSize: size => changeOrderRef.current && changeOrderRef.current({ size }),
+    onSize: (size) =>
+      changeOrderRef.current && changeOrderRef.current({ size }),
   };
   const getComponent = useCallback(() => {
     if (width < 1000) {
@@ -81,7 +82,7 @@ export default function TradePage() {
         <Input.Password
           placeholder="Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
         <Button
           onClick={() => {

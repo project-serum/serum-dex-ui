@@ -41,9 +41,17 @@ export default function DepositDialog({ onClose, depositCoin }) {
         <div>
           <p style={{ color: 'white' }}>Deposit address:</p>
           <p style={{ color: 'rgba(255,255,255,0.5)' }}>
-            {account
-              ? account.pubkey.toBase58()
-              : <>Visit <Link external to={providerUrl}>{providerName}</Link> to create an account for this mint</>}
+            {account ? (
+              account.pubkey.toBase58()
+            ) : (
+              <>
+                Visit{' '}
+                <Link external to={providerUrl}>
+                  {providerName}
+                </Link>{' '}
+                to create an account for this mint
+              </>
+            )}
           </p>
         </div>
       </div>

@@ -37,9 +37,12 @@ export default function TopBar() {
 
   const publicKey = wallet?.publicKey?.toBase58();
 
-  const handleClick = useCallback((e) => {
-    history.push(e.key);
-  }, []);
+  const handleClick = useCallback(
+    (e) => {
+      history.push(e.key);
+    },
+    [history],
+  );
 
   useEffect(() => {
     if (location.pathname.includes('/orders')) {
