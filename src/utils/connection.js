@@ -39,6 +39,14 @@ export function ConnectionProvider({ children }) {
     return () => connection.removeAccountChangeListener(id);
   }, [connection]);
 
+  useEffect(() => {
+    const id = setInterval(
+      () => connection._rpcWebSocket.call('ping').catch(() => {}),
+      2000,
+    );
+    return () => clearInterval(id);
+  }, [connection]);
+
   return (
     <ConnectionContext.Provider
       value={{ endpoint, setEndpoint, connection, sendConnection }}
