@@ -92,8 +92,6 @@ export function useMarketsList() {
 }
 
 export function useAllMarkets() {
-  const selectedDexProgramID = DEX_PROGRAM_ID.toBase58();
-
   const connection = useConnection();
   const [markets, setMarkets] = useState([]);
 
@@ -108,7 +106,9 @@ export function useAllMarkets() {
             connection,
             new PublicKey(marketInfo.address),
             {},
-            new PublicKey(selectedDexProgramID),
+            marketInfo.programId
+              ? new PublicKey(marketInfo.programId)
+              : DEX_PROGRAM_ID,
           );
           markets.push({ market, marketName: marketInfo.name });
         } catch (e) {
@@ -123,7 +123,7 @@ export function useAllMarkets() {
     };
 
     getAllMarkets();
-  }, [connection, selectedDexProgramID]);
+  }, [connection]);
 
   return markets;
 }
@@ -141,7 +141,6 @@ export function MarketProvider({ children }) {
     'market',
     DEFAULT_MARKET_NAME,
   );
-  const selectedDexProgramID = DEX_PROGRAM_ID.toBase58();
 
   const connection = useConnection();
   const marketInfo = MARKET_INFO_BY_NAME[marketName];
@@ -160,7 +159,9 @@ export function MarketProvider({ children }) {
       connection,
       new PublicKey(marketInfo.address),
       {},
-      new PublicKey(selectedDexProgramID),
+      marketInfo.programId
+        ? new PublicKey(marketInfo.programId)
+        : DEX_PROGRAM_ID,
     )
       .then(setMarket)
       .catch((e) =>
@@ -170,7 +171,7 @@ export function MarketProvider({ children }) {
           type: 'error',
         }),
       );
-  }, [connection, marketName, marketInfo, selectedDexProgramID]);
+  }, [connection, marketName, marketInfo]);
 
   const baseCurrency =
     COIN_MINTS[market?.baseMintAddress?.toBase58()] || 'UNKNOWN';
@@ -185,7 +186,6 @@ export function MarketProvider({ children }) {
         ...marketInfo,
         baseCurrency,
         quoteCurrency,
-        selectedDexProgramID,
       }}
     >
       {children}
