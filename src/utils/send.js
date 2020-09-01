@@ -336,8 +336,8 @@ async function getSignatureStatus(connection, txid) {
   let done = false;
   const result = await new Promise((resolve, reject) => {
     (async () => {
-      setTimeout(() => {
-        console.log('Timed out');
+      const timeout = setTimeout(() => {
+        console.log('Timed out', txid);
         resolve({ timeout: true });
       }, 15000);
       try {
@@ -346,6 +346,7 @@ async function getSignatureStatus(connection, txid) {
           (result, context) => {
             if (!done) {
               console.log('WS update for txid', txid, result);
+              clearTimeout(timeout);
               resolve(result);
               done = true;
             }
@@ -370,6 +371,7 @@ async function getSignatureStatus(connection, txid) {
             if (!done) {
               console.log('REST update for txid', txid, result);
               done = true;
+              clearTimeout(timeout);
               resolve(result);
             }
           } catch (e) {
