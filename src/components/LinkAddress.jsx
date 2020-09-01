@@ -3,17 +3,14 @@ import { Button } from 'antd';
 import { LinkOutlined } from '@ant-design/icons';
 
 export default function LinkAddress({ title, address }) {
-  const onOpenAddress = (address) => {
-    window.open('https://explorer.solana.com/address/' + address, '_blank');
-  };
-
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div>
       {title && <p style={{ color: 'white' }}>{title}</p>}
       <Button
         type="link"
         icon={<LinkOutlined />}
-        onClick={() => onOpenAddress(address)}
+        href={'https://explorer.solana.com/address/' + address}
+        target="_blank"
       >
         {address}
       </Button>

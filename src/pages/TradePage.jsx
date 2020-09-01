@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Button, Col, Input, Row, Select } from 'antd';
+import { Button, Col, Input, Popover, Row, Select } from 'antd';
 import styled from 'styled-components';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
@@ -8,6 +8,8 @@ import { useMarket, useMarketsList } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import { useLocalStorageState } from '../utils/utils';
 import TradesTable from '../components/TradesTable';
+import LinkAddress from '../components/LinkAddress';
+import { InfoCircleOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -32,7 +34,7 @@ function hashString(s) {
 const requirePassword = false;
 
 export default function TradePage() {
-  const { marketName, setMarketName } = useMarket();
+  const { market, marketName, setMarketName } = useMarket();
   const markets = useMarketsList();
   const [submittedPassword, setSubmittedPassword] = useLocalStorageState(
     'submittedPassword5',
@@ -103,7 +105,11 @@ export default function TradePage() {
   return (
     <>
       <Wrapper>
-        <Row>
+        <Row
+          align="middle"
+          style={{ paddingLeft: 5, paddingRight: 5 }}
+          gutter={16}
+        >
           <Col>
             <Select
               size={'large'}
@@ -127,6 +133,18 @@ export default function TradePage() {
               ))}
             </Select>
           </Col>
+          {market ? (
+            <Col>
+              <Popover
+                content={<LinkAddress address={market.publicKey.toBase58()} />}
+                placement="bottomRight"
+                title="Market address"
+                trigger="click"
+              >
+                <InfoCircleOutlined style={{ color: '#2abdd2' }} />
+              </Popover>
+            </Col>
+          ) : null}
         </Row>
         {getComponent()}
       </Wrapper>
