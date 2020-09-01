@@ -55,7 +55,13 @@ export async function settleFunds({
   transaction.add(settleInstruction);
 
   const onConfirm = (result) => {
-    if (result.err) {
+    if (result.timeout) {
+      notify({
+        message: 'Timed out',
+        type: 'error',
+        description: 'Timed out awaiting confirmation on transaction',
+      });
+    } else if (result.err) {
       console.log(result.err);
       notify({ message: 'Error settling funds', type: 'error' });
     } else {
@@ -97,7 +103,13 @@ export async function cancelOrders({
   });
   transaction.add(market.makeMatchOrdersInstruction(5));
   const onConfirm = (result) => {
-    if (result.err) {
+    if (result.timeout) {
+      notify({
+        message: 'Timed out',
+        type: 'error',
+        description: 'Timed out awaiting confirmation on transaction',
+      });
+    } else if (result.err) {
       console.log(result.err);
       notify({
         message:
@@ -240,7 +252,13 @@ export async function placeOrder({
 
   transaction.add(market.makeMatchOrdersInstruction(5));
   const onConfirm = (result) => {
-    if (result.err) {
+    if (result.timeout) {
+      notify({
+        message: 'Timed out',
+        type: 'error',
+        description: 'Timed out awaiting confirmation on transaction',
+      });
+    } else if (result.err) {
       console.log(result.err);
       notify({ message: 'Error placing order', type: 'error' });
     } else {
@@ -305,7 +323,8 @@ async function sendTransaction({
   const result = await getSignatureStatus(connection, txid);
   const confirmedAt = new Date().getTime();
   console.log(
-    'Confirmed',
+    result.timeout ? 'Timed out' : 'Got signature confirmation',
+    txid,
     (confirmedAt - sentAt) / 1000,
     (confirmedAt - signedAt) / 1000,
   );
@@ -317,17 +336,26 @@ async function getSignatureStatus(connection, txid) {
   let done = false;
   const result = await new Promise((resolve, reject) => {
     (async () => {
-      connection.onSignature(
-        txid,
-        (result, context) => {
-          if (!done) {
-            console.log('WS update for txid', txid, result);
-            resolve(result);
-            done = true;
-          }
-        },
-        'recent',
-      );
+      setTimeout(() => {
+        console.log('Timed out');
+        resolve({ timeout: true });
+      }, 15000);
+      try {
+        connection.onSignature(
+          txid,
+          (result, context) => {
+            if (!done) {
+              console.log('WS update for txid', txid, result);
+              resolve(result);
+              done = true;
+            }
+          },
+          'recent',
+        );
+        console.log('Subsribed for WS update on', txid);
+      } catch (e) {
+        console.log('Failed to subscribe for signature update on', txid, e);
+      }
       while (!done) {
         // eslint-disable-next-line
         (async () => {
@@ -346,9 +374,7 @@ async function getSignatureStatus(connection, txid) {
             }
           } catch (e) {
             if (!done) {
-              console.log('REST error for txid', txid, e);
-              done = true;
-              reject(e);
+              console.log('Connection error polling REST', txid, e);
             }
           }
         })();
