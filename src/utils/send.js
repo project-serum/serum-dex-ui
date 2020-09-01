@@ -1,7 +1,8 @@
 import { notify } from './notifications';
 import nacl from 'tweetnacl';
 import { sleep, getDecimalCount } from './utils';
-import { Transaction } from '@solana/web3.js';
+import { Transaction, PublicKey } from '@solana/web3.js';
+import { Buffer } from 'buffer';
 
 export async function settleFunds({
   market,
@@ -32,12 +33,27 @@ export async function settleFunds({
     }
     return;
   }
-  const transaction = await market.makeSettleFundsTransaction(
-    connection,
+
+  // This is a workaround for this issue: https://github.com/solana-labs/solana-web3.js/issues/985
+  const transaction = new Transaction();
+  const vaultSigner =
+    market.address.toBase58() === 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ'
+      ? new PublicKey('12rqwuEgBYiGhBrDJStCiqEtzQpTTiZbh7teNVLuYcFA')
+      : await PublicKey.createProgramAddress(
+          [
+            market.address.toBuffer(),
+            market._decoded.vaultSignerNonce.toArrayLike(Buffer, 'le', 8),
+          ],
+          market._programId,
+        );
+  const settleInstruction = market.makeSettleInstruction(
     openOrders,
     baseCurrencyAccount.pubkey,
     quoteCurrencyAccount.pubkey,
+    vaultSigner,
   );
+  transaction.add(settleInstruction);
+
   const onConfirm = (result) => {
     if (result.err) {
       console.log(result.err);
