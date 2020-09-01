@@ -404,7 +404,9 @@ export function useQuoteCurrencyBalances() {
   if (market.quoteMintAddress.equals(TokenInstructions.WRAPPED_SOL_MINT)) {
     return accountInfo?.lamports / 1e9 ?? 0;
   }
-  return market.quoteSplSizeToNumber(new BN(accountInfo.data.slice(64, 72)));
+  return market.quoteSplSizeToNumber(
+    new BN(accountInfo.data.slice(64, 72), 10, 'le'),
+  );
 }
 
 // TODO: Update to use websocket
@@ -418,7 +420,9 @@ export function useBaseCurrencyBalances() {
   if (market.baseMintAddress.equals(TokenInstructions.WRAPPED_SOL_MINT)) {
     return accountInfo?.lamports / 1e9 ?? 0;
   }
-  return market.baseSplSizeToNumber(new BN(accountInfo.data.slice(64, 72)));
+  return market.baseSplSizeToNumber(
+    new BN(accountInfo.data.slice(64, 72), 10, 'le'),
+  );
 }
 
 export function useOpenOrders() {
