@@ -1,8 +1,5 @@
 import { notify } from './notifications';
-import nacl from 'tweetnacl';
-import { sleep, getDecimalCount } from './utils';
-import { Transaction, PublicKey } from '@solana/web3.js';
-import { Buffer } from 'buffer';
+import { getDecimalCount, sleep } from './utils';
 
 export async function settleFunds({
   market,
@@ -34,25 +31,12 @@ export async function settleFunds({
     return;
   }
 
-  // This is a workaround for this issue: https://github.com/solana-labs/solana-web3.js/issues/985
-  const transaction = new Transaction();
-  const vaultSigner =
-    market.address.toBase58() === 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ'
-      ? new PublicKey('12rqwuEgBYiGhBrDJStCiqEtzQpTTiZbh7teNVLuYcFA')
-      : await PublicKey.createProgramAddress(
-          [
-            market.address.toBuffer(),
-            market._decoded.vaultSignerNonce.toArrayLike(Buffer, 'le', 8),
-          ],
-          market._programId,
-        );
-  const settleInstruction = market.makeSettleInstruction(
+  const { transaction, signers } = await market.makeSettleFundsTransaction(
+    connection,
     openOrders,
     baseCurrencyAccount.pubkey,
     quoteCurrencyAccount.pubkey,
-    vaultSigner,
   );
-  transaction.add(settleInstruction);
 
   const onConfirm = (result) => {
     if (result.timeout) {
@@ -73,6 +57,7 @@ export async function settleFunds({
     notify({ message: 'Funds settled', type: 'success' });
   return await sendTransaction({
     transaction,
+    signers,
     wallet,
     connection,
     onBeforeSend,
@@ -94,14 +79,13 @@ export async function cancelOrders({
   onAfterSendCallBack,
   onConfirmCallBack,
 }) {
-  const transaction = new Transaction();
-  transaction.add(market.makeMatchOrdersInstruction(5));
+  const transaction = market.makeMatchOrdersTransaction(5);
   orders.forEach((order) => {
     transaction.add(
       market.makeCancelOrderInstruction(connection, wallet.publicKey, order),
     );
   });
-  transaction.add(market.makeMatchOrdersInstruction(5));
+  transaction.add(market.makeMatchOrdersTransaction(5));
   const onConfirm = (result) => {
     if (result.timeout) {
       notify({
@@ -161,7 +145,6 @@ export async function placeOrder({
   wallet,
   baseCurrencyAccount,
   quoteCurrencyAccount,
-  openOrdersAccount,
   onBeforeSendCallBack,
   onAfterSendCallBack,
   onConfirmCallBack,
@@ -231,26 +214,16 @@ export async function placeOrder({
     size,
     orderType,
   };
-  let transaction, signers;
-  let extraSigners = [];
+  console.log(params);
 
-  // If the user does not has an open orders account, use serum-js to create one
-  if (!openOrdersAccount) {
-    let result = await market.makePlaceOrderTransaction(connection, params);
-    transaction = result.transaction;
-    signers = result.signers;
-    if (signers.length > 1) {
-      extraSigners = [signers[1]];
-    }
-  } else {
-    transaction = new Transaction();
-    transaction.add(market.makeMatchOrdersInstruction(5));
-    transaction.add(
-      market.makePlaceOrderInstruction(connection, params, openOrdersAccount),
-    );
-  }
+  const transaction = market.makeMatchOrdersTransaction(5);
+  let {
+    transaction: placeOrderTx,
+    signers,
+  } = await market.makePlaceOrderTransaction(connection, params);
+  transaction.add(placeOrderTx);
+  transaction.add(market.makeMatchOrdersTransaction(5));
 
-  transaction.add(market.makeMatchOrdersInstruction(5));
   const onConfirm = (result) => {
     if (result.timeout) {
       notify({
@@ -282,34 +255,26 @@ export async function placeOrder({
     onBeforeSend,
     onAfterSend,
     onConfirm,
-    extraSigners,
+    signers,
   });
 }
 
 async function sendTransaction({
   transaction,
   wallet,
+  signers = [wallet.publicKey],
   connection,
   onBeforeSend,
   onAfterSend,
   onConfirm,
-  extraSigners = [],
 }) {
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash('max')
   ).blockhash;
+  transaction.signPartial(...signers);
   const signed = await wallet.signTransaction(transaction);
   const signedAt = new Date().getTime();
 
-  // Don't rely on the open orders account being the 2nd element in the list
-  // Sign with any accounts with a pubkey different from that of the wallet
-  extraSigners.forEach((extraSigner) => {
-    const extraSignature = nacl.sign.detached(
-      signed.serializeMessage(),
-      extraSigner.secretKey,
-    );
-    signed.addSignature(extraSigner.publicKey, extraSignature);
-  });
   onBeforeSend();
 
   const txid = await connection.sendRawTransaction(signed.serialize(), {

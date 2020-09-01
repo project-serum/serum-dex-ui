@@ -80,7 +80,7 @@ export function useAccountInfo(publicKey) {
   let id = publicKey?.toBase58();
   useEffect(() => {
     if (!publicKey) {
-      return () => {};
+      return;
     }
     if (accountListenerCount.has(cacheKey)) {
       let currentItem = accountListenerCount.get(cacheKey);

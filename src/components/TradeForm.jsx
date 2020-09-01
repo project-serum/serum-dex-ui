@@ -45,8 +45,8 @@ const sliderMarks = {
 export default function TradeForm({ style, setChangeOrderRef }) {
   const [side, setSide] = useState('buy');
   const { baseCurrency, quoteCurrency, market } = useMarket();
-  const [baseCurrencyBalances] = useBaseCurrencyBalances();
-  const [quoteCurrencyBalances] = useQuoteCurrencyBalances();
+  const baseCurrencyBalances = useBaseCurrencyBalances();
+  const quoteCurrencyBalances = useQuoteCurrencyBalances();
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
@@ -130,7 +130,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
 
     setSubmitting(true);
     try {
-      !(await placeOrder({
+      await placeOrder({
         side,
         price: parsedPrice,
         size: parsedSize,
@@ -138,14 +138,13 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         market,
         connection: sendConnection,
         wallet,
-        baseCurrencyAccount: baseCurrencyAccount?.pubkey?.toBase58(),
-        quoteCurrencyAccount: quoteCurrencyAccount?.pubkey?.toBase58(),
-        openOrdersAccount: openOrdersAccount?.pubkey?.toBase58(),
-        onBeforeSendCallBack: () => setSubmitting(true),
-        onConfirmCallBack: () => setSubmitting(false),
-      })) && setSubmitting(false);
+        baseCurrencyAccount: baseCurrencyAccount?.pubkey,
+        quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
+      });
     } catch (e) {
+      console.warn(e);
       notify({ message: 'Error placing order: ' + e.message, type: 'error' });
+    } finally {
       setSubmitting(false);
     }
   }

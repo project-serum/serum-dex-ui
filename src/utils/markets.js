@@ -3,15 +3,17 @@ import {
   Orderbook,
   decodeEventQueue,
   DEX_PROGRAM_ID,
+  TokenInstructions,
 } from '@project-serum/serum';
 import React, { useContext, useEffect, useState } from 'react';
 import { PublicKey } from '@solana/web3.js';
 import { useLocalStorageState } from './utils';
 import { useAsyncData } from './fetch-loop';
-import { useAccountData, useConnection } from './connection';
+import { useAccountData, useAccountInfo, useConnection } from './connection';
 import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
 import { notify } from './notifications';
+import { BN } from 'bn.js';
 
 const DEFAULT_MARKET_NAME = 'SRM/USDT';
 
@@ -26,17 +28,10 @@ export const COIN_MINTS = {
   BXXkv6z8ykpG1yuvUDPgh732wzVHB69RnB9YgSYh3itW: 'USDC',
   MSRMcoVyrFxnSgo5uXwone5SKcGhT1KEJMFEkMEWf9L: 'MSRM',
   SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt: 'SRM',
+  [TokenInstructions.WRAPPED_SOL_MINT]: 'SOL',
 };
 
 export const MARKET_INFO_BY_NAME = {
-  'MSRM/USDT': {
-    address: 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ',
-    name: 'MSRM/USDT',
-  },
-  'MSRM/USDC': {
-    address: '7kgkDyW7dmyMeP8KFXzbcUZz1R2WHsovDZ7n3ihZuNDS',
-    name: 'MSRM/USDC',
-  },
   'BTC/USDT': {
     address: '8AcVjMG2LTbpkjNoyq8RwysokqZunkjy3d5JDzxC6BJa',
     name: 'BTC/USDT',
@@ -53,6 +48,16 @@ export const MARKET_INFO_BY_NAME = {
     address: 'ASKiV944nKg1W9vsf7hf3fTsjawK6DwLwrnB2LH9n61c',
     name: 'ETH/USDC',
   },
+  'SOL/USDT': {
+    address: '8mDuvJJSgoodovMRYArtVVYBbixWYdGzR47GPrRT65YJ',
+    name: 'SOL/USDT',
+    programId: 'BJ3jrUzddfuSrZHXSCxMUUQsjKEyLmuuyZebkcaFp2fg',
+  },
+  'SOL/USDC': {
+    address: 'Cdp72gDcYMCLLk3aDkPxjeiirKoFqK38ECm8Ywvk94Wi',
+    name: 'SOL/USDC',
+    programId: 'BJ3jrUzddfuSrZHXSCxMUUQsjKEyLmuuyZebkcaFp2fg',
+  },
   'SRM/USDT': {
     address: 'HARFLhSq8nECZk4DVFKvzqXMNMA9a3hjvridGMFizeLa',
     name: 'SRM/USDT',
@@ -60,6 +65,14 @@ export const MARKET_INFO_BY_NAME = {
   'SRM/USDC': {
     address: '68J6nkWToik6oM9rTatKSR5ibVSykAtzftBUEAvpRsys',
     name: 'SRM/USDC',
+  },
+  'MSRM/USDT': {
+    address: 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ',
+    name: 'MSRM/USDT',
+  },
+  'MSRM/USDC': {
+    address: '7kgkDyW7dmyMeP8KFXzbcUZz1R2WHsovDZ7n3ihZuNDS',
+    name: 'MSRM/USDC',
   },
   'FTT/USDT': {
     address: 'DHDdghmkBhEpReno3tbzBPtsxCt6P3KrMzZvxavTktJt',
@@ -329,6 +342,7 @@ export function useBaseCurrencyAccounts() {
     return await market.findBaseTokenAccountsForOwner(
       connection,
       wallet.publicKey,
+      true,
     );
   }
   return useAsyncData(
@@ -353,6 +367,7 @@ export function useQuoteCurrencyAccounts() {
     return await market.findQuoteTokenAccountsForOwner(
       connection,
       wallet.publicKey,
+      true,
     );
   }
   return useAsyncData(
@@ -380,50 +395,30 @@ export function useSelectedBaseCurrencyAccount() {
 
 // TODO: Update to use websocket
 export function useQuoteCurrencyBalances() {
-  const connection = useConnection();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
-  async function getBalance() {
-    if (!quoteCurrencyAccount) {
-      return null;
-    }
-    const balances = await connection.getTokenAccountBalance(
-      quoteCurrencyAccount.pubkey,
-    );
-    return balances && balances.value && balances.value.uiAmount;
+  const { market } = useMarket();
+  const [accountInfo, loaded] = useAccountInfo(quoteCurrencyAccount?.pubkey);
+  if (!market || !quoteCurrencyAccount || !loaded) {
+    return null;
   }
-  return useAsyncData(
-    getBalance,
-    tuple(
-      'useQuoteCurrencyBalances',
-      connection,
-      quoteCurrencyAccount && quoteCurrencyAccount.pubkey.toBase58(),
-    ),
-    { refreshInterval: _FAST_REFRESH_INTERVAL },
-  );
+  if (market.quoteMintAddress.equals(TokenInstructions.WRAPPED_SOL_MINT)) {
+    return accountInfo?.lamports / 1e9 ?? 0;
+  }
+  return market.quoteSplSizeToNumber(new BN(accountInfo.data.slice(64, 72)));
 }
 
 // TODO: Update to use websocket
 export function useBaseCurrencyBalances() {
-  const connection = useConnection();
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
-  async function getBalance() {
-    if (!baseCurrencyAccount) {
-      return null;
-    }
-    const balances = await connection.getTokenAccountBalance(
-      baseCurrencyAccount.pubkey,
-    );
-    return balances && balances.value && balances.value.uiAmount;
+  const { market } = useMarket();
+  const [accountInfo, loaded] = useAccountInfo(baseCurrencyAccount?.pubkey);
+  if (!market || !baseCurrencyAccount || !loaded) {
+    return null;
   }
-  return useAsyncData(
-    getBalance,
-    tuple(
-      'useBaseCurrencyBalances',
-      connection,
-      baseCurrencyAccount && baseCurrencyAccount.pubkey.toBase58(),
-    ),
-    { refreshInterval: _FAST_REFRESH_INTERVAL },
-  );
+  if (market.baseMintAddress.equals(TokenInstructions.WRAPPED_SOL_MINT)) {
+    return accountInfo?.lamports / 1e9 ?? 0;
+  }
+  return market.baseSplSizeToNumber(new BN(accountInfo.data.slice(64, 72)));
 }
 
 export function useOpenOrders() {
@@ -583,8 +578,8 @@ export function useOpenOrdersForAllMarkets() {
 }
 
 export function useBalances() {
-  const [baseCurrencyBalances] = useBaseCurrencyBalances();
-  const [quoteCurrencyBalances] = useQuoteCurrencyBalances();
+  const baseCurrencyBalances = useBaseCurrencyBalances();
+  const quoteCurrencyBalances = useQuoteCurrencyBalances();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const baseExists =
