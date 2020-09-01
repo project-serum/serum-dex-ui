@@ -66,6 +66,14 @@ export const MARKET_INFO_BY_NAME = {
     address: '68J6nkWToik6oM9rTatKSR5ibVSykAtzftBUEAvpRsys',
     name: 'SRM/USDC',
   },
+  'SUSHI/USDC': {
+    address: '9wDmxsfwaDb2ysmZpBLzxKzoWrF1zHzBN7PV5EmJe19R',
+    name: 'SUSHI/USDC',
+  },
+  'SUSHI/USDT': {
+    address: 'AuCs4DSpran9iufuf3BqbCYSmE3yZ2dE14QtH53X5cFc',
+    name: 'SUSHI/USDT',
+  },
   'MSRM/USDT': {
     address: 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ',
     name: 'MSRM/USDT',
