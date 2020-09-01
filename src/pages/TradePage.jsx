@@ -106,12 +106,22 @@ export default function TradePage() {
         <Row>
           <Col>
             <Select
-              bordered={false}
+              size={'large'}
+              bordered={true}
               onSelect={setMarketName}
               value={marketName}
+              listHeight={400}
             >
-              {markets.map(({ name, address }) => (
-                <Option value={name} key={address}>
+              {markets.map(({ name, address }, i) => (
+                <Option
+                  value={name}
+                  key={address}
+                  style={{
+                    padding: '10px 0',
+                    textAlign: 'center',
+                    backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+                  }}
+                >
                   {name}
                 </Option>
               ))}
