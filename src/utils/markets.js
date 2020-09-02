@@ -28,6 +28,7 @@ export const COIN_MINTS = {
   BXXkv6z8ykpG1yuvUDPgh732wzVHB69RnB9YgSYh3itW: 'USDC',
   MSRMcoVyrFxnSgo5uXwone5SKcGhT1KEJMFEkMEWf9L: 'MSRM',
   SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt: 'SRM',
+  AR1Mtgh7zAtxuxGd2XPovXPVjcSdY3i4rQYisNadjfKy: 'SUSHI',
   [TokenInstructions.WRAPPED_SOL_MINT]: 'SOL',
 };
 
