@@ -40,10 +40,7 @@ export function ConnectionProvider({ children }) {
   }, [connection]);
 
   useEffect(() => {
-    const id = setInterval(
-      () => connection._rpcWebSocket.call('ping').catch(() => {}),
-      2000,
-    );
+    const id = connection.onSlotChange(() => null);
     return () => clearInterval(id);
   }, [connection]);
 
