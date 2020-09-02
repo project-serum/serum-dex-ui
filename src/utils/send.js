@@ -259,6 +259,12 @@ export async function placeOrder({
   });
 }
 
+const getUnixTs = () => {
+  return new Date().getTime() / 1000;
+};
+
+const DEFAULT_TIMEOUT = 15000;
+
 async function sendTransaction({
   transaction,
   wallet,
@@ -267,85 +273,106 @@ async function sendTransaction({
   onBeforeSend,
   onAfterSend,
   onConfirm,
+  timeout = DEFAULT_TIMEOUT,
 }) {
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash('max')
   ).blockhash;
   transaction.signPartial(...signers);
-  const signed = await wallet.signTransaction(transaction);
-  const signedAt = new Date().getTime();
-
+  const rawTransaction = (
+    await wallet.signTransaction(transaction)
+  ).serialize();
+  let done = false;
+  const startTime = getUnixTs();
   onBeforeSend();
-
-  const txid = await connection.sendRawTransaction(signed.serialize(), {
+  const txid = await connection.sendRawTransaction(rawTransaction, {
     skipPreflight: true,
   });
-  console.log('Sent raw transaction, received TXID: ', txid);
-  const sentAt = new Date().getTime();
   onAfterSend();
-
-  // Send a bunch of requests, staggered, and stop sending the other ones, resolve when getting back the first
-  const result = await getSignatureStatus(connection, txid);
-  const confirmedAt = new Date().getTime();
-  console.log(
-    result.timeout ? 'Timed out' : 'Got signature confirmation',
-    txid,
-    (confirmedAt - sentAt) / 1000,
-    (confirmedAt - signedAt) / 1000,
-  );
-  onConfirm(result);
+  console.log('Started sending transaction for', txid);
+  awaitTransactionSignatureConfirmation(txid, timeout, connection)
+    .then((res) => {
+      done = true;
+      onConfirm(res);
+    })
+    .catch((res) => {
+      done = true;
+      onConfirm(res);
+    });
+  while (!done && getUnixTs() - startTime < timeout) {
+    connection.sendRawTransaction(rawTransaction, {
+      skipPreflight: true,
+    });
+    await sleep(300);
+  }
+  console.log('Latency', txid, getUnixTs() - startTime);
   return txid;
 }
 
-async function getSignatureStatus(connection, txid) {
+async function awaitTransactionSignatureConfirmation(
+  txid,
+  timeout,
+  connection,
+) {
   let done = false;
   const result = await new Promise((resolve, reject) => {
     (async () => {
-      const timeout = setTimeout(() => {
-        console.log('Timed out', txid);
-        resolve({ timeout: true });
-      }, 15000);
+      setTimeout(() => {
+        if (done) {
+          return;
+        }
+        done = true;
+        console.log('Timed out for txid', txid);
+        reject({ timeout: true });
+      }, timeout);
       try {
         connection.onSignature(
           txid,
-          (result, context) => {
-            if (!done) {
-              console.log('WS update for txid', txid, result);
-              clearTimeout(timeout);
+          (result) => {
+            console.log('WS confirmed', txid, result);
+            done = true;
+            if (result.err) {
+              reject(result);
+            } else {
               resolve(result);
-              done = true;
             }
           },
           'recent',
         );
-        console.log('Subsribed for WS update on', txid);
+        console.log('Set up WS connection', txid);
       } catch (e) {
-        console.log('Failed to subscribe for signature update on', txid, e);
+        done = true;
+        console.log('WS error in setup', txid, e);
       }
       while (!done) {
-        // eslint-disable-next-line
         (async () => {
           try {
-            console.log('Send REST request for txid', txid);
-            const results = await connection.getSignatureStatuses([txid]);
-            const result = results && results.value && results.value[0];
-            console.log('Received REST response for txid', txid, result);
-            if (!result || (!result?.confirmations && !result?.err)) {
-              return;
-            }
+            const signatureStatuses = await connection.getSignatureStatuses([
+              txid,
+            ]);
+            const result = signatureStatuses && signatureStatuses.value[0];
             if (!done) {
-              console.log('REST update for txid', txid, result);
-              done = true;
-              clearTimeout(timeout);
-              resolve(result);
+              if (!result) {
+                console.log('REST null result for', txid, result);
+              } else if (result.err) {
+                console.log('REST error for', txid, result);
+                done = true;
+                reject(result);
+              } else if (!result.confirmations) {
+                console.log('REST no confirmations for', txid, result);
+              } else {
+                console.log('REST confirmation for', txid, result);
+                done = true;
+                resolve(result);
+              }
             }
           } catch (e) {
             if (!done) {
-              console.log('Connection error polling REST', txid, e);
+              console.log('REST connection error: txid', txid, e);
             }
           }
         })();
-        await sleep(500);
+        await sleep(300);
       }
     })();
   });
