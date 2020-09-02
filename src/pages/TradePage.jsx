@@ -46,6 +46,10 @@ export default function TradePage() {
     width: window.innerWidth,
   });
 
+  useEffect(() => {
+    document.title = `${marketName} — Serum`;
+  }, [marketName]);
+
   const changeOrderRef = useRef();
 
   useEffect(() => {
