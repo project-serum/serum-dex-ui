@@ -71,7 +71,7 @@ export const MARKET_INFO_BY_NAME = {
     name: 'SUSHI/USDC',
   },
   'SUSHI/USDT': {
-    address: 'AuCs4DSpran9iufuf3BqbCYSmE3yZ2dE14QtH53X5cFc',
+    address: 'DzFjazak6EKHnaB2w6qSsArnj28CV1TKd2Smcj9fqtHW',
     name: 'SUSHI/USDT',
   },
   'MSRM/USDT': {
