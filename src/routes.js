@@ -6,6 +6,7 @@ import { Layout } from 'antd';
 import TopBar from './components/TopBar';
 import { CustomFooter } from './components/Footer';
 import BalancesPage from './pages/BalancesPage';
+import ConvertPage from './pages/ConvertPage';
 
 const { Header, Content } = Layout;
 
@@ -15,6 +16,7 @@ export function Routes() {
       <Route exact path="/" component={TradePageContents} />
       <Route exact path="/orders" component={OpenOrdersPageContents} />
       <Route exact path="/balances" component={BalancesPageContents} />
+      <Route exact path="/convert" component={ConvertPageContents} />
     </HashRouter>
   );
 }
@@ -66,6 +68,24 @@ function BalancesPageContents() {
         </Header>
         <Content style={{ flex: 1 }}>
           <BalancesPage />
+        </Content>
+        <CustomFooter />
+      </Layout>
+    </React.Fragment>
+  );
+}
+
+function ConvertPageContents() {
+  return (
+    <React.Fragment>
+      <Layout
+        style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}
+      >
+        <Header style={{ padding: 0 }}>
+          <TopBar />
+        </Header>
+        <Content style={{ flex: 1 }}>
+          <ConvertPage />
         </Content>
         <CustomFooter />
       </Layout>

@@ -817,3 +817,29 @@ export function useOpenOrderAccountBalancesForAllMarkets() {
     { refreshInterval: _SLOW_REFRESH_INTERVAL },
   );
 }
+
+export async function getTradeAccountsForMarket(connection, wallet, market) {
+  // get base currency account
+  const baseCurrencyAccounts = await market.findBaseTokenAccountsForOwner(
+    connection,
+    wallet.publicKey,
+  );
+  const baseCurrencyAccount = baseCurrencyAccounts && baseCurrencyAccounts[0];
+
+  // get quote currency account
+  const quoteCurrencyAccounts = await market.findQuoteTokenAccountsForOwner(
+    connection,
+    wallet.publicKey,
+  );
+  const quoteCurrencyAccount =
+    quoteCurrencyAccounts && quoteCurrencyAccounts[0];
+
+  // get open orders account
+  const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
+    connection,
+    wallet.publicKey,
+  );
+  const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
+
+  return { baseCurrencyAccount, quoteCurrencyAccount, openOrdersAccount };
+}
