@@ -41,8 +41,21 @@ export function ConnectionProvider({ children }) {
 
   useEffect(() => {
     const id = connection.onSlotChange(() => null);
-    return () => clearInterval(id);
+    return () => connection.removeSlotChangeListener(id);
   }, [connection]);
+
+  useEffect(() => {
+    const id = sendConnection.onAccountChange(
+      new Account().publicKey,
+      () => {},
+    );
+    return () => sendConnection.removeAccountChangeListener(id);
+  }, [sendConnection]);
+
+  useEffect(() => {
+    const id = sendConnection.onSlotChange(() => null);
+    return () => sendConnection.removeSlotChangeListener(id);
+  }, [sendConnection]);
 
   return (
     <ConnectionContext.Provider
