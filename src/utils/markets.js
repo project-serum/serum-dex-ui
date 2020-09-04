@@ -713,6 +713,9 @@ export async function getCurrencyBalance(
     ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
     : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
   const currencyAccount = currencyAccounts && currencyAccounts[0];
+  if (!currencyAccount) {
+    return;
+  }
   const tokenAccountBalances = await connection.getTokenAccountBalance(
     currencyAccount.pubkey,
   );

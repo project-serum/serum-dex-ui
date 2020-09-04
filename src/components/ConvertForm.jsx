@@ -63,10 +63,8 @@ export default function ConvertForm({}) {
       return;
     }
     // find market
-    const targetMarket = allMarkets.find(
-      ({ marketName }) =>
-        marketName.includes(`${fromToken}/`) ||
-        marketName.includes(`/${fromToken}`),
+    const targetMarket = allMarkets.find(({ marketName }) =>
+      marketName.match(new RegExp(`^${fromToken}|\/${fromToken}$`)),
     );
     if (!targetMarket) {
       notify({ message: 'Invalid market', type: 'error' });
@@ -86,10 +84,10 @@ export default function ConvertForm({}) {
     }
 
     // find market
-    const targetMarket = allMarkets.find(({ marketName }) =>
-      [`${fromToken}/${toToken}`, `${toToken}/${fromToken}`].includes(
-        marketName,
-      ),
+    const targetMarket = allMarkets.find(
+      ({ marketName }) =>
+        marketName === `${fromToken}/${toToken}` ||
+        marketName === `${toToken}/${fromToken}`,
     );
     if (!targetMarket) {
       notify({ message: 'Invalid market', type: 'error' });
@@ -111,10 +109,13 @@ export default function ConvertForm({}) {
       openOrdersAccount,
     } = accounts;
 
+    const parsedPrice = parseFloat(base === fromToken ? market.tickSize : 100_000);
+    const parsedSize = parseFloat(size);
+
     !(await placeOrder({
       side: base === fromToken ? 'sell' : 'buy',
-      price: base === fromToken ? market.tickSize : 100_000,
-      size,
+      price: parsedPrice,
+      size: parsedSize,
       orderType: 'ioc',
       market,
       connection: sendConnection,
