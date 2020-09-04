@@ -703,7 +703,12 @@ export function useWalletBalancesForAllMarkets() {
   );
 }
 
-async function getCurrencyBalance(market, connection, wallet, base = true) {
+export async function getCurrencyBalance(
+  market,
+  connection,
+  wallet,
+  base = true,
+) {
   const currencyAccounts = base
     ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
     : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);

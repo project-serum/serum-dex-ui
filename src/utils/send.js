@@ -230,7 +230,7 @@ export async function placeOrder({
     } else {
       notify({ message: 'Order confirmed', type: 'success' });
     }
-    onConfirmCallBack && onConfirmCallBack();
+    onConfirmCallBack && onConfirmCallBack(result.err);
   };
   const onBeforeSend = () => {
     notify({ message: 'Sending order...' });
