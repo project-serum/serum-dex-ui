@@ -29,6 +29,7 @@ export const COIN_MINTS = {
   MSRMcoVyrFxnSgo5uXwone5SKcGhT1KEJMFEkMEWf9L: 'MSRM',
   SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt: 'SRM',
   AR1Mtgh7zAtxuxGd2XPovXPVjcSdY3i4rQYisNadjfKy: 'SUSHI',
+  SF3oTvfWzEP3DTwGSvUXRrGTvr75pdZNnBLAH9bzMuX: 'SXP',
   [TokenInstructions.WRAPPED_SOL_MINT]: 'SOL',
 };
 
@@ -67,13 +68,21 @@ export const MARKET_INFO_BY_NAME = {
     address: '68J6nkWToik6oM9rTatKSR5ibVSykAtzftBUEAvpRsys',
     name: 'SRM/USDC',
   },
+  'SUSHI/USDT': {
+    address: 'DzFjazak6EKHnaB2w6qSsArnj28CV1TKd2Smcj9fqtHW',
+    name: 'SUSHI/USDT',
+  },
   'SUSHI/USDC': {
     address: '9wDmxsfwaDb2ysmZpBLzxKzoWrF1zHzBN7PV5EmJe19R',
     name: 'SUSHI/USDC',
   },
-  'SUSHI/USDT': {
-    address: 'DzFjazak6EKHnaB2w6qSsArnj28CV1TKd2Smcj9fqtHW',
-    name: 'SUSHI/USDT',
+  'SXP/USDT': {
+    address: 'GuvWMATdEV6DExWnXncPYEzn4ePWYkvGdC8pu8gsn7m7',
+    name: 'SXP/USDT',
+  },
+  'SXP/USDC': {
+    address: 'GbQSffne1NcJbS4jsewZEpRGYVR4RNnuVUN8Ht6vAGb6',
+    name: 'SXP/USDC',
   },
   'MSRM/USDT': {
     address: 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ',
