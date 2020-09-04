@@ -30,10 +30,19 @@ export const COIN_MINTS = {
   SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt: 'SRM',
   AR1Mtgh7zAtxuxGd2XPovXPVjcSdY3i4rQYisNadjfKy: 'SUSHI',
   SF3oTvfWzEP3DTwGSvUXRrGTvr75pdZNnBLAH9bzMuX: 'SXP',
+  CsZ5LZkDS7h9TDKjrbL7VAwQZ9nsRu8vJLhRYfmGaN8K: 'ALEPH',
   [TokenInstructions.WRAPPED_SOL_MINT]: 'SOL',
 };
 
 export const MARKET_INFO_BY_NAME = {
+  'ALEPH/USDT': {
+    address: 'EmCzMQfXMgNHcnRoFwAdPe1i2SuiSzMj1mx6wu3KN2uA',
+    name: 'ALEPH/USDT',
+  },
+  'ALEPH/USDC': {
+    address: 'B37pZmwrwXHjpgvd9hHDAx1yeDsNevTnbbrN9W12BoGK',
+    name: 'ALEPH/USDC',
+  },
   'BTC/USDT': {
     address: '8AcVjMG2LTbpkjNoyq8RwysokqZunkjy3d5JDzxC6BJa',
     name: 'BTC/USDT',
