@@ -12,8 +12,10 @@ import { notify } from '../utils/notifications';
 import { useWallet } from '../utils/wallet';
 import { useConnection, useSendConnection } from '../utils/connection';
 import { placeOrder } from '../utils/send';
+import { getDecimalCount } from '../utils/utils';
 import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
+import { Orderbook } from '@project-serum/serum';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -109,11 +111,35 @@ export default function ConvertForm({}) {
       openOrdersAccount,
     } = accounts;
 
-    const parsedPrice = parseFloat(base === fromToken ? market.tickSize : 100_000);
-    const parsedSize = parseFloat(size);
+    // we need to get approximate price
+    const side = base === fromToken ? 'sell' : 'buy';
+    const orderbookMarket =
+      side === 'buy' ? market._decoded.asks : market._decoded.bids;
+    const orderbookData = await connection.getAccountInfo(orderbookMarket);
+    if (!orderbookData?.data) {
+      notify({ message: 'Invalid orderbook data', type: 'error' });
+      return;
+    }
+    const decodedOrderbookData = Orderbook.decode(market, orderbookData?.data);
+    const [bbo] =
+      decodedOrderbookData &&
+      decodedOrderbookData.getL2(1).map(([price]) => price);
+    if (!bbo) {
+      notify({ message: 'No best price found', type: 'error' });
+      return;
+    }
+    const parsedPrice = parseFloat(bbo + 100*(side === 'buy' ? market.tickSize : -market.tickSize));
+
+    // round size
+    const sizeDecimalCount =
+      market?.minOrderSize && getDecimalCount(market.minOrderSize);
+    let rounded = sizeDecimalCount
+      ? Math.floor(size * 10 ** sizeDecimalCount) / 10 ** sizeDecimalCount
+      : size;
+    const parsedSize = parseFloat(rounded);
 
     !(await placeOrder({
-      side: base === fromToken ? 'sell' : 'buy',
+      side,
       price: parsedPrice,
       size: parsedSize,
       orderType: 'ioc',
