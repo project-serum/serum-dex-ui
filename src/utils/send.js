@@ -310,7 +310,12 @@ export async function placeOrder({
   let {
     transaction: placeOrderTx,
     signers,
-  } = await market.makePlaceOrderTransaction(connection, params);
+  } = await market.makePlaceOrderTransaction(
+    connection,
+    params,
+    10_000,
+    10_000,
+  );
   transaction.add(placeOrderTx);
   transaction.add(market.makeMatchOrdersTransaction(5));
 

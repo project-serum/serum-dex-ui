@@ -454,6 +454,26 @@ export function useTrades(limit = 100) {
     }));
 }
 
+export function useFeeDiscountKeys() {
+  const { market } = useMarket();
+  const { connected, wallet } = useWallet();
+  const connection = useConnection();
+  async function getFeeDiscountKeys() {
+    if (!connected) {
+      return null;
+    }
+    if (!market) {
+      return null;
+    }
+    return await market.findFeeDiscountKeys(connection, wallet.publicKey);
+  }
+  return useAsyncData(
+    getFeeDiscountKeys,
+    tuple('getFeeDiscountKeys', wallet, market, connected),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  );
+}
+
 export function useFills(limit = 100) {
   const { marketName } = useMarket();
   const fills = _useUnfilteredTrades(limit);
