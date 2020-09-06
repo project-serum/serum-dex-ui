@@ -488,9 +488,12 @@ export function useFills(limit = 100) {
   if (!fills) {
     return null;
   }
-  const openOrdersAccount = openOrdersAccounts[0];
   return fills
-    .filter((fill) => fill.openOrders.equals(openOrdersAccount.publicKey))
+    .filter((fill) =>
+      openOrdersAccounts.some((openOrdersAccount) =>
+        fill.openOrders.equals(openOrdersAccount.publicKey),
+      ),
+    )
     .map((fill) => ({ ...fill, marketName }));
 }
 
