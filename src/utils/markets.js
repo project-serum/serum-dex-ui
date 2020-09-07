@@ -2,11 +2,11 @@ import {
   Market,
   Orderbook,
   decodeEventQueue,
-  DEX_PROGRAM_ID,
   TokenInstructions,
+  MARKETS,
+  TOKEN_MINTS,
 } from '@project-serum/serum';
 import React, { useContext, useEffect, useState } from 'react';
-import { PublicKey } from '@solana/web3.js';
 import { useLocalStorageState } from './utils';
 import { useAsyncData } from './fetch-loop';
 import { useAccountData, useAccountInfo, useConnection } from './connection';
@@ -15,120 +15,8 @@ import tuple from 'immutable-tuple';
 import { notify } from './notifications';
 import { BN } from 'bn.js';
 
-const DEFAULT_MARKET_NAME = 'SRM/USDT';
-
-export const COIN_MINTS = {
-  '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E': 'BTC',
-  '2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk': 'ETH',
-  AGFEad2et2ZJif9jaGpdMixQqvW5i81aBdvKe7PHNfz3: 'FTT',
-  '3JSf5tPeuscJGtaCp5giEiDhv51gQ4v3zWg8DGgyLfAB': 'YFI',
-  CWE8jPTUYhdCTZYWPTe1o5DFqfdjzWKc9WKz6rSjQUdG: 'LINK',
-  Ga2AXHpfAF6mv2ekZwcsJFqu7wB4NV331qNH7fW9Nst8: 'XRP',
-  BQcdHdAQW1hczDbBi9hiegXAR7A98Q9jx3X3iBBBDiq4: 'USDT',
-  BXXkv6z8ykpG1yuvUDPgh732wzVHB69RnB9YgSYh3itW: 'USDC',
-  MSRMcoVyrFxnSgo5uXwone5SKcGhT1KEJMFEkMEWf9L: 'MSRM',
-  SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt: 'SRM',
-  AR1Mtgh7zAtxuxGd2XPovXPVjcSdY3i4rQYisNadjfKy: 'SUSHI',
-  SF3oTvfWzEP3DTwGSvUXRrGTvr75pdZNnBLAH9bzMuX: 'SXP',
-  CsZ5LZkDS7h9TDKjrbL7VAwQZ9nsRu8vJLhRYfmGaN8K: 'ALEPH',
-  [TokenInstructions.WRAPPED_SOL_MINT]: 'SOL',
-};
-
-export const MARKET_INFO_BY_NAME = {
-  'ALEPH/USDT': {
-    address: 'EmCzMQfXMgNHcnRoFwAdPe1i2SuiSzMj1mx6wu3KN2uA',
-    name: 'ALEPH/USDT',
-  },
-  'ALEPH/USDC': {
-    address: 'B37pZmwrwXHjpgvd9hHDAx1yeDsNevTnbbrN9W12BoGK',
-    name: 'ALEPH/USDC',
-  },
-  'BTC/USDT': {
-    address: '8AcVjMG2LTbpkjNoyq8RwysokqZunkjy3d5JDzxC6BJa',
-    name: 'BTC/USDT',
-  },
-  'BTC/USDC': {
-    address: 'CAgAeMD7quTdnr6RPa7JySQpjf3irAmefYNdTb6anemq',
-    name: 'BTC/USDC',
-  },
-  'ETH/USDT': {
-    address: 'HfCZdJ1wfsWKfYP2qyWdXTT5PWAGWFctzFjLH48U1Hsd',
-    name: 'ETH/USDT',
-  },
-  'ETH/USDC': {
-    address: 'ASKiV944nKg1W9vsf7hf3fTsjawK6DwLwrnB2LH9n61c',
-    name: 'ETH/USDC',
-  },
-  'SOL/USDT': {
-    address: '8mDuvJJSgoodovMRYArtVVYBbixWYdGzR47GPrRT65YJ',
-    name: 'SOL/USDT',
-    programId: 'BJ3jrUzddfuSrZHXSCxMUUQsjKEyLmuuyZebkcaFp2fg',
-  },
-  'SOL/USDC': {
-    address: 'Cdp72gDcYMCLLk3aDkPxjeiirKoFqK38ECm8Ywvk94Wi',
-    name: 'SOL/USDC',
-    programId: 'BJ3jrUzddfuSrZHXSCxMUUQsjKEyLmuuyZebkcaFp2fg',
-  },
-  'SRM/USDT': {
-    address: 'HARFLhSq8nECZk4DVFKvzqXMNMA9a3hjvridGMFizeLa',
-    name: 'SRM/USDT',
-  },
-  'SRM/USDC': {
-    address: '68J6nkWToik6oM9rTatKSR5ibVSykAtzftBUEAvpRsys',
-    name: 'SRM/USDC',
-  },
-  'SUSHI/USDT': {
-    address: 'DzFjazak6EKHnaB2w6qSsArnj28CV1TKd2Smcj9fqtHW',
-    name: 'SUSHI/USDT',
-  },
-  'SUSHI/USDC': {
-    address: '9wDmxsfwaDb2ysmZpBLzxKzoWrF1zHzBN7PV5EmJe19R',
-    name: 'SUSHI/USDC',
-  },
-  'SXP/USDT': {
-    address: 'GuvWMATdEV6DExWnXncPYEzn4ePWYkvGdC8pu8gsn7m7',
-    name: 'SXP/USDT',
-  },
-  'SXP/USDC': {
-    address: 'GbQSffne1NcJbS4jsewZEpRGYVR4RNnuVUN8Ht6vAGb6',
-    name: 'SXP/USDC',
-  },
-  'MSRM/USDT': {
-    address: 'H4snTKK9adiU15gP22ErfZYtro3aqR9BTMXiH3AwiUTQ',
-    name: 'MSRM/USDT',
-  },
-  'MSRM/USDC': {
-    address: '7kgkDyW7dmyMeP8KFXzbcUZz1R2WHsovDZ7n3ihZuNDS',
-    name: 'MSRM/USDC',
-  },
-  'FTT/USDT': {
-    address: 'DHDdghmkBhEpReno3tbzBPtsxCt6P3KrMzZvxavTktJt',
-    name: 'FTT/USDT',
-  },
-  'FTT/USDC': {
-    address: 'FZqrBXz7ADGsmDf1TM9YgysPUfvtG8rJiNUrqDpHc9Au',
-    name: 'FTT/USDC',
-  },
-  'YFI/USDT': {
-    address: '5zu5bTZZvqESAAgFsr12CUMxdQvMrvU9CgvC1GW8vJdf',
-    name: 'YFI/USDT',
-  },
-  'YFI/USDC': {
-    address: 'FJg9FUtbN3fg3YFbMCFiZKjGh5Bn4gtzxZmtxFzmz9kT',
-    name: 'YFI/USDC',
-  },
-  'LINK/USDT': {
-    address: 'F5xschQBMpu1gD2q1babYEAVJHR1buj1YazLiXyQNqSW',
-    name: 'LINK/USDT',
-  },
-  'LINK/USDC': {
-    address: '7GZ59DMgJ7D6dfoJTpszPayTRyua9jwcaGJXaRMMF1my',
-    name: 'LINK/USDC',
-  },
-};
-
 export function useMarketsList() {
-  return Object.values(MARKET_INFO_BY_NAME);
+  return MARKETS;
 }
 
 export function useAllMarkets() {
@@ -138,17 +26,14 @@ export function useAllMarkets() {
   useEffect(() => {
     const getAllMarkets = async () => {
       const markets = [];
-      const marketList = Object.values(MARKET_INFO_BY_NAME);
       let marketInfo;
-      for (marketInfo of marketList) {
+      for (marketInfo of MARKETS) {
         try {
           const market = await Market.load(
             connection,
-            new PublicKey(marketInfo.address),
+            marketInfo.address,
             {},
-            marketInfo.programId
-              ? new PublicKey(marketInfo.programId)
-              : DEX_PROGRAM_ID,
+            marketInfo.programId,
           );
           markets.push({ market, marketName: marketInfo.name });
         } catch (e) {
@@ -179,11 +64,11 @@ const _FAST_REFRESH_INTERVAL = 1000;
 export function MarketProvider({ children }) {
   const [marketName, setMarketName] = useLocalStorageState(
     'market',
-    DEFAULT_MARKET_NAME,
+    'SRM/USDT',
   );
 
   const connection = useConnection();
-  const marketInfo = MARKET_INFO_BY_NAME[marketName];
+  const marketInfo = MARKETS.find((market) => market.name === marketName);
   const [market, setMarket] = useState();
   useEffect(() => {
     setMarket(null);
@@ -195,14 +80,7 @@ export function MarketProvider({ children }) {
       });
       return;
     }
-    Market.load(
-      connection,
-      new PublicKey(marketInfo.address),
-      {},
-      marketInfo.programId
-        ? new PublicKey(marketInfo.programId)
-        : DEX_PROGRAM_ID,
-    )
+    Market.load(connection, marketInfo.address, {}, marketInfo.programId)
       .then(setMarket)
       .catch((e) =>
         notify({
@@ -214,9 +92,15 @@ export function MarketProvider({ children }) {
   }, [connection, marketName, marketInfo]);
 
   const baseCurrency =
-    COIN_MINTS[market?.baseMintAddress?.toBase58()] || 'UNKNOWN';
+    (market?.baseMintAddress &&
+      TOKEN_MINTS.find((token) => token.address.equals(market.baseMintAddress))
+        ?.name) ||
+    'UNKNOWN';
   const quoteCurrency =
-    COIN_MINTS[market?.quoteMintAddress?.toBase58()] || 'UNKNOWN';
+    (market?.quoteMintAddress &&
+      TOKEN_MINTS.find((token) => token.address.equals(market.quoteMintAddress))
+        ?.name) ||
+    'UNKNOWN';
   return (
     <MarketContext.Provider
       value={{
