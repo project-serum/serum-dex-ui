@@ -34,7 +34,7 @@ function hashString(s) {
 const requirePassword = false;
 
 export default function TradePage() {
-  const { market, marketName, setMarketName } = useMarket();
+  const { market, marketName, setMarketAddress } = useMarket();
   const markets = useMarketsList();
   const [submittedPassword, setSubmittedPassword] = useLocalStorageState(
     'submittedPassword5',
@@ -118,13 +118,13 @@ export default function TradePage() {
             <Select
               size={'large'}
               bordered={true}
-              onSelect={setMarketName}
-              value={marketName}
+              onSelect={setMarketAddress}
+              value={market?.address?.toBase58()}
               listHeight={400}
             >
               {markets.map(({ name, address }, i) => (
                 <Option
-                  value={name}
+                  value={address.toBase58()}
                   key={address}
                   style={{
                     padding: '10px 0',

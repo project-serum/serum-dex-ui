@@ -6,6 +6,7 @@ import {
   MARKETS,
   TOKEN_MINTS,
 } from '@project-serum/serum';
+import { PublicKey } from '@solana/web3.js';
 import React, { useContext, useEffect, useState } from 'react';
 import { useLocalStorageState } from './utils';
 import { useAsyncData } from './fetch-loop';
@@ -62,13 +63,15 @@ const _SLOW_REFRESH_INTERVAL = 5 * 1000;
 const _FAST_REFRESH_INTERVAL = 1000;
 
 export function MarketProvider({ children }) {
-  const [marketName, setMarketName] = useLocalStorageState(
-    'market',
-    'SRM/USDT',
+  const [marketAddress, setMarketAddress] = useLocalStorageState(
+    'marketAddress',
+    MARKETS.find(({ name }) => name === 'SRM/USDT')?.address?.toBase58(),
   );
 
   const connection = useConnection();
-  const marketInfo = MARKETS.find((market) => market.name === marketName);
+  const marketInfo = MARKETS.find((market) =>
+    market.address.equals(new PublicKey(marketAddress)),
+  );
   const [market, setMarket] = useState();
   useEffect(() => {
     setMarket(null);
@@ -89,7 +92,7 @@ export function MarketProvider({ children }) {
           type: 'error',
         }),
       );
-  }, [connection, marketName, marketInfo]);
+  }, [connection, marketInfo]);
 
   const baseCurrency =
     (market?.baseMintAddress &&
@@ -105,8 +108,8 @@ export function MarketProvider({ children }) {
     <MarketContext.Provider
       value={{
         market,
-        marketName,
-        setMarketName,
+        marketName: marketInfo?.name,
+        setMarketAddress,
         ...marketInfo,
         baseCurrency,
         quoteCurrency,
