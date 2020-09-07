@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Button, Col, Input, Popover, Row, Select } from 'antd';
+import { Col, Popover, Row, Select } from 'antd';
 import styled from 'styled-components';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
 import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
 import { useMarket, useMarketsList } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
-import { useLocalStorageState } from '../utils/utils';
 import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
 import { InfoCircleOutlined } from '@ant-design/icons';
@@ -23,24 +22,9 @@ const Wrapper = styled.div`
   }
 `;
 
-function hashString(s) {
-  var h = 0,
-    l = s.length,
-    i = 0;
-  if (l > 0) while (i < l) h = ((h << 5) - h + s.charCodeAt(i++)) | 0;
-  return h;
-}
-
-const requirePassword = false;
-
 export default function TradePage() {
   const { market, marketName, setMarketAddress } = useMarket();
   const markets = useMarketsList();
-  const [submittedPassword, setSubmittedPassword] = useLocalStorageState(
-    'submittedPassword5',
-    false,
-  );
-  const [password, setPassword] = useState('password');
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
     width: window.innerWidth,
@@ -81,30 +65,6 @@ export default function TradePage() {
       return <RenderNormal {...componentProps} />;
     }
   }, [width, componentProps]);
-
-  if (!submittedPassword && requirePassword) {
-    return (
-      <Wrapper style={{ width: 400 }}>
-        <Input.Password
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button
-          onClick={() => {
-            if (hashString(password) === 99071593) {
-              setSubmittedPassword(true);
-            }
-          }}
-          block
-          type="primary"
-          size="large"
-        >
-          Submit
-        </Button>
-      </Wrapper>
-    );
-  }
 
   return (
     <>
