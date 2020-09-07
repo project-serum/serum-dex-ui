@@ -5,6 +5,7 @@ import {
   TokenInstructions,
   MARKETS,
   TOKEN_MINTS,
+  OpenOrders,
 } from '@project-serum/serum';
 import { PublicKey } from '@solana/web3.js';
 import React, { useContext, useEffect, useState } from 'react';
@@ -16,8 +17,15 @@ import tuple from 'immutable-tuple';
 import { notify } from './notifications';
 import { BN } from 'bn.js';
 
+// Used in debugging, should be false in production
+const _IGNORE_DEPRECATED = false;
+
+const USE_MARKETS = _IGNORE_DEPRECATED
+  ? MARKETS.map((m) => ({ ...m, deprecated: false }))
+  : MARKETS;
+
 export function useMarketsList() {
-  return MARKETS;
+  return USE_MARKETS.filter(({ deprecated }) => !deprecated);
 }
 
 export function useAllMarkets() {
@@ -28,7 +36,7 @@ export function useAllMarkets() {
     const getAllMarkets = async () => {
       const markets = [];
       let marketInfo;
-      for (marketInfo of MARKETS) {
+      for (marketInfo of USE_MARKETS) {
         try {
           const market = await Market.load(
             connection,
@@ -54,6 +62,73 @@ export function useAllMarkets() {
   return markets;
 }
 
+export function useUnmigratedDeprecatedMarketsList() {
+  const connection = useConnection();
+  const { wallet } = useWallet();
+
+  async function getUnmigratedDeprecatedMarkets() {
+    if (!wallet || !connection || !wallet.publicKey) {
+      return [];
+    }
+    let marketAddresses = [];
+    const deprecatedProgramIds = Array.from(
+      new Set(
+        USE_MARKETS.filter(({ deprecated }) => deprecated).map(
+          ({ programId }) => programId,
+        ),
+      ),
+    );
+    let programId;
+    for (programId of deprecatedProgramIds) {
+      try {
+        const openOrdersAccounts = await OpenOrders.findForOwner(
+          connection,
+          wallet.publicKey,
+          programId,
+        );
+        marketAddresses = marketAddresses.concat(
+          Array.from(
+            new Set(
+              openOrdersAccounts
+                .filter(
+                  (openOrders) =>
+                    openOrders.baseTokenTotal.toNumber() ||
+                    openOrders.quoteTokenTotal.toNumber(),
+                )
+                .map((openOrders) => openOrders.market),
+            ),
+          ).filter((address) =>
+            USE_MARKETS.some(
+              (market) => market.deprecated && market.address.equals(address),
+            ),
+          ),
+        );
+      } catch (e) {
+        console.log(
+          'Error loading deprecated markets',
+          programId?.toBase58(),
+          e.message,
+        );
+      }
+    }
+    return USE_MARKETS.filter((market) =>
+      marketAddresses.some((address) => address.equals(market.address)),
+    );
+  }
+
+  const [markets] = useAsyncData(
+    getUnmigratedDeprecatedMarkets,
+    tuple(
+      'useUnmigratedDeprecatedMarketsList',
+      connection,
+      wallet?.publicKey?.toBase58(),
+    ),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  );
+
+  return markets;
+}
+
 const MarketContext = React.createContext(null);
 
 // For things that don't really change
@@ -62,16 +137,30 @@ const _SLOW_REFRESH_INTERVAL = 5 * 1000;
 // For things that change frequently
 const _FAST_REFRESH_INTERVAL = 1000;
 
+export const DEFAULT_MARKET = USE_MARKETS.find(
+  ({ name }) => name === 'SRM/USDT',
+);
+
 export function MarketProvider({ children }) {
   const [marketAddress, setMarketAddress] = useLocalStorageState(
     'marketAddress',
-    MARKETS.find(({ name }) => name === 'SRM/USDT')?.address?.toBase58(),
+    DEFAULT_MARKET.address.toBase58(),
   );
 
   const connection = useConnection();
-  const marketInfo = MARKETS.find((market) =>
+  const marketInfo = USE_MARKETS.find((market) =>
     market.address.equals(new PublicKey(marketAddress)),
   );
+
+  // Replace existing market with a non-deprecated one on first load
+  useEffect(() => {
+    if (marketInfo && marketInfo.deprecated) {
+      console.log('Switching markets from deprecated', marketInfo);
+      setMarketAddress(DEFAULT_MARKET.address.toBase58());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [market, setMarket] = useState();
   useEffect(() => {
     setMarket(null);

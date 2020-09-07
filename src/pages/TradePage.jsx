@@ -1,13 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Col, Popover, Row, Select } from 'antd';
+import { Col, Popover, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
 import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
-import { useMarket, useMarketsList } from '../utils/markets';
+import {
+  useMarket,
+  useMarketsList,
+  useUnmigratedDeprecatedMarketsList,
+} from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
+import DeprecatedMarketInstructions from '../components/DeprecatedMarketInstructions';
 import { InfoCircleOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
@@ -23,8 +28,9 @@ const Wrapper = styled.div`
 `;
 
 export default function TradePage() {
-  const { market, marketName, setMarketAddress } = useMarket();
+  const { marketName, market, deprecated } = useMarket();
   const markets = useMarketsList();
+  const deprecatedMarkets = useUnmigratedDeprecatedMarketsList();
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
     width: window.innerWidth,
@@ -57,14 +63,16 @@ export default function TradePage() {
       changeOrderRef.current && changeOrderRef.current({ size }),
   };
   const getComponent = useCallback(() => {
-    if (width < 1000) {
+    if (deprecated) {
+      return <RenderDeprecatedMarket />;
+    } else if (width < 1000) {
       return <RenderSmaller {...componentProps} />;
     } else if (width < 1450) {
       return <RenderSmall {...componentProps} />;
     } else {
       return <RenderNormal {...componentProps} />;
     }
-  }, [width, componentProps]);
+  }, [width, componentProps, deprecated]);
 
   return (
     <>
@@ -75,27 +83,7 @@ export default function TradePage() {
           gutter={16}
         >
           <Col>
-            <Select
-              size={'large'}
-              bordered={true}
-              onSelect={setMarketAddress}
-              value={market?.address?.toBase58()}
-              listHeight={400}
-            >
-              {markets.map(({ name, address }, i) => (
-                <Option
-                  value={address.toBase58()}
-                  key={address}
-                  style={{
-                    padding: '10px 0',
-                    textAlign: 'center',
-                    backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
-                  }}
-                >
-                  {name}
-                </Option>
-              ))}
-            </Select>
+            <MarketSelector markets={markets} placeholder={'Select market'} />
           </Col>
           {market ? (
             <Col>
@@ -109,12 +97,73 @@ export default function TradePage() {
               </Popover>
             </Col>
           ) : null}
+          {deprecatedMarkets && deprecatedMarkets.length > 0 && (
+            <React.Fragment>
+              <Col>
+                <Typography>
+                  You have unsettled funds on deprecated markets! Please go
+                  through them to claim your funds.
+                </Typography>
+              </Col>
+              <Col>
+                <MarketSelector
+                  markets={deprecatedMarkets}
+                  placeholder={'Select deprecated market'}
+                />
+              </Col>
+            </React.Fragment>
+          )}
         </Row>
         {getComponent()}
       </Wrapper>
     </>
   );
 }
+
+function MarketSelector({ markets, placeholder }) {
+  const { market, setMarketAddress } = useMarket();
+  return (
+    <Select
+      size={'large'}
+      bordered={true}
+      onSelect={setMarketAddress}
+      value={markets
+        .find(
+          (proposedMarket) =>
+            market?.address && proposedMarket.address.equals(market.address),
+        )
+        ?.address?.toBase58()}
+      listHeight={400}
+      placeholder={placeholder}
+    >
+      {markets.map(({ address, name, deprecated }, i) => (
+        <Option
+          value={address.toBase58()}
+          key={address}
+          style={{
+            padding: '10px 0',
+            textAlign: 'center',
+            backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+          }}
+        >
+          {name} {deprecated ? ' (Deprecated)' : null}
+        </Option>
+      ))}
+    </Select>
+  );
+}
+
+const RenderDeprecatedMarket = () => {
+  return (
+    <>
+      <Row>
+        <Col flex="auto">
+          <DeprecatedMarketInstructions />
+        </Col>
+      </Row>
+    </>
+  );
+};
 
 const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
