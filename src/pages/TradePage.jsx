@@ -122,24 +122,31 @@ export default function TradePage() {
 
 function MarketSelector({ markets, placeholder }) {
   const { market, setMarketAddress } = useMarket();
+
   return (
     <Select
+      showSearch
       size={'large'}
-      bordered={true}
+      style={{ width: 200 }}
+      placeholder={placeholder || 'Select a market'}
+      optionFilterProp="name"
       onSelect={setMarketAddress}
+      listHeight={400}
       value={markets
         .find(
           (proposedMarket) =>
             market?.address && proposedMarket.address.equals(market.address),
         )
         ?.address?.toBase58()}
-      listHeight={400}
-      placeholder={placeholder}
+      filterOption={(input, option) =>
+        option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      }
     >
       {markets.map(({ address, name, deprecated }, i) => (
         <Option
           value={address.toBase58()}
           key={address}
+          name={name}
           style={{
             padding: '10px 0',
             textAlign: 'center',
