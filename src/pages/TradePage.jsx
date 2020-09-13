@@ -123,6 +123,9 @@ export default function TradePage() {
 function MarketSelector({ markets, placeholder }) {
   const { market, setMarketAddress } = useMarket();
 
+  const extractBase = (a) => a.split('/')[0];
+  const extractQuote = (a) => a.split('/')[1];
+
   return (
     <Select
       showSearch
@@ -142,20 +145,35 @@ function MarketSelector({ markets, placeholder }) {
         option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     >
-      {markets.map(({ address, name, deprecated }, i) => (
-        <Option
-          value={address.toBase58()}
-          key={address}
-          name={name}
-          style={{
-            padding: '10px 0',
-            textAlign: 'center',
-            backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
-          }}
-        >
-          {name} {deprecated ? ' (Deprecated)' : null}
-        </Option>
-      ))}
+      {markets
+        .sort((a, b) =>
+          extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
+            ? -1
+            : extractQuote(a.name) !== 'USDT' && extractQuote(b.name) === 'USDT'
+            ? 1
+            : 0,
+        )
+        .sort((a, b) =>
+          extractBase(a.name) < extractBase(b.name)
+            ? -1
+            : extractBase(a.name) > extractBase(b.name)
+            ? 1
+            : 0,
+        )
+        .map(({ address, name, deprecated }, i) => (
+          <Option
+            value={address.toBase58()}
+            key={address}
+            name={name}
+            style={{
+              padding: '10px 0',
+              textAlign: 'center',
+              backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+            }}
+          >
+            {name} {deprecated ? ' (Deprecated)' : null}
+          </Option>
+        ))}
     </Select>
   );
 }
