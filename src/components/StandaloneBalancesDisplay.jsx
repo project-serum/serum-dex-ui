@@ -60,8 +60,8 @@ export default function StandaloneBalancesDisplay() {
       {[
         [baseCurrency, baseCurrencyBalances],
         [quoteCurrency, quoteCurrencyBalances],
-      ].map(([currency, balances]) => (
-        <React.Fragment>
+      ].map(([currency, balances], index) => (
+        <React.Fragment key={index}>
           <Divider style={{ borderColor: 'white' }}>{currency}</Divider>
           <RowBox
             align="middle"
