@@ -31,7 +31,7 @@
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build",
     "start": "craco start",
-    "build": "craco build",
+    "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` REACT_APP_GIT_DATE=`git log -1 --date=format:\"%Y/%m/%d\" --format=\"%ad\"` craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },

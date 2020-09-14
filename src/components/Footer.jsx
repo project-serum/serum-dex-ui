@@ -15,6 +15,11 @@ const footerElements = [
   { description: 'GitHub', link: helpUrls.github },
   { description: 'Project Serum', link: helpUrls.projectSerum },
   { description: 'Solana Network', link: helpUrls.solanaBeach },
+  {
+    description: `DEX UI V-${process.env.REACT_APP_GIT_SHA} (${process.env.REACT_APP_GIT_DATE})`,
+    link:
+      helpUrls.github + '/serum-dex-ui/commit/' + process.env.REACT_APP_GIT_SHA,
+  },
 ];
 
 export const CustomFooter = () => {
