@@ -1,5 +1,57 @@
 import { notify } from './notifications';
 import { getDecimalCount, sleep } from './utils';
+import { Account, SystemProgram } from '@solana/web3.js';
+import { TokenInstructions } from '@project-serum/serum';
+
+export async function createTokenAccount({
+  connection,
+  wallet,
+  mintPublicKey,
+  onConfirmCallBack,
+}) {
+  let newAccount = new Account();
+  const transaction = SystemProgram.createAccount({
+    fromPubkey: wallet.publicKey,
+    newAccountPubkey: newAccount.publicKey,
+    lamports: await connection.getMinimumBalanceForRentExemption(165),
+    space: 165,
+    programId: TokenInstructions.TOKEN_PROGRAM_ID,
+  });
+  transaction.add(
+    TokenInstructions.initializeAccount({
+      account: newAccount.publicKey,
+      mint: mintPublicKey,
+      owner: wallet.publicKey,
+    }),
+  );
+  const onConfirm = (result) => {
+    if (result.timeout) {
+      notify({
+        message: 'Timed out',
+        type: 'error',
+        description: 'Timed out awaiting confirmation on transaction',
+      });
+    } else if (result.err) {
+      console.log(result.err);
+      notify({ message: 'Error creating account', type: 'error' });
+    } else {
+      notify({ message: 'Account creation confirmed', type: 'success' });
+    }
+    onConfirmCallBack && onConfirmCallBack();
+  };
+  const onBeforeSend = () => notify({ message: 'Creating account...' });
+  const onAfterSend = () =>
+    notify({ message: 'Account created', type: 'success' });
+  return await sendTransaction({
+    transaction,
+    wallet,
+    connection,
+    onBeforeSend: onBeforeSend,
+    onAfterSend: onAfterSend,
+    onConfirm,
+    signers: [wallet.publicKey, newAccount],
+  });
+}
 
 export async function settleFunds({
   market,
@@ -17,18 +69,56 @@ export async function settleFunds({
     !baseCurrencyAccount ||
     !quoteCurrencyAccount
   ) {
-    if (
-      (baseCurrencyAccount && !quoteCurrencyAccount) ||
-      (quoteCurrencyAccount && !baseCurrencyAccount)
-    ) {
-      notify({
-        message: 'Add token account',
-        description: 'Add accounts for both currencies on sollet.io',
+    if (baseCurrencyAccount && !quoteCurrencyAccount) {
+      return await createTokenAccount({
+        connection,
+        wallet,
+        mintPublicKey: market.quoteMintAddress,
+        onConfirmCallBack: async () => {
+          await sleep(1000); // wait to make sure currency account is available
+          const quoteCurrencyAccounts = await market.findQuoteTokenAccountsForOwner(
+            connection,
+            wallet.publicKey,
+            true,
+          );
+          quoteCurrencyAccounts &&
+            settleFunds({
+              market,
+              openOrders,
+              connection,
+              wallet,
+              baseCurrencyAccount,
+              quoteCurrencyAccount: quoteCurrencyAccounts[0],
+            });
+        },
+      });
+    } else if (quoteCurrencyAccount && !baseCurrencyAccount) {
+      return await createTokenAccount({
+        connection,
+        wallet,
+        mintPublicKey: market.baseMintAddress,
+        onConfirmCallBack: async () => {
+          await sleep(1000); // wait to make sure currency account is available
+          const baseCurrencyAccounts = await market.findBaseTokenAccountsForOwner(
+            connection,
+            wallet.publicKey,
+            true,
+          );
+          baseCurrencyAccounts &&
+            settleFunds({
+              market,
+              openOrders,
+              connection,
+              wallet,
+              baseCurrencyAccount: baseCurrencyAccounts[0],
+              quoteCurrencyAccount,
+            });
+        },
       });
     } else {
       notify({ message: 'Not connected' });
+      return;
     }
-    return;
   }
 
   const { transaction, signers } = await market.makeSettleFundsTransaction(
