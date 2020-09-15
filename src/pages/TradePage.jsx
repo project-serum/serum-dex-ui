@@ -14,8 +14,11 @@ import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
 import DeprecatedMarketInstructions from '../components/DeprecatedMarketInstructions';
 import { InfoCircleOutlined } from '@ant-design/icons';
+import { useLocalStorageState } from '../utils/utils';
+import CustomMarketDialog from '../components/CustomMarketDialog';
+import { PublicKey } from '@solana/web3.js';
 
-const { Option } = Select;
+const { Option, OptGroup } = Select;
 
 const Wrapper = styled.div`
   height: 100%;
@@ -30,7 +33,12 @@ const Wrapper = styled.div`
 export default function TradePage() {
   const { marketName, market, deprecated } = useMarket();
   const markets = useMarketsList();
+  const [customMarkets, setCustomMarkets] = useLocalStorageState(
+    'customMarkets',
+    [],
+  );
   const deprecatedMarkets = useUnmigratedDeprecatedMarketsList();
+  const [addMarketVisible, setAddMarketVisible] = useState(false);
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
     width: window.innerWidth,
@@ -74,8 +82,18 @@ export default function TradePage() {
     }
   }, [width, componentProps, deprecated]);
 
+  const onAddCustomMarket = (customMarket) => {
+    const newCustomMarkets = [...customMarkets, customMarket];
+    setCustomMarkets(newCustomMarkets);
+  };
+
   return (
     <>
+      <CustomMarketDialog
+        visible={addMarketVisible}
+        onClose={() => setAddMarketVisible(false)}
+        onAddCustomMarket={onAddCustomMarket}
+      />
       <Wrapper>
         <Row
           align="middle"
@@ -83,7 +101,11 @@ export default function TradePage() {
           gutter={16}
         >
           <Col>
-            <MarketSelector markets={markets} placeholder={'Select market'} />
+            <MarketSelector
+              markets={markets}
+              customMarkets={customMarkets}
+              placeholder={'Select market'}
+            />
           </Col>
           {market ? (
             <Col>
@@ -97,6 +119,12 @@ export default function TradePage() {
               </Popover>
             </Col>
           ) : null}
+          <Col>
+            <InfoCircleOutlined
+              style={{ color: '#2abdd2' }}
+              onClick={() => setAddMarketVisible(true)}
+            />
+          </Col>
           {deprecatedMarkets && deprecatedMarkets.length > 0 && (
             <React.Fragment>
               <Col>
@@ -120,7 +148,7 @@ export default function TradePage() {
   );
 }
 
-function MarketSelector({ markets, placeholder }) {
+function MarketSelector({ markets, customMarkets, placeholder }) {
   const { market, setMarketAddress } = useMarket();
 
   const extractBase = (a) => a.split('/')[0];
@@ -145,6 +173,24 @@ function MarketSelector({ markets, placeholder }) {
         option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     >
+      {customMarkets && customMarkets.length > 0 && (
+        <OptGroup label="Custom">
+          {customMarkets.map(({ address, name }, i) => (
+            <Option
+              value={address}
+              key={new PublicKey(address)}
+              name={name}
+              style={{
+                padding: '10px 0',
+                textAlign: 'center',
+                backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+              }}
+            >
+              {name}
+            </Option>
+          ))}
+        </OptGroup>
+      )}
       {markets
         .sort((a, b) =>
           extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'

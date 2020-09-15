@@ -24,19 +24,36 @@ const USE_MARKETS = _IGNORE_DEPRECATED
   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
   : MARKETS;
 
+function useMarketsInfo() {
+  const [customMarkets] = useLocalStorageState('customMarkets', []);
+
+  const marketsInfo = _IGNORE_DEPRECATED
+    ? MARKETS.map((m) => ({ ...m, deprecated: false }))
+    : MARKETS;
+
+  const customMarketsInfo = customMarkets.map((m) => ({
+    ...m,
+    address: new PublicKey(m.address),
+  }));
+
+  return [...customMarketsInfo, ...marketsInfo];
+}
+
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ deprecated }) => !deprecated);
+  const marketInfos = useMarketsInfo();
+  return marketInfos.filter(({ deprecated }) => !deprecated);
 }
 
 export function useAllMarkets() {
   const connection = useConnection();
+  const marketInfos = useMarketsInfo();
   const [markets, setMarkets] = useState([]);
 
   useEffect(() => {
     const getAllMarkets = async () => {
       const markets = [];
       let marketInfo;
-      for (marketInfo of USE_MARKETS) {
+      for (marketInfo of marketInfos) {
         try {
           const market = await Market.load(
             connection,
@@ -147,8 +164,9 @@ export function MarketProvider({ children }) {
     DEFAULT_MARKET.address.toBase58(),
   );
 
+  const marketInfos = useMarketsInfo();
   const connection = useConnection();
-  const marketInfo = USE_MARKETS.find((market) =>
+  const marketInfo = marketInfos.find((market) =>
     market.address.equals(new PublicKey(marketAddress)),
   );
 
