@@ -8,15 +8,15 @@ import {
   useMarket,
   useMarketsList,
   useUnmigratedDeprecatedMarketsList,
+  getMarketInfos,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
 import DeprecatedMarketInstructions from '../components/DeprecatedMarketInstructions';
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { useLocalStorageState } from '../utils/utils';
+import { InfoCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import CustomMarketDialog from '../components/CustomMarketDialog';
-import { PublicKey } from '@solana/web3.js';
+import { notify } from '../utils/notifications';
 
 const { Option, OptGroup } = Select;
 
@@ -31,12 +31,15 @@ const Wrapper = styled.div`
 `;
 
 export default function TradePage() {
-  const { marketName, market, deprecated } = useMarket();
+  const {
+    marketName,
+    market,
+    deprecated,
+    customMarkets,
+    setCustomMarkets,
+    setMarketAddress,
+  } = useMarket();
   const markets = useMarketsList();
-  const [customMarkets, setCustomMarkets] = useLocalStorageState(
-    'customMarkets',
-    [],
-  );
   const deprecatedMarkets = useUnmigratedDeprecatedMarketsList();
   const [addMarketVisible, setAddMarketVisible] = useState(false);
   const [dimensions, setDimensions] = useState({
@@ -83,8 +86,16 @@ export default function TradePage() {
   }, [width, componentProps, deprecated]);
 
   const onAddCustomMarket = (customMarket) => {
+    if (markets.some((m) => m.address.toBase58() === customMarket.address)) {
+      notify({
+        message: 'A market with the given ID already exists',
+        type: 'error',
+      });
+      return;
+    }
     const newCustomMarkets = [...customMarkets, customMarket];
     setCustomMarkets(newCustomMarkets);
+    setMarketAddress(customMarket.address);
   };
 
   return (
@@ -120,7 +131,7 @@ export default function TradePage() {
             </Col>
           ) : null}
           <Col>
-            <InfoCircleOutlined
+            <PlusCircleOutlined
               style={{ color: '#2abdd2' }}
               onClick={() => setAddMarketVisible(true)}
             />
@@ -154,6 +165,13 @@ function MarketSelector({ markets, customMarkets, placeholder }) {
   const extractBase = (a) => a.split('/')[0];
   const extractQuote = (a) => a.split('/')[1];
 
+  const selectedMarket = getMarketInfos(customMarkets)
+    .find(
+      (proposedMarket) =>
+        market?.address && proposedMarket.address.equals(market.address),
+    )
+    ?.address?.toBase58();
+
   return (
     <Select
       showSearch
@@ -163,12 +181,7 @@ function MarketSelector({ markets, customMarkets, placeholder }) {
       optionFilterProp="name"
       onSelect={setMarketAddress}
       listHeight={400}
-      value={markets
-        .find(
-          (proposedMarket) =>
-            market?.address && proposedMarket.address.equals(market.address),
-        )
-        ?.address?.toBase58()}
+      value={selectedMarket}
       filterOption={(input, option) =>
         option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
@@ -178,7 +191,7 @@ function MarketSelector({ markets, customMarkets, placeholder }) {
           {customMarkets.map(({ address, name }, i) => (
             <Option
               value={address}
-              key={new PublicKey(address)}
+              key={address}
               name={name}
               style={{
                 padding: '10px 0',
@@ -191,35 +204,38 @@ function MarketSelector({ markets, customMarkets, placeholder }) {
           ))}
         </OptGroup>
       )}
-      {markets
-        .sort((a, b) =>
-          extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
-            ? -1
-            : extractQuote(a.name) !== 'USDT' && extractQuote(b.name) === 'USDT'
-            ? 1
-            : 0,
-        )
-        .sort((a, b) =>
-          extractBase(a.name) < extractBase(b.name)
-            ? -1
-            : extractBase(a.name) > extractBase(b.name)
-            ? 1
-            : 0,
-        )
-        .map(({ address, name, deprecated }, i) => (
-          <Option
-            value={address.toBase58()}
-            key={address}
-            name={name}
-            style={{
-              padding: '10px 0',
-              textAlign: 'center',
-              backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
-            }}
-          >
-            {name} {deprecated ? ' (Deprecated)' : null}
-          </Option>
-        ))}
+      <OptGroup label="Markets">
+        {markets
+          .sort((a, b) =>
+            extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
+              ? -1
+              : extractQuote(a.name) !== 'USDT' &&
+                extractQuote(b.name) === 'USDT'
+              ? 1
+              : 0,
+          )
+          .sort((a, b) =>
+            extractBase(a.name) < extractBase(b.name)
+              ? -1
+              : extractBase(a.name) > extractBase(b.name)
+              ? 1
+              : 0,
+          )
+          .map(({ address, name, deprecated }, i) => (
+            <Option
+              value={address.toBase58()}
+              key={address}
+              name={name}
+              style={{
+                padding: '10px 0',
+                textAlign: 'center',
+                backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+              }}
+            >
+              {name} {deprecated ? ' (Deprecated)' : null}
+            </Option>
+          ))}
+      </OptGroup>
     </Select>
   );
 }

@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { Modal, Button, Input, Row, Col } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Modal, Input, Row, Col, Typography } from 'antd';
 import { notify } from '../utils/notifications';
 import { PublicKey } from '@solana/web3.js';
+import { MARKETS } from '@project-serum/serum';
+
+const { Text } = Typography;
 
 export default function CustomMarketDialog({
   visible,
@@ -12,31 +15,35 @@ export default function CustomMarketDialog({
   const [programId, setProgramId] = useState(null);
   const [label, setLabel] = useState(null);
 
+  useEffect(() => {
+    setLabel(MARKETS.find((m) => m.address.toBase58() === marketId)?.name);
+  }, [marketId]);
+
+  const knownMarket = MARKETS.some((m) => m.address.toBase58() === marketId);
+
   const onSubmit = () => {
     if (!marketId || !programId || !label) {
       notify({ message: 'Please fill in all fields', type: 'error' });
       return;
     }
 
-    let marketPubkey;
     try {
-      marketPubkey = new PublicKey(marketId);
+      new PublicKey(marketId);
     } catch {
       notify({ message: 'Not a valid market id', type: 'error' });
       return;
     }
 
-    let programPubkey;
     try {
-      programPubkey = new PublicKey(programId);
+      new PublicKey(programId);
     } catch {
       notify({ message: 'Not a valid program id', type: 'error' });
       return;
     }
 
     onAddCustomMarket({
-      address: marketPubkey.toBase58(),
-      programId: programPubkey,
+      address: marketId,
+      programId,
       name: label,
     });
     onClose();
@@ -52,19 +59,24 @@ export default function CustomMarketDialog({
     >
       <div style={{ paddingTop: '20px' }}>
         <Row style={{ marginBottom: 8 }}>
-          <Col>
+          <Col span={24}>
             <Input
-              style={{ minWidth: 300 }}
               placeholder="Market Id"
               value={marketId}
               onChange={(e) => setMarketId(e.target.value)}
             />
+            {marketId && !knownMarket && (
+              <div style={{ marginTop: 8 }}>
+                <Text type="warning">
+                  Warning: unknown market, possible scam
+                </Text>
+              </div>
+            )}
           </Col>
         </Row>
         <Row style={{ marginBottom: 8 }}>
-          <Col>
+          <Col span={24}>
             <Input
-              style={{ minWidth: 300 }}
               placeholder="Program Id"
               value={programId}
               onChange={(e) => setProgramId(e.target.value)}
@@ -72,9 +84,8 @@ export default function CustomMarketDialog({
           </Col>
         </Row>
         <Row style={{ marginBottom: 8 }}>
-          <Col>
+          <Col span={24}>
             <Input
-              style={{ minWidth: 300 }}
               placeholder="Label"
               value={label}
               onChange={(e) => setLabel(e.target.value)}

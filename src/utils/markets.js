@@ -24,36 +24,19 @@ const USE_MARKETS = _IGNORE_DEPRECATED
   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
   : MARKETS;
 
-function useMarketsInfo() {
-  const [customMarkets] = useLocalStorageState('customMarkets', []);
-
-  const marketsInfo = _IGNORE_DEPRECATED
-    ? MARKETS.map((m) => ({ ...m, deprecated: false }))
-    : MARKETS;
-
-  const customMarketsInfo = customMarkets.map((m) => ({
-    ...m,
-    address: new PublicKey(m.address),
-  }));
-
-  return [...customMarketsInfo, ...marketsInfo];
-}
-
 export function useMarketsList() {
-  const marketInfos = useMarketsInfo();
-  return marketInfos.filter(({ deprecated }) => !deprecated);
+  return USE_MARKETS.filter(({ deprecated }) => !deprecated);
 }
 
 export function useAllMarkets() {
   const connection = useConnection();
-  const marketInfos = useMarketsInfo();
   const [markets, setMarkets] = useState([]);
 
   useEffect(() => {
     const getAllMarkets = async () => {
       const markets = [];
       let marketInfo;
-      for (marketInfo of marketInfos) {
+      for (marketInfo of USE_MARKETS) {
         try {
           const market = await Market.load(
             connection,
@@ -64,7 +47,7 @@ export function useAllMarkets() {
           markets.push({ market, marketName: marketInfo.name });
         } catch (e) {
           notify({
-            message: 'Error loading market',
+            message: 'Error loading all market',
             description: e.message,
             type: 'error',
           });
@@ -163,9 +146,13 @@ export function MarketProvider({ children }) {
     'marketAddress',
     DEFAULT_MARKET.address.toBase58(),
   );
+  const [customMarkets, setCustomMarkets] = useLocalStorageState(
+    'customMarkets',
+    [],
+  );
 
-  const marketInfos = useMarketsInfo();
   const connection = useConnection();
+  const marketInfos = getMarketInfos(customMarkets);
   const marketInfo = marketInfos.find((market) =>
     market.address.equals(new PublicKey(marketAddress)),
   );
@@ -181,6 +168,9 @@ export function MarketProvider({ children }) {
 
   const [market, setMarket] = useState();
   useEffect(() => {
+    if (market && market._decoded.ownAddress?.equals(marketInfo?.address)) {
+      return;
+    }
     setMarket(null);
     if (!marketInfo || !marketInfo.address) {
       notify({
@@ -217,6 +207,8 @@ export function MarketProvider({ children }) {
         market,
         marketName: marketInfo?.name,
         setMarketAddress,
+        customMarkets,
+        setCustomMarkets,
         ...marketInfo,
         baseCurrency,
         quoteCurrency,
@@ -837,4 +829,14 @@ export function useOpenOrderAccountBalancesForAllMarkets() {
     ),
     { refreshInterval: _SLOW_REFRESH_INTERVAL },
   );
+}
+
+export function getMarketInfos(customMarkets) {
+  const customMarketsInfo = customMarkets.map((m) => ({
+    ...m,
+    address: new PublicKey(m.address),
+    programId: new PublicKey(m.programId),
+  }));
+
+  return [...customMarketsInfo, ...USE_MARKETS];
 }
