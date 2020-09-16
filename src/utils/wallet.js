@@ -5,7 +5,7 @@ import { useConnectionConfig } from './connection';
 import { useLocalStorageState } from './utils';
 
 export const WALLET_PROVIDERS = [
-  { name: 'sollet.io', url: 'http://localhost:3000' },
+  { name: 'sollet.io', url: 'https://www.sollet.io' },
 ];
 
 const WalletContext = React.createContext(null);
@@ -14,7 +14,7 @@ export function WalletProvider({ children }) {
   const { endpoint } = useConnectionConfig();
   const [providerUrl, setProviderUrl] = useLocalStorageState(
     'walletProvider',
-    'http://localhost:3000',
+    'https://www.sollet.io',
   );
   const wallet = useMemo(() => new Wallet(providerUrl, endpoint), [
     providerUrl,
