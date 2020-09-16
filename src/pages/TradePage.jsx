@@ -14,7 +14,11 @@ import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
 import DeprecatedMarketInstructions from '../components/DeprecatedMarketInstructions';
-import { InfoCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import {
+  InfoCircleOutlined,
+  PlusCircleOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
 import CustomMarketDialog from '../components/CustomMarketDialog';
 import { notify } from '../utils/notifications';
 
@@ -102,6 +106,11 @@ export default function TradePage() {
     setMarketAddress(customMarket.address);
   };
 
+  const onDeleteCustomMarket = (address) => {
+    const newCustomMarkets = customMarkets.filter((m) => m.address !== address);
+    setCustomMarkets(newCustomMarkets);
+  };
+
   return (
     <>
       <CustomMarketDialog
@@ -120,6 +129,7 @@ export default function TradePage() {
               markets={markets}
               customMarkets={customMarkets}
               placeholder={'Select market'}
+              onDeleteCustomMarket={onDeleteCustomMarket}
             />
           </Col>
           {market ? (
@@ -163,7 +173,12 @@ export default function TradePage() {
   );
 }
 
-function MarketSelector({ markets, customMarkets, placeholder }) {
+function MarketSelector({
+  markets,
+  customMarkets,
+  placeholder,
+  onDeleteCustomMarket,
+}) {
   const { market, setMarketAddress } = useMarket();
 
   const extractBase = (a) => a.split('/')[0];
@@ -198,12 +213,24 @@ function MarketSelector({ markets, customMarkets, placeholder }) {
               key={address}
               name={name}
               style={{
-                padding: '10px 0',
-                textAlign: 'center',
+                padding: '10px',
                 backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
               }}
             >
-              {name}
+              <Row>
+                <Col flex="auto">{name}</Col>
+                {selectedMarket !== address && (
+                  <Col>
+                    <DeleteOutlined
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.nativeEvent.stopImmediatePropagation();
+                        onDeleteCustomMarket && onDeleteCustomMarket(address);
+                      }}
+                    />
+                  </Col>
+                )}
+              </Row>
             </Option>
           ))}
         </OptGroup>
@@ -231,8 +258,7 @@ function MarketSelector({ markets, customMarkets, placeholder }) {
               key={address}
               name={name}
               style={{
-                padding: '10px 0',
-                textAlign: 'center',
+                padding: '10px',
                 backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
               }}
             >

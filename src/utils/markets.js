@@ -168,7 +168,11 @@ export function MarketProvider({ children }) {
 
   const [market, setMarket] = useState();
   useEffect(() => {
-    if (market && market._decoded.ownAddress?.equals(marketInfo?.address)) {
+    if (
+      market &&
+      marketInfo &&
+      market._decoded.ownAddress?.equals(marketInfo?.address)
+    ) {
       return;
     }
     setMarket(null);
