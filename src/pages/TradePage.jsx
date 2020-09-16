@@ -86,7 +86,11 @@ export default function TradePage() {
   }, [width, componentProps, deprecated]);
 
   const onAddCustomMarket = (customMarket) => {
-    if (markets.some((m) => m.address.toBase58() === customMarket.address)) {
+    if (
+      getMarketInfos(customMarkets).some(
+        (m) => m.address.toBase58() === customMarket.address,
+      )
+    ) {
       notify({
         message: 'A market with the given ID already exists',
         type: 'error',

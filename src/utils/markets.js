@@ -191,15 +191,19 @@ export function MarketProvider({ children }) {
       );
   }, [connection, marketInfo]);
 
+  marketInfo && console.log(JSON.stringify(marketInfo));
+
   const baseCurrency =
     (market?.baseMintAddress &&
       TOKEN_MINTS.find((token) => token.address.equals(market.baseMintAddress))
         ?.name) ||
+    marketInfo?.base ||
     'UNKNOWN';
   const quoteCurrency =
     (market?.quoteMintAddress &&
       TOKEN_MINTS.find((token) => token.address.equals(market.quoteMintAddress))
         ?.name) ||
+    marketInfo?.quote ||
     'UNKNOWN';
   return (
     <MarketContext.Provider
