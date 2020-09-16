@@ -184,7 +184,7 @@ export default function CustomMarketDialog({
             />
           </Col>
         </Row>
-        <Row style={{ marginBottom: 8 }}>
+        <Row gutter={[8]} style={{ marginBottom: 8 }}>
           <Col span={12}>
             <Input
               placeholder="Base label"
