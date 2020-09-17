@@ -69,24 +69,41 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   let baseBalance = baseCurrencyBalances || 0;
   let sizeDecimalCount =
     market?.minOrderSize && getDecimalCount(market.minOrderSize);
+  let priceDecimalCount = market?.tickSize && getDecimalCount(market.tickSize);
 
   useEffect(() => {
     setChangeOrderRef && setChangeOrderRef(doChangeOrder);
   }, [setChangeOrderRef]);
 
   useEffect(() => {
-    sizeFraction && onSliderChange(sizeFraction);
+    onSliderChange(sizeFraction);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [side, sizeFraction]);
+  }, [side]);
+
+  useEffect(() => {
+    updateSizeFraction();
+  }, [price, size]);
 
   const doChangeOrder = ({ size, price }) => {
     size && setSize(size);
     price && setPrice(price);
   };
 
+  const updateSizeFraction = () => {
+    const rawMaxSize = side === 'buy' ? quoteBalance / price : baseBalance;
+    const maxSize = sizeDecimalCount
+      ? Math.floor(rawMaxSize * 10 ** sizeDecimalCount) / 10 ** sizeDecimalCount
+      : rawMaxSize;
+    const sizeFraction = Math.min((size / maxSize) * 100, 100);
+    setSizeFraction(sizeFraction);
+  };
+
   const onSliderChange = (value) => {
-    if (!price) {
-      markPrice && setPrice(markPrice);
+    if (!price && markPrice) {
+      let formattedMarkPrice = priceDecimalCount
+        ? markPrice.toFixed(priceDecimalCount)
+        : markPrice;
+      setPrice(formattedMarkPrice);
     }
 
     let newSize;
@@ -104,7 +121,6 @@ export default function TradeForm({ style, setChangeOrderRef }) {
       : newSize;
 
     setSize(formatted);
-    setSizeFraction(value);
   };
 
   const postOnChange = (checked) => {
