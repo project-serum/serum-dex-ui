@@ -10,6 +10,14 @@ export const percentFormat = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 2,
 });
 
+export function floorToDecimal(value, decimals) {
+  return decimals ? Math.floor(value * 10 ** decimals) / 10 ** decimals : value;
+}
+
+export function roundToDecimal(value, decimals) {
+  return decimals ? Math.round(value * 10 ** decimals) / 10 ** decimals : value;
+}
+
 export function getDecimalCount(value) {
   if (!isNaN(value) && Math.floor(value) !== value)
     return value.toString().split('.')[1].length || 0;
