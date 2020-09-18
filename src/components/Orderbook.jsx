@@ -1,5 +1,5 @@
 import { Col, Row } from 'antd';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { useMarket, useOrderbook, useMarkPrice } from '../utils/markets';
 import { isEqual, getDecimalCount } from '../utils/utils';
@@ -45,38 +45,57 @@ const Price = styled.div`
 
 export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
   const markPrice = useMarkPrice();
-  const [orderbook, loaded] = useOrderbook();
+  const [orderbook] = useOrderbook();
   const { baseCurrency, quoteCurrency } = useMarket();
 
-  let bids = [];
-  let asks = [];
-  if (loaded) {
-    bids = orderbook.bids;
-    asks = orderbook.asks;
-  }
+  const lastRefresh = useRef(Date.now());
+
+  const [asksToDisplay, setAsksToDisplay] = useState([]);
+  const [bidsToDisplay, setBidsToDisplay] = useState([]);
+  const [totalSize, setTotalSize] = useState(0);
+
+  useEffect(() => {
+    if (Date.now() - lastRefresh.current > 250) {
+      let bids = orderbook.bids || [];
+      let asks = orderbook.asks || [];
+
+      let [asksToDisplay, totalAskSize] = getCumulativeOrderbookSide(
+        asks,
+        true,
+      );
+      let [bidsToDisplay, totalBidSize] = getCumulativeOrderbookSide(
+        bids,
+        false,
+      );
+      let totalSize = totalAskSize + totalBidSize;
+
+      setAsksToDisplay(asksToDisplay);
+      setBidsToDisplay(bidsToDisplay);
+      setTotalSize(totalSize);
+
+      lastRefresh.current = Date.now();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderbook]);
 
   function getCumulativeOrderbookSide(orders, backwards = false) {
-    let cumulative = [];
-    let cumulativeSize = 0;
-    orders.forEach(([price, size]) => {
-      if (cumulative.length < depth) {
-        cumulativeSize += size;
-        cumulative.push({ price, size, cumulativeSize });
-      }
-    });
+    let cumulative = orders
+      .slice(0, depth)
+      .reduce((cumulative, [price, size], i) => {
+        cumulative.push({
+          price,
+          size,
+          cumulativeSize: (cumulative[i - 1]?.cumulativeSize || 0) + size,
+        });
+        return cumulative;
+      }, []);
     if (backwards) {
       cumulative = cumulative.reverse();
     }
     let totalSize =
-      cumulative.length > 0 &&
-      cumulative[backwards ? 0 : cumulative.length - 1].cumulativeSize;
+      cumulative[backwards ? 0 : cumulative.length - 1]?.cumulativeSize || 0;
     return [cumulative, totalSize];
   }
-
-  let [asksToDisplay, totalAskSize] = getCumulativeOrderbookSide(asks, true);
-  let [bidsToDisplay, totalBidSize] = getCumulativeOrderbookSide(bids, false);
-
-  let totalSize = totalAskSize + totalBidSize;
 
   return (
     <FloatingElement
@@ -93,10 +112,9 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
           Price ({quoteCurrency})
         </Col>
       </SizeTitle>
-      {asksToDisplay.map(({ price, size, cumulativeSize }, index) => (
+      {asksToDisplay.map(({ price, size, cumulativeSize }) => (
         <OrderbookRow
-          key={index}
-          index={index}
+          key={price + ''}
           price={price}
           size={size}
           side={'sell'}
@@ -106,10 +124,9 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
         />
       ))}
       <MarkPriceComponent markPrice={markPrice} />
-      {bidsToDisplay.map(({ price, size, cumulativeSize }, index) => (
+      {bidsToDisplay.map(({ price, size, cumulativeSize }) => (
         <OrderbookRow
-          key={index}
-          index={index}
+          key={price + ''}
           price={price}
           size={size}
           side={'buy'}
@@ -123,15 +140,21 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
 }
 
 const OrderbookRow = React.memo(
-  ({ index, side, price, size, sizePercent, onSizeClick, onPriceClick }) => {
+  ({ side, price, size, sizePercent, onSizeClick, onPriceClick }) => {
     const element = useRef();
 
     const { market } = useMarket();
 
     useEffect(() => {
       // eslint-disable-next-line
-      let _ = element.current?.classList.add('flash');
-      setTimeout(() => element.current?.classList.remove('flash'), 500);
+      !element.current?.classList.contains('flash') &&
+        element.current?.classList.add('flash');
+      setTimeout(
+        () =>
+          element.current?.classList.contains('flash') &&
+          element.current?.classList.remove('flash'),
+        500,
+      );
     }, [price, size]);
 
     let formattedSize =
@@ -145,12 +168,7 @@ const OrderbookRow = React.memo(
         : price;
 
     return (
-      <Row
-        ref={element}
-        id={index + ''}
-        style={{ marginBottom: 1 }}
-        onClick={onSizeClick}
-      >
+      <Row ref={element} style={{ marginBottom: 1 }} onClick={onSizeClick}>
         <Col span={12} style={{ textAlign: 'left' }}>
           {formattedSize}
         </Col>
