@@ -21,8 +21,8 @@ export default function AccountsTable({ accountBalances }) {
       openOrders: openOrdersAccount,
       connection,
       wallet,
-      baseCurrencyAccount,
-      quoteCurrencyAccount,
+      baseCurrencyPubkey: baseCurrencyAccount?.pubkey,
+      quoteCurrencyPubkey: quoteCurrencyAccount?.pubkey,
     });
   }
 
