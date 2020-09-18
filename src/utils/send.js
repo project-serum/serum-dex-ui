@@ -60,10 +60,7 @@ export async function settleFunds({
   wallet,
   baseCurrencyAccount,
   quoteCurrencyAccount,
-<<<<<<< HEAD
   onSuccess,
-=======
->>>>>>> Revert "Cleanup"
 }) {
   if (
     !market ||

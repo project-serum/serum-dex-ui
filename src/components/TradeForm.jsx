@@ -89,14 +89,15 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   const onSetBaseSize = (baseSize) => {
     setBaseSize(baseSize);
     const rawQuoteSize = baseSize * (price || markPrice);
-    const quoteSize = roundToDecimal(rawQuoteSize, sizeDecimalCount);
+    const quoteSize =
+      baseSize && roundToDecimal(rawQuoteSize, sizeDecimalCount);
     setQuoteSize(quoteSize);
   };
 
   const onSetQuoteSize = (quoteSize) => {
     setQuoteSize(quoteSize);
     const rawBaseSize = quoteSize / price;
-    const baseSize = roundToDecimal(rawBaseSize, sizeDecimalCount);
+    const baseSize = quoteSize && roundToDecimal(rawBaseSize, sizeDecimalCount);
     setBaseSize(baseSize);
   };
 
@@ -166,6 +167,10 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         wallet,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
+        onConfirmCallBack: () => {
+          setPrice(null);
+          onSetBaseSize(null);
+        },
       });
     } catch (e) {
       console.warn(e);
