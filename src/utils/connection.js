@@ -94,34 +94,27 @@ export function useAccountInfo(publicKey) {
     }
     if (accountListenerCount.has(cacheKey)) {
       let currentItem = accountListenerCount.get(cacheKey);
-      console.log('Incrementing', id, currentItem.count + 1);
       ++currentItem.count;
     } else {
       let previousData = null;
-      console.log('Subscribing to ', id);
       const subscriptionId = connection.onAccountChange(publicKey, (e) => {
         if (e.data) {
           if (!previousData || !previousData.equals(e.data)) {
-            console.log('Passing along new data', id);
             setCache(cacheKey, e);
           } else {
-            console.log('Skipping no-op update', id);
           }
           previousData = e.data;
         }
       });
-      console.log('Setting cache', id);
       accountListenerCount.set(cacheKey, { count: 1, subscriptionId });
     }
     return () => {
       let currentItem = accountListenerCount.get(cacheKey);
       let nextCount = currentItem.count - 1;
       if (nextCount <= 0) {
-        console.log('Removing cache', id);
         connection.removeAccountChangeListener(currentItem.subscriptionId);
         accountListenerCount.delete(cacheKey);
       } else {
-        console.log('Decrementing', id, nextCount);
         --currentItem.count;
       }
     };

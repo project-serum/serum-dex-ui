@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useMarket } from '../../utils/markets';
 import DataTable from '../layout/DataTable';
 
 import styled from 'styled-components';
@@ -15,8 +14,7 @@ const CancelButton = styled(Button)`
   border: 1px solid #f23b69;
 `;
 
-export default function OpenOrderTable({ openOrders }) {
-  let { market } = useMarket();
+export default function OpenOrderTable({ openOrders, onCancelSuccess }) {
   let { wallet } = useWallet();
   let connection = useSendConnection();
 
@@ -26,11 +24,14 @@ export default function OpenOrderTable({ openOrders }) {
     try {
       await cancelOrder({
         order,
-        market,
+        market: order.market,
         connection,
         wallet,
         onBeforeSendCallBack: () => setCancelId(order?.orderId),
-        onConfirmCallBack: () => setCancelId(null),
+        onConfirmCallBack: () => {
+          setCancelId(null);
+          onCancelSuccess && onCancelSuccess();
+        },
       });
     } catch (e) {
       notify({
