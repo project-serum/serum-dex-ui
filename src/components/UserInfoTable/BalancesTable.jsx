@@ -25,6 +25,7 @@ export default function BalancesTable({
       openOrders,
       connection,
       wallet,
+<<<<<<< HEAD
       baseCurrencyAccount: getSelectedTokenAccountForMint(
         accounts,
         market?.baseMintAddress,
@@ -34,6 +35,10 @@ export default function BalancesTable({
         market?.quoteMintAddress,
       ),
       onSuccess: onSettleSuccess,
+=======
+      baseCurrencyAccount,
+      quoteCurrencyAccount,
+>>>>>>> Revert "Cleanup"
     });
   }
 

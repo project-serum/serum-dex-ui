@@ -50,8 +50,8 @@ export default function StandaloneBalancesDisplay() {
       openOrders: openOrdersAccount,
       connection,
       wallet,
-      baseCurrencyPubkey: baseCurrencyAccount?.pubkey,
-      quoteCurrencyPubkey: quoteCurrencyAccount?.pubkey,
+      baseCurrencyAccount,
+      quoteCurrencyAccount,
     });
   }
 
