@@ -4,7 +4,7 @@ import DataTable from '../layout/DataTable';
 
 import styled from 'styled-components';
 import { Button, Row, Col, Tag } from 'antd';
-import { cancelOrder } from '../../utils/send';
+import { cancelOrder, cancelOrders } from '../../utils/send';
 import { useWallet } from '../../utils/wallet';
 import { useSendConnection } from '../../utils/connection';
 import { notify } from '../../utils/notifications';
@@ -20,6 +20,7 @@ export default function OpenOrderTable({ openOrders }) {
   let { wallet } = useWallet();
   let connection = useSendConnection();
 
+  const [cancelAllInProgress, setCancelAllInProgress] = useState(false);
   const [cancelId, setCancelId] = useState(null);
 
   async function cancel(order) {
@@ -38,6 +39,25 @@ export default function OpenOrderTable({ openOrders }) {
         type: 'error',
       });
       setCancelId(null);
+    }
+  }
+
+  async function cancelAll() {
+    try {
+      await cancelOrders({
+        orders: openOrders,
+        market,
+        connection,
+        wallet,
+        onBeforeSendCallBack: () => setCancelAllInProgress(true),
+        onConfirmCallBack: () => setCancelAllInProgress(false),
+      });
+    } catch (e) {
+      notify({
+        message: 'Error cancelling orders: ' + e.message,
+        type: 'error',
+      });
+      setCancelAllInProgress(false);
     }
   }
 
@@ -90,16 +110,31 @@ export default function OpenOrderTable({ openOrders }) {
   );
 
   return (
-    <Row>
-      <Col span={24}>
-        <DataTable
-          emptyLabel="No open orders"
-          dataSource={dataSource}
-          columns={columns}
-          pagination={true}
-          pageSize={5}
-        />
-      </Col>
-    </Row>
+    <>
+      {openOrders?.length > 0 && (
+        <Row justify="end">
+          <Col style={{ paddingRight: 15 }}>
+            <CancelButton
+              icon={<DeleteOutlined />}
+              onClick={cancelAll}
+              loading={cancelAllInProgress}
+            >
+              Cancel all
+            </CancelButton>
+          </Col>
+        </Row>
+      )}
+      <Row>
+        <Col span={24}>
+          <DataTable
+            emptyLabel="No open orders"
+            dataSource={dataSource}
+            columns={columns}
+            pagination={true}
+            pageSize={5}
+          />
+        </Col>
+      </Row>
+    </>
   );
 }
