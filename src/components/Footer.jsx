@@ -17,8 +17,7 @@ const footerElements = [
   { description: 'Solana Network', link: helpUrls.solanaBeach },
   {
     description: `DEX UI V-${process.env.REACT_APP_GIT_SHA} (${process.env.REACT_APP_GIT_DATE})`,
-    link:
-      helpUrls.github + '/serum-dex-ui/commit/' + process.env.REACT_APP_GIT_SHA,
+    link: helpUrls.github + '/commit/' + process.env.REACT_APP_GIT_SHA,
   },
 ];
 

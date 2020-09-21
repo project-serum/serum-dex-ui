@@ -4,7 +4,7 @@ export const helpUrls = {
   contactEmail: 'mailto:contact@projectserum.com',
   discord: 'https://discord.gg/MxZFT4v',
   telegram: 'https://t.me/ProjectSerum',
-  github: 'https://github.com/project-serum',
+  github: 'https://github.com/askmike/serum-dex-ui',
   projectSerum: 'https://projectserum.com/',
   developerResources: 'https://projectserum.com/developer-resources',
   solanaBeach: 'https://solanabeach.io',
