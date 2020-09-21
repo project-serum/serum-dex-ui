@@ -4,7 +4,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { useWallet } from '../utils/wallet';
 
 export default function WalletConnect() {
-  const [connected, wallet] = useWallet();
+  const { connected, wallet } = useWallet();
 
   return (
     <Button

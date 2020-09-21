@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Select, Button, Input, Row, Col } from 'antd';
 import styled from 'styled-components';
+import { Market, Orderbook } from '@project-serum/serum';
 import {
-  COIN_MINTS,
-  MARKET_INFO_BY_NAME,
-  useAllMarkets,
   getTradeAccountsForMarket,
+  getSelectedTokenAccountForMint,
   getCurrencyBalance,
+  getOpenOrdersAccountsBalance,
+  useMarket,
+  getMarketInfos,
+  getMarketDetails,
+  useTokenAccounts,
 } from '../utils/markets';
 import { notify } from '../utils/notifications';
 import { useWallet } from '../utils/wallet';
 import { useConnection, useSendConnection } from '../utils/connection';
 import { placeOrder } from '../utils/send';
-import { getDecimalCount } from '../utils/utils';
+import { getDecimalCount, floorToDecimal } from '../utils/utils';
 import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
-import { Orderbook } from '@project-serum/serum';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -32,23 +35,27 @@ const ConvertButton = styled(Button)`
 `;
 
 export default function ConvertForm({}) {
-  const [connected, wallet] = useWallet();
-  const allMarkets = useAllMarkets();
+  const { connected, wallet } = useWallet();
+  const { customMarkets } = useMarket();
+
+  const [accounts] = useTokenAccounts();
+
   const connection = useConnection();
   const sendConnection = useSendConnection();
 
   const [isConverting, setIsConverting] = useState(false);
+  const [market, setMarket] = useState(null);
   const [balance, setBalance] = useState(null);
   const [tokenMap, setTokenMap] = useState(null);
   const [fromToken, setFromToken] = useState(null);
   const [toToken, setToToken] = useState(null);
   const [size, setSize] = useState(null);
 
-  const tokenList = Object.values(COIN_MINTS);
+  const marketInfos = getMarketInfos(customMarkets);
 
   useEffect(() => {
     const tokenMap = new Map();
-    Object.values(MARKET_INFO_BY_NAME).forEach((market) => {
+    marketInfos.forEach((market) => {
       let [base, quote] = market.name.split('/');
       !tokenMap.has(base)
         ? tokenMap.set(base, [quote])
@@ -61,58 +68,72 @@ export default function ConvertForm({}) {
   }, []);
 
   useEffect(() => {
-    if (!connected || !fromToken) {
+    if (!fromToken || !toToken) {
+      setMarket(null);
       return;
     }
-    // find market
-    const targetMarket = allMarkets.find(({ marketName }) =>
-      marketName.match(new RegExp(`^${fromToken}|\/${fromToken}$`)),
+
+    const marketInfo = marketInfos.find(
+      ({ name }) =>
+        name === `${fromToken}/${toToken}` ||
+        name === `${toToken}/${fromToken}`,
     );
-    if (!targetMarket) {
-      notify({ message: 'Invalid market', type: 'error' });
-      return;
-    }
-    const { market, marketName } = targetMarket;
+    marketInfo &&
+      Market.load(connection, marketInfo.address, {}, marketInfo.programId)
+        .then(setMarket)
+        .catch((e) =>
+          notify({
+            message: 'Error loading market',
+            description: e.message,
+            type: 'error',
+          }),
+        );
+  }, [connection, fromToken, toToken]);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      const openOrdersAccountBalance = await getOpenOrdersAccountsBalance(
+        connection,
+        wallet,
+        market,
+        isFromTokenBaseOfMarket(market),
+      );
+      const currenyAccount = getSelectedTokenAccountForMint(
+        accounts,
+        isFromTokenBaseOfMarket(market)
+          ? market?.baseMintAddress
+          : market?.quoteMintAddress,
+      );
+      const currencyBalance = await getCurrencyBalance(
+        connection,
+        market,
+        currenyAccount,
+      );
+      setBalance(openOrdersAccountBalance + currencyBalance);
+    };
+
+    market && fetchBalance();
+  }, [market]);
+
+  const isFromTokenBaseOfMarket = (market) => {
+    const { marketName } = getMarketDetails(market, customMarkets);
     const [base] = marketName.split('/');
-    getCurrencyBalance(market, connection, wallet, base === fromToken).then(
-      setBalance,
-    );
-  }, [fromToken]);
+    return fromToken === base;
+  };
 
   const onConvert = async () => {
-    if (!connected) {
-      notify({ message: 'Not connected', type: 'error' });
-      return;
-    }
-
-    // find market
-    const targetMarket = allMarkets.find(
-      ({ marketName }) =>
-        marketName === `${fromToken}/${toToken}` ||
-        marketName === `${toToken}/${fromToken}`,
+    // get accounts
+    const baseCurrencyAccount = getSelectedTokenAccountForMint(
+      accounts,
+      market?.baseMintAddress,
     );
-    if (!targetMarket) {
-      notify({ message: 'Invalid market', type: 'error' });
-      return;
-    }
-
-    const { market, marketName } = targetMarket;
-    const [base] = marketName.split('/');
-
-    const accounts = await getTradeAccountsForMarket(
-      connection,
-      wallet,
-      market,
+    const quoteCurrencyAccount = getSelectedTokenAccountForMint(
+      accounts,
+      market?.quoteMintAddress,
     );
 
-    const {
-      baseCurrencyAccount,
-      quoteCurrencyAccount,
-      openOrdersAccount,
-    } = accounts;
-
-    // we need to get approximate price
-    const side = base === fromToken ? 'sell' : 'buy';
+    // get approximate price
+    const side = isFromTokenBaseOfMarket(market) ? 'sell' : 'buy';
     const orderbookMarket =
       side === 'buy' ? market._decoded.asks : market._decoded.bids;
     const orderbookData = await connection.getAccountInfo(orderbookMarket);
@@ -128,15 +149,13 @@ export default function ConvertForm({}) {
       notify({ message: 'No best price found', type: 'error' });
       return;
     }
-    const parsedPrice = parseFloat(bbo + 100*(side === 'buy' ? market.tickSize : -market.tickSize));
+    const parsedPrice =
+      bbo + 100 * (side === 'buy' ? market.tickSize : -market.tickSize);
 
     // round size
     const sizeDecimalCount =
       market?.minOrderSize && getDecimalCount(market.minOrderSize);
-    let rounded = sizeDecimalCount
-      ? Math.floor(size * 10 ** sizeDecimalCount) / 10 ** sizeDecimalCount
-      : size;
-    const parsedSize = parseFloat(rounded);
+    const parsedSize = floorToDecimal(size, sizeDecimalCount);
 
     !(await placeOrder({
       side,
@@ -146,9 +165,8 @@ export default function ConvertForm({}) {
       market,
       connection: sendConnection,
       wallet,
-      baseCurrencyAccount: baseCurrencyAccount?.pubkey?.toBase58(),
-      quoteCurrencyAccount: quoteCurrencyAccount?.pubkey?.toBase58(),
-      openOrdersAccount: openOrdersAccount?.pubkey?.toBase58(),
+      baseCurrencyAccount: baseCurrencyAccount?.pubkey,
+      quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
       onBeforeSendCallBack: () => setIsConverting(true),
       onConfirmCallBack: (error) => {
         notify({
@@ -167,6 +185,8 @@ export default function ConvertForm({}) {
     setBalance(null);
     setSize(null);
   };
+
+  const canConvert = market && size > 0;
 
   return (
     <FloatingElement style={{ maxWidth: 500 }}>
@@ -188,7 +208,7 @@ export default function ConvertForm({}) {
                 value={fromToken}
                 onChange={setFromToken}
               >
-                {tokenList.map((token) => (
+                {Array.from(tokenMap.keys()).map((token) => (
                   <Option value={token} key={token}>
                     {token}
                   </Option>
@@ -237,19 +257,18 @@ export default function ConvertForm({}) {
                     Max: {balance}
                   </ActionButton>
                 </Col>
-                {size && (
-                  <Col span={12}>
-                    <ConvertButton
-                      block
-                      type="primary"
-                      size="large"
-                      loading={isConverting}
-                      onClick={onConvert}
-                    >
-                      Convert
-                    </ConvertButton>
-                  </Col>
-                )}
+                <Col span={12}>
+                  <ConvertButton
+                    block
+                    type="primary"
+                    size="large"
+                    loading={isConverting}
+                    onClick={onConvert}
+                    disabled={!canConvert}
+                  >
+                    Convert
+                  </ConvertButton>
+                </Col>
               </Row>
             </>
           )}

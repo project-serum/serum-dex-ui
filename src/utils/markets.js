@@ -143,7 +143,7 @@ export const DEFAULT_MARKET = USE_MARKETS.find(
   ({ name }) => name === 'SRM/USDT',
 );
 
-function getMarketDetails(market, customMarkets) {
+export function getMarketDetails(market, customMarkets) {
   if (!market) {
     return {};
   }
@@ -721,23 +721,31 @@ export function useWalletBalancesForAllMarkets() {
   );
 }
 
-export async function getCurrencyBalance(
-  market,
+export async function getCurrencyBalance(connection, market, currencyAccount) {
+  const accountInfo = await connection.getAccountInfo(currencyAccount.pubkey);
+  return (
+    accountInfo &&
+    market.baseSplSizeToNumber(new BN(accountInfo.data.slice(64, 72), 10, 'le'))
+  );
+}
+
+export async function getOpenOrdersAccountsBalance(
   connection,
   wallet,
+  market,
   base = true,
 ) {
-  const currencyAccounts = base
-    ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
-    : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
-  const currencyAccount = currencyAccounts && currencyAccounts[0];
-  if (!currencyAccount) {
-    return;
-  }
-  const tokenAccountBalances = await connection.getTokenAccountBalance(
-    currencyAccount.pubkey,
+  const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
+    connection,
+    wallet.publicKey,
   );
-  return tokenAccountBalances?.value?.uiAmount;
+  const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
+  return (
+    openOrdersAccount &&
+    (base
+      ? market.quoteSplSizeToNumber(openOrdersAccount.baseTokenFree)
+      : market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree))
+  );
 }
 
 export function useOpenOrderAccountBalancesForAllMarkets() {

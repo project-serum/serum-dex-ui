@@ -6,8 +6,6 @@ import BalancesPage from './pages/BalancesPage';
 import ConvertPage from './pages/ConvertPage';
 import BasicLayout from './components/BasicLayout';
 
-const { Header, Content } = Layout;
-
 export function Routes() {
   return (
     <HashRouter basename={'/'}>
@@ -45,18 +43,8 @@ function BalancesPageContents() {
 
 function ConvertPageContents() {
   return (
-    <React.Fragment>
-      <Layout
-        style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}
-      >
-        <Header style={{ padding: 0 }}>
-          <TopBar />
-        </Header>
-        <Content style={{ flex: 1 }}>
-          <ConvertPage />
-        </Content>
-        <CustomFooter />
-      </Layout>
-    </React.Fragment>
+    <BasicLayout>
+      <ConvertPage />
+    </BasicLayout>
   );
 }
