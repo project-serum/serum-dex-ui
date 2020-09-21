@@ -12,15 +12,14 @@ import {
 } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
-import { getDecimalCount } from '../utils/utils';
+import {
+  getDecimalCount,
+  roundToDecimal,
+  floorToDecimal,
+} from '../utils/utils';
 import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { placeOrder } from '../utils/send';
-
-const InputBox = styled(Input)`
-  text-align: right;
-  padding-bottom: 16px;
-`;
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
@@ -56,59 +55,87 @@ export default function TradeForm({ style, setChangeOrderRef }) {
 
   const [postOnly, setPostOnly] = useState(false);
   const [ioc, setIoc] = useState(false);
-  const [size, setSize] = useState(null);
+  const [baseSize, setBaseSize] = useState(null);
+  const [quoteSize, setQuoteSize] = useState(null);
   const [price, setPrice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [sizeFraction, setSizeFraction] = useState(0);
 
   const availableQuote = openOrdersAccount
     ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
     : 0;
 
-  const maxQuoteSize = quoteCurrencyBalances + availableQuote;
-
-  const sizeFraction =
-    (price && size && maxQuoteSize && baseCurrencyBalances && side === 'buy'
-      ? ((price * size) / Math.floor(maxQuoteSize)) * 100
-      : (size / baseCurrencyBalances) * 100) || 0;
+  let quoteBalance = (quoteCurrencyBalances || 0) + (availableQuote || 0);
+  let baseBalance = baseCurrencyBalances || 0;
+  let sizeDecimalCount =
+    market?.minOrderSize && getDecimalCount(market.minOrderSize);
+  let priceDecimalCount = market?.tickSize && getDecimalCount(market.tickSize);
 
   useEffect(() => {
     setChangeOrderRef && setChangeOrderRef(doChangeOrder);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setChangeOrderRef]);
 
-  // useEffect(() => {
-  //   sizeFraction && onSliderChange(sizeFraction);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [side, sizeFraction]);
+  useEffect(() => {
+    onSliderChange(sizeFraction);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [side]);
+
+  useEffect(() => {
+    updateSizeFraction();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [price, baseSize]);
+
+  const onSetBaseSize = (baseSize) => {
+    setBaseSize(baseSize);
+    const rawQuoteSize = baseSize * (price || markPrice);
+    const quoteSize =
+      baseSize && roundToDecimal(rawQuoteSize, sizeDecimalCount);
+    setQuoteSize(quoteSize);
+  };
+
+  const onSetQuoteSize = (quoteSize) => {
+    setQuoteSize(quoteSize);
+    const rawBaseSize = quoteSize / price;
+    const baseSize = quoteSize && roundToDecimal(rawBaseSize, sizeDecimalCount);
+    setBaseSize(baseSize);
+  };
 
   const doChangeOrder = ({ size, price }) => {
-    size && setSize(size);
-    price && setPrice(price);
+    const formattedSize = size && roundToDecimal(size, sizeDecimalCount);
+    const formattedPrice = price && roundToDecimal(price, priceDecimalCount);
+    formattedSize && onSetBaseSize(formattedSize);
+    formattedPrice && setPrice(formattedPrice);
+  };
+
+  const updateSizeFraction = () => {
+    const rawMaxSize = side === 'buy' ? quoteBalance / price : baseBalance;
+    const maxSize = floorToDecimal(rawMaxSize, sizeDecimalCount);
+    const sizeFraction = Math.min((baseSize / maxSize) * 100, 100);
+    setSizeFraction(sizeFraction);
   };
 
   const onSliderChange = (value) => {
-    if (!maxQuoteSize || !baseCurrencyBalances) {
-      return;
-    }
-
-    if (!price) {
-      markPrice && setPrice(markPrice);
+    if (!price && markPrice) {
+      let formattedMarkPrice = priceDecimalCount
+        ? markPrice.toFixed(priceDecimalCount)
+        : markPrice;
+      setPrice(formattedMarkPrice);
     }
 
     let newSize;
     if (side === 'buy') {
       if (price || markPrice) {
-        newSize =
-          ((Math.floor(maxQuoteSize) / (price || markPrice)) * value) / 100;
+        newSize = ((quoteBalance / (price || markPrice)) * value) / 100;
       }
     } else {
-      newSize = (Math.floor(baseCurrencyBalances) * value) / 100;
+      newSize = (baseBalance * value) / 100;
     }
 
-    setSize(
-      market?.minOrderSize
-        ? newSize.toFixed(getDecimalCount(market.minOrderSize))
-        : newSize,
-    );
+    // round down to minOrderSize increment
+    let formatted = floorToDecimal(newSize, sizeDecimalCount);
+
+    onSetBaseSize(formatted);
   };
 
   const postOnChange = (checked) => {
@@ -126,7 +153,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
 
   async function onSubmit() {
     const parsedPrice = parseFloat(price);
-    const parsedSize = parseFloat(size);
+    const parsedSize = parseFloat(baseSize);
 
     setSubmitting(true);
     try {
@@ -140,6 +167,10 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         wallet,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
+        onConfirmCallBack: () => {
+          setPrice(null);
+          onSetBaseSize(null);
+        },
       });
     } catch (e) {
       console.warn(e);
@@ -186,28 +217,48 @@ export default function TradeForm({ style, setChangeOrderRef }) {
             SELL
           </Radio.Button>
         </Radio.Group>
-        <InputBox
-          addonBefore={`Price (${quoteCurrency})`}
-          placeholder="Price"
+        <Input
+          style={{ textAlign: 'right', paddingBottom: 8 }}
+          addonBefore={<div style={{ width: '30px' }}>Price</div>}
+          suffix={
+            <span style={{ fontSize: 10, opacity: 0.5 }}>{baseCurrency}</span>
+          }
           value={price}
           type="number"
           step={market?.tickSize || 1}
           onChange={(e) => setPrice(e.target.value)}
         />
-        <InputBox
-          addonBefore={`Size (${baseCurrency})`}
-          placeholder="Size"
-          value={size}
-          type="number"
-          step={market?.minOrderSize || 1}
-          onChange={(e) => setSize(e.target.value)}
+        <Input.Group compact style={{ paddingBottom: 8 }}>
+          <Input
+            style={{ width: 'calc(50% + 30px)', textAlign: 'right' }}
+            addonBefore={<div style={{ width: '30px' }}>Size</div>}
+            suffix={
+              <span style={{ fontSize: 10, opacity: 0.5 }}>{baseCurrency}</span>
+            }
+            value={baseSize}
+            type="number"
+            step={market?.minOrderSize || 1}
+            onChange={(e) => onSetBaseSize(e.target.value)}
+          />
+          <Input
+            style={{ width: 'calc(50% - 30px)', textAlign: 'right' }}
+            suffix={
+              <span style={{ fontSize: 10, opacity: 0.5 }}>
+                {quoteCurrency}
+              </span>
+            }
+            value={quoteSize}
+            type="number"
+            step={market?.minOrderSize || 1}
+            onChange={(e) => onSetQuoteSize(e.target.value)}
+          />
+        </Input.Group>
+        <Slider
+          value={sizeFraction}
+          tipFormatter={(value) => `${value}%`}
+          marks={sliderMarks}
+          onChange={onSliderChange}
         />
-        {/*<Slider*/}
-        {/*  value={sizeFraction}*/}
-        {/*  tipFormatter={(value) => `${value}%`}*/}
-        {/*  marks={sliderMarks}*/}
-        {/*  onChange={onSliderChange}*/}
-        {/*/>*/}
         <div style={{ paddingTop: 18 }}>
           {'POST '}
           <Switch
@@ -221,7 +272,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
       </div>
       {side === 'buy' ? (
         <BuyButton
-          disabled={!price || !size}
+          disabled={!price || !baseSize}
           onClick={onSubmit}
           block
           type="primary"
@@ -232,7 +283,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         </BuyButton>
       ) : (
         <SellButton
-          disabled={!price || !size}
+          disabled={!price || !baseSize}
           onClick={onSubmit}
           block
           type="primary"
