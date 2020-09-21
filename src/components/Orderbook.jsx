@@ -164,12 +164,13 @@ const OrderbookRow = React.memo(
       // eslint-disable-next-line
       !element.current?.classList.contains('flash') &&
         element.current?.classList.add('flash');
-      setTimeout(
+      const id = setTimeout(
         () =>
           element.current?.classList.contains('flash') &&
           element.current?.classList.remove('flash'),
         500,
       );
+      return () => clearTimeout(id);
     }, [price, size]);
 
     let formattedSize =
