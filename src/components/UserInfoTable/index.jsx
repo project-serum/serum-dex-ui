@@ -4,22 +4,25 @@ import React from 'react';
 import { Tabs, Typography } from 'antd';
 import FillsTable from './FillsTable';
 import FloatingElement from '../layout/FloatingElement';
-import { useOpenOrders, useBalances } from '../../utils/markets';
+import FeesTable from './FeesTable';
+import { useOpenOrders, useBalances, useMarket } from '../../utils/markets';
 
+const { Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 export default function Index() {
+  const { market } = useMarket();
   return (
-    <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
+    <FloatingElement style={{ flex: 1, paddingTop: 20 }}>
       <Typography>
-        Make sure to go to Balances and click Settle to send out your funds
+        <Paragraph style={{ color: 'rgba(255,255,255,0.5)' }}>
+          Make sure to go to Balances and click Settle to send out your funds.
+        </Paragraph>
+        <Paragraph style={{ color: 'rgba(255,255,255,0.5)' }}>
+          To fund your wallet, use sollet.io. You can get SOL from FTX, Binance,
+          BitMax, and others. You can get other tokens from FTX.{' '}
+        </Paragraph>
       </Typography>
-      <br />
-      <Typography>
-        To fund your wallet, use sollet.io. You can get SOL from FTX, Binance,
-        BitMax, and others. You can get other tokens from FTX.
-      </Typography>
-      <br />
       <Tabs defaultActiveKey="orders">
         <TabPane tab="Open Orders" key="orders">
           <OpenOrdersTab />
@@ -30,6 +33,11 @@ export default function Index() {
         <TabPane tab="Balances" key="balances">
           <BalancesTab />
         </TabPane>
+        {market && market.supportsSrmFeeDiscounts ? (
+          <TabPane tab="Fee discounts" key="fees">
+            <FeesTable />
+          </TabPane>
+        ) : null}
       </Tabs>
     </FloatingElement>
   );

@@ -59,8 +59,9 @@ export function WalletProvider({ children }) {
         connected,
         providerUrl,
         setProviderUrl,
-        providerName: WALLET_PROVIDERS.find(({ url }) => url === providerUrl)
-          ?.name,
+        providerName:
+          WALLET_PROVIDERS.find(({ url }) => url === providerUrl)?.name ??
+          providerUrl,
       }}
     >
       {children}
@@ -70,11 +71,11 @@ export function WalletProvider({ children }) {
 
 export function useWallet() {
   const context = useContext(WalletContext);
-  return [
-    context.connected,
-    context.wallet,
-    context.providerUrl,
-    context.setProviderUrl,
-    context.providerName,
-  ];
+  return {
+    connected: context.connected,
+    wallet: context.wallet,
+    providerUrl: context.providerUrl,
+    setProvider: context.setProviderUrl,
+    providerName: context.providerName,
+  };
 }
