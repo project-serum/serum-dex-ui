@@ -1,46 +1,62 @@
 import { Button } from 'antd';
 import React from 'react';
 import {
-  useSelectedOpenOrdersAccount,
-  useMarket,
-  useSelectedBaseCurrencyAccount,
-  useSelectedQuoteCurrencyAccount,
+  useTokenAccounts,
+  getSelectedTokenAccountForMint,
 } from '../../utils/markets';
 import DataTable from '../layout/DataTable';
 import { useSendConnection } from '../../utils/connection';
 import { useWallet } from '../../utils/wallet';
 import { settleFunds } from '../../utils/send';
 
-export default function BalancesTable({ balances }) {
-  const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
-  const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
+export default function BalancesTable({
+  balances,
+  showMarket,
+  hideWalletBalance,
+  onSettleSuccess,
+}) {
+  const [accounts] = useTokenAccounts();
   const connection = useSendConnection();
   const { wallet } = useWallet();
-  const openOrdersAccount = useSelectedOpenOrdersAccount(true);
-  const { market } = useMarket();
 
-  async function onSettleFunds() {
+  async function onSettleFunds(market, openOrders) {
     return await settleFunds({
       market,
-      openOrders: openOrdersAccount,
+      openOrders,
       connection,
       wallet,
-      baseCurrencyAccount,
-      quoteCurrencyAccount,
+      baseCurrencyAccount: getSelectedTokenAccountForMint(
+        accounts,
+        market?.baseMintAddress,
+      ),
+      quoteCurrencyAccount: getSelectedTokenAccountForMint(
+        accounts,
+        market?.quoteMintAddress,
+      ),
+      onSuccess: onSettleSuccess,
     });
   }
 
   const columns = [
+    showMarket
+      ? {
+          title: 'Market',
+          dataIndex: 'marketName',
+          key: 'marketName',
+        }
+      : null,
     {
       title: 'Coin',
       dataIndex: 'coin',
       key: 'coin',
     },
-    {
-      title: 'Wallet Balance',
-      dataIndex: 'wallet',
-      key: 'wallet',
-    },
+    hideWalletBalance
+      ? null
+      : {
+          title: 'Wallet Balance',
+          dataIndex: 'wallet',
+          key: 'wallet',
+        },
     {
       title: 'Orders',
       dataIndex: 'orders',
@@ -53,15 +69,19 @@ export default function BalancesTable({ balances }) {
     },
     {
       key: 'action',
-      render: () => (
+      render: ({ market, openOrders, marketName }) => (
         <div style={{ textAlign: 'right' }}>
-          <Button ghost style={{ marginRight: 12 }} onClick={onSettleFunds}>
-            Settle
+          <Button
+            ghost
+            style={{ marginRight: 12 }}
+            onClick={() => onSettleFunds(market, openOrders)}
+          >
+            Settle {marketName}
           </Button>
         </div>
       ),
     },
-  ];
+  ].filter((x) => x);
   return (
     <DataTable
       emptyLabel="No balances"

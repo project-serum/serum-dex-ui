@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { useMarket, useOrderbook, useMarkPrice } from '../utils/markets';
 import { isEqual, getDecimalCount } from '../utils/utils';
+import { useInterval } from '../utils/useInterval';
 import FloatingElement from './layout/FloatingElement';
 import usePrevious from '../utils/usePrevious';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
@@ -48,16 +49,21 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
   const [orderbook] = useOrderbook();
   const { baseCurrency, quoteCurrency } = useMarket();
 
-  const lastRefresh = useRef(Date.now());
+  const currentOrderbookData = useRef(null);
+  const lastOrderbookData = useRef(null);
 
   const [asksToDisplay, setAsksToDisplay] = useState([]);
   const [bidsToDisplay, setBidsToDisplay] = useState([]);
   const [totalSize, setTotalSize] = useState(0);
 
-  useEffect(() => {
-    if (Date.now() - lastRefresh.current > 250) {
-      let bids = orderbook.bids || [];
-      let asks = orderbook.asks || [];
+  useInterval(() => {
+    if (
+      !currentOrderbookData.current ||
+      JSON.stringify(currentOrderbookData.current) !==
+        JSON.stringify(lastOrderbookData.current)
+    ) {
+      let bids = orderbook?.bids || [];
+      let asks = orderbook?.asks || [];
 
       let [asksToDisplay, totalAskSize] = getCumulativeOrderbookSide(
         asks,
@@ -73,9 +79,18 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
       setBidsToDisplay(bidsToDisplay);
       setTotalSize(totalSize);
 
-      lastRefresh.current = Date.now();
+      currentOrderbookData.current = {
+        bids: orderbook?.bids,
+        asks: orderbook?.asks,
+      };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, 250);
+
+  useEffect(() => {
+    lastOrderbookData.current = {
+      bids: orderbook?.bids,
+      asks: orderbook?.asks,
+    };
   }, [orderbook]);
 
   function getCumulativeOrderbookSide(orders, backwards = false) {
