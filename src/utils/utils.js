@@ -17,6 +17,20 @@ export async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export const percentFormat = new Intl.NumberFormat(undefined, {
+  style: 'percent',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+export function floorToDecimal(value, decimals) {
+  return decimals ? Math.floor(value * 10 ** decimals) / 10 ** decimals : value;
+}
+
+export function roundToDecimal(value, decimals) {
+  return decimals ? Math.round(value * 10 ** decimals) / 10 ** decimals : value;
+}
+
 export function getDecimalCount(value) {
   if (!isNaN(value) && Math.floor(value) !== value)
     return value.toString().split('.')[1].length || 0;

@@ -67,7 +67,7 @@ export default function CustomMarketDialog({
         setValidMarket(false);
       })
       .finally(() => setLoadingMarket(false));
-  }, [marketId, programId]);
+  }, [connection, marketId, programId]);
 
   const resetLabels = () => {
     setMarketLabel(null);

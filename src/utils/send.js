@@ -60,6 +60,7 @@ export async function settleFunds({
   wallet,
   baseCurrencyAccount,
   quoteCurrencyAccount,
+  onSuccess,
 }) {
   if (
     !market ||
@@ -140,6 +141,7 @@ export async function settleFunds({
       notify({ message: 'Error settling funds', type: 'error' });
     } else {
       notify({ message: 'Fund settlement confirmed', type: 'success' });
+      onSuccess && onSuccess();
     }
   };
   const onBeforeSend = () => notify({ message: 'Settling funds...' });
@@ -310,7 +312,12 @@ export async function placeOrder({
   let {
     transaction: placeOrderTx,
     signers,
-  } = await market.makePlaceOrderTransaction(connection, params);
+  } = await market.makePlaceOrderTransaction(
+    connection,
+    params,
+    10_000,
+    10_000,
+  );
   transaction.add(placeOrderTx);
   transaction.add(market.makeMatchOrdersTransaction(5));
 

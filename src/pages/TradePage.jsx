@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Col, Popover, Row, Select, Typography } from 'antd';
+import { Col, Popover, Row, Select, Typography, Button } from 'antd';
 import styled from 'styled-components';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
@@ -7,13 +7,13 @@ import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
 import {
   useMarket,
   useMarketsList,
-  useUnmigratedDeprecatedMarketsList,
+  useUnmigratedDeprecatedMarkets,
   getMarketInfos,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
-import DeprecatedMarketInstructions from '../components/DeprecatedMarketInstructions';
+import DeprecatedMarketsInstructions from '../components/DeprecatedMarketsInstructions';
 import {
   InfoCircleOutlined,
   PlusCircleOutlined,
@@ -36,16 +36,18 @@ const Wrapper = styled.div`
 
 export default function TradePage() {
   const {
-    marketName,
     market,
-    deprecated,
+    marketName,
     customMarkets,
     setCustomMarkets,
     setMarketAddress,
   } = useMarket();
   const markets = useMarketsList();
-  const deprecatedMarkets = useUnmigratedDeprecatedMarketsList();
+  const deprecatedMarkets = useUnmigratedDeprecatedMarkets();
+
+  const [handleDeprecated, setHandleDeprecated] = useState(false);
   const [addMarketVisible, setAddMarketVisible] = useState(false);
+
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
     width: window.innerWidth,
@@ -78,8 +80,12 @@ export default function TradePage() {
       changeOrderRef.current && changeOrderRef.current({ size }),
   };
   const getComponent = useCallback(() => {
-    if (deprecated) {
-      return <RenderDeprecatedMarket />;
+    if (handleDeprecated) {
+      return (
+        <DeprecatedMarketsPage
+          switchToLiveMarkets={() => setHandleDeprecated(false)}
+        />
+      );
     } else if (width < 1000) {
       return <RenderSmaller {...componentProps} />;
     } else if (width < 1450) {
@@ -87,7 +93,7 @@ export default function TradePage() {
     } else {
       return <RenderNormal {...componentProps} />;
     }
-  }, [width, componentProps, deprecated]);
+  }, [width, componentProps, handleDeprecated]);
 
   const onAddCustomMarket = (customMarket) => {
     if (
@@ -159,10 +165,11 @@ export default function TradePage() {
                 </Typography>
               </Col>
               <Col>
-                <MarketSelector
-                  markets={deprecatedMarkets}
-                  placeholder={'Select deprecated market'}
-                />
+                <Button onClick={() => setHandleDeprecated(!handleDeprecated)}>
+                  {handleDeprecated
+                    ? 'View live markets'
+                    : 'Handle deprecated markets'}
+                </Button>
               </Col>
             </React.Fragment>
           )}
@@ -270,12 +277,14 @@ function MarketSelector({
   );
 }
 
-const RenderDeprecatedMarket = () => {
+const DeprecatedMarketsPage = ({ switchToLiveMarkets }) => {
   return (
     <>
       <Row>
         <Col flex="auto">
-          <DeprecatedMarketInstructions />
+          <DeprecatedMarketsInstructions
+            switchToLiveMarkets={switchToLiveMarkets}
+          />
         </Col>
       </Row>
     </>
