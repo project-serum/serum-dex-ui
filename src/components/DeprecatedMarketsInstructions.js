@@ -30,7 +30,7 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
   const needToSettleFunds = filteredBalances && filteredBalances.length > 0;
   return (
     <FloatingElement>
-      <Title>Migrate off of deprecated market</Title>
+      <Title>Migrate off deprecated markets</Title>
       {!balances ? (
         <Spin size="large" />
       ) : (
