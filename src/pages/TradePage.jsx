@@ -38,7 +38,7 @@ export default function TradePage() {
   });
 
   useEffect(() => {
-    document.title = `${marketName} — Serum`;
+    document.title = marketName ? `${marketName} — Serum` : 'Serum';
   }, [marketName]);
 
   const changeOrderRef = useRef();
