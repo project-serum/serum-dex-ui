@@ -1,15 +1,14 @@
 import { notify } from './notifications';
 import { getDecimalCount, sleep } from './utils';
-import { Account, SystemProgram } from '@solana/web3.js';
+import { Account, SystemProgram, Transaction } from '@solana/web3.js';
 import { TokenInstructions } from '@project-serum/serum';
 
-export async function createTokenAccount({
+export async function createTokenAccountTransaction({
   connection,
   wallet,
   mintPublicKey,
-  onConfirmCallBack,
 }) {
-  let newAccount = new Account();
+  const newAccount = new Account();
   const transaction = SystemProgram.createAccount({
     fromPubkey: wallet.publicKey,
     newAccountPubkey: newAccount.publicKey,
@@ -24,33 +23,11 @@ export async function createTokenAccount({
       owner: wallet.publicKey,
     }),
   );
-  const onConfirm = (result) => {
-    if (result.timeout) {
-      notify({
-        message: 'Timed out',
-        type: 'error',
-        description: 'Timed out awaiting confirmation on transaction',
-      });
-    } else if (result.err) {
-      console.log(result.err);
-      notify({ message: 'Error creating account', type: 'error' });
-    } else {
-      notify({ message: 'Account creation confirmed', type: 'success' });
-    }
-    onConfirmCallBack && onConfirmCallBack();
-  };
-  const onBeforeSend = () => notify({ message: 'Creating account...' });
-  const onAfterSend = () =>
-    notify({ message: 'Account created', type: 'success' });
-  return await sendTransaction({
+  return {
     transaction,
-    wallet,
-    connection,
-    onBeforeSend: onBeforeSend,
-    onAfterSend: onAfterSend,
-    onConfirm,
-    signers: [wallet.publicKey, newAccount],
-  });
+    signer: newAccount,
+    newAccountPubkey: newAccount.publicKey,
+  };
 }
 
 export async function settleFunds({
@@ -67,67 +44,55 @@ export async function settleFunds({
     !wallet ||
     !connection ||
     !openOrders ||
-    !baseCurrencyAccount ||
-    !quoteCurrencyAccount
+    (!baseCurrencyAccount && !quoteCurrencyAccount)
   ) {
-    if (baseCurrencyAccount && !quoteCurrencyAccount) {
-      return await createTokenAccount({
-        connection,
-        wallet,
-        mintPublicKey: market.quoteMintAddress,
-        onConfirmCallBack: async () => {
-          await sleep(1000); // wait to make sure currency account is available
-          const quoteCurrencyAccounts = await market.findQuoteTokenAccountsForOwner(
-            connection,
-            wallet.publicKey,
-            true,
-          );
-          quoteCurrencyAccounts &&
-            settleFunds({
-              market,
-              openOrders,
-              connection,
-              wallet,
-              baseCurrencyAccount,
-              quoteCurrencyAccount: quoteCurrencyAccounts[0],
-            });
-        },
-      });
-    } else if (quoteCurrencyAccount && !baseCurrencyAccount) {
-      return await createTokenAccount({
-        connection,
-        wallet,
-        mintPublicKey: market.baseMintAddress,
-        onConfirmCallBack: async () => {
-          await sleep(1000); // wait to make sure currency account is available
-          const baseCurrencyAccounts = await market.findBaseTokenAccountsForOwner(
-            connection,
-            wallet.publicKey,
-            true,
-          );
-          baseCurrencyAccounts &&
-            settleFunds({
-              market,
-              openOrders,
-              connection,
-              wallet,
-              baseCurrencyAccount: baseCurrencyAccounts[0],
-              quoteCurrencyAccount,
-            });
-        },
-      });
-    } else {
-      notify({ message: 'Not connected' });
-      return;
-    }
+    notify({ message: 'Not connected' });
+    return;
   }
 
-  const { transaction, signers } = await market.makeSettleFundsTransaction(
+  let createAccountTransaction;
+  let createAccountSigner;
+  let baseCurrencyAccountPubkey = baseCurrencyAccount?.pubkey;
+  let quoteCurrencyAccountPubkey = quoteCurrencyAccount?.pubkey;
+
+  if (!baseCurrencyAccountPubkey) {
+    const result = await createTokenAccountTransaction({
+      connection,
+      wallet,
+      mintPublicKey: market.baseMintAddress,
+    });
+    baseCurrencyAccountPubkey = result?.newAccountPubkey;
+    createAccountTransaction = result?.transaction;
+    createAccountSigner = result?.signer;
+  }
+  if (!quoteCurrencyAccountPubkey) {
+    const result = await createTokenAccountTransaction({
+      connection,
+      wallet,
+      mintPublicKey: market.quoteMintAddress,
+    });
+    quoteCurrencyAccountPubkey = result?.newAccountPubkey;
+    createAccountTransaction = result?.transaction;
+    createAccountSigner = result?.signer;
+  }
+
+  const {
+    transaction: settleFundsTransaction,
+    signers: settleFundsSigners,
+  } = await market.makeSettleFundsTransaction(
     connection,
     openOrders,
-    baseCurrencyAccount.pubkey,
-    quoteCurrencyAccount.pubkey,
+    baseCurrencyAccountPubkey,
+    quoteCurrencyAccountPubkey,
   );
+
+  let transaction = mergeTransactions([
+    createAccountTransaction,
+    settleFundsTransaction,
+  ]);
+  let signers = createAccountSigner
+    ? [...settleFundsSigners, createAccountSigner]
+    : settleFundsSigners;
 
   const onConfirm = (result) => {
     if (result.timeout) {
@@ -475,4 +440,14 @@ async function awaitTransactionSignatureConfirmation(
   });
   done = true;
   return result;
+}
+
+function mergeTransactions(transactions) {
+  const transaction = new Transaction();
+  transactions
+    .filter((t) => t)
+    .forEach((t) => {
+      transaction.add(t);
+    });
+  return transaction;
 }
