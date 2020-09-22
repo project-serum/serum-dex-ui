@@ -58,10 +58,14 @@ export default function TradePage() {
   const width = dimensions?.width;
   const componentProps = {
     onChangeOrderRef: (ref) => (changeOrderRef.current = ref),
-    onPrice: (price) =>
-      changeOrderRef.current && changeOrderRef.current({ price }),
-    onSize: (size) =>
-      changeOrderRef.current && changeOrderRef.current({ size }),
+    onPrice: useCallback(
+      (price) => changeOrderRef.current && changeOrderRef.current({ price }),
+      [],
+    ),
+    onSize: useCallback(
+      (size) => changeOrderRef.current && changeOrderRef.current({ size }),
+      [],
+    ),
   };
   const getComponent = useCallback(() => {
     if (handleDeprecated) {

@@ -52,9 +52,7 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
   const currentOrderbookData = useRef(null);
   const lastOrderbookData = useRef(null);
 
-  const [asksToDisplay, setAsksToDisplay] = useState([]);
-  const [bidsToDisplay, setBidsToDisplay] = useState([]);
-  const [totalSize, setTotalSize] = useState(0);
+  const [orderbookData, setOrderbookData] = useState(null);
 
   useInterval(() => {
     if (
@@ -65,24 +63,19 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
       let bids = orderbook?.bids || [];
       let asks = orderbook?.asks || [];
 
-      let [asksToDisplay, totalAskSize] = getCumulativeOrderbookSide(
-        asks,
-        true,
-      );
-      let [bidsToDisplay, totalBidSize] = getCumulativeOrderbookSide(
-        bids,
-        false,
-      );
-      let totalSize = totalAskSize + totalBidSize;
+      let sum = (total, [, size], index) =>
+        index < depth ? total + size : total;
+      let totalSize = bids.reduce(sum, 0) + asks.reduce(sum, 0);
 
-      setAsksToDisplay(asksToDisplay);
-      setBidsToDisplay(bidsToDisplay);
-      setTotalSize(totalSize);
+      let bidsToDisplay = getCumulativeOrderbookSide(bids, totalSize, false);
+      let asksToDisplay = getCumulativeOrderbookSide(asks, totalSize, true);
 
       currentOrderbookData.current = {
         bids: orderbook?.bids,
         asks: orderbook?.asks,
       };
+
+      setOrderbookData({ bids: bidsToDisplay, asks: asksToDisplay });
     }
   }, 250);
 
@@ -93,23 +86,23 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
     };
   }, [orderbook]);
 
-  function getCumulativeOrderbookSide(orders, backwards = false) {
+  function getCumulativeOrderbookSide(orders, totalSize, backwards = false) {
     let cumulative = orders
       .slice(0, depth)
       .reduce((cumulative, [price, size], i) => {
+        const cumulativeSize = (cumulative[i - 1]?.cumulativeSize || 0) + size;
         cumulative.push({
           price,
           size,
-          cumulativeSize: (cumulative[i - 1]?.cumulativeSize || 0) + size,
+          cumulativeSize,
+          sizePercent: Math.round((cumulativeSize / (totalSize || 1)) * 100),
         });
         return cumulative;
       }, []);
     if (backwards) {
       cumulative = cumulative.reverse();
     }
-    let totalSize =
-      cumulative[backwards ? 0 : cumulative.length - 1]?.cumulativeSize || 0;
-    return [cumulative, totalSize];
+    return cumulative;
   }
 
   return (
@@ -127,27 +120,27 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
           Price ({quoteCurrency})
         </Col>
       </SizeTitle>
-      {asksToDisplay.map(({ price, size, cumulativeSize }) => (
+      {orderbookData?.asks.map(({ price, size, sizePercent }) => (
         <OrderbookRow
           key={price + ''}
           price={price}
           size={size}
           side={'sell'}
-          sizePercent={(cumulativeSize / (totalSize || 1)) * 100}
-          onSizeClick={() => onSize(size)}
+          sizePercent={sizePercent}
           onPriceClick={() => onPrice(price)}
+          onSizeClick={() => onSize(size)}
         />
       ))}
       <MarkPriceComponent markPrice={markPrice} />
-      {bidsToDisplay.map(({ price, size, cumulativeSize }) => (
+      {orderbookData?.bids.map(({ price, size, sizePercent }) => (
         <OrderbookRow
           key={price + ''}
           price={price}
           size={size}
           side={'buy'}
-          sizePercent={(cumulativeSize / (totalSize || 1)) * 100}
-          onSizeClick={() => onSize(size)}
+          sizePercent={sizePercent}
           onPriceClick={() => onPrice(price)}
+          onSizeClick={() => onSize(size)}
         />
       ))}
     </FloatingElement>
@@ -168,7 +161,7 @@ const OrderbookRow = React.memo(
         () =>
           element.current?.classList.contains('flash') &&
           element.current?.classList.remove('flash'),
-        500,
+        250,
       );
     }, [price, size]);
 
@@ -202,7 +195,7 @@ const OrderbookRow = React.memo(
     );
   },
   (prevProps, nextProps) =>
-    isEqual(prevProps, nextProps, ['side', 'price', 'size', 'sizePercent']),
+    isEqual(prevProps, nextProps, ['price', 'size', 'sizePercent']),
 );
 
 const MarkPriceComponent = React.memo(

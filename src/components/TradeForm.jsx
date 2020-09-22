@@ -77,7 +77,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   }, [setChangeOrderRef]);
 
   useEffect(() => {
-    onSliderChange(sizeFraction);
+    baseSize && price && onSliderChange(sizeFraction);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [side]);
 
@@ -221,7 +221,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
           style={{ textAlign: 'right', paddingBottom: 8 }}
           addonBefore={<div style={{ width: '30px' }}>Price</div>}
           suffix={
-            <span style={{ fontSize: 10, opacity: 0.5 }}>{baseCurrency}</span>
+            <span style={{ fontSize: 10, opacity: 0.5 }}>{quoteCurrency}</span>
           }
           value={price}
           type="number"
