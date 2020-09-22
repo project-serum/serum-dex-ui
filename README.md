@@ -15,3 +15,7 @@ See [spl-token-wallet](https://github.com/project-serum/spl-token-wallet) for an
 Run `yarn` to install dependencies, then run `yarn start` to start a development server or `yarn build` to create a production build that can be served by a static file server.
 
 See the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started) for other commands and options.
+
+## Referral fees for GUI hosters
+
+If you are publically hosting an UI and use this codebase (directly or indirectly) you can collect referral fees when your users trade through your UI. To do so fill in your addresses in the root `.env` file and recompile the UI. NOTE: if you do not recompile your referral addresses will not be used.
