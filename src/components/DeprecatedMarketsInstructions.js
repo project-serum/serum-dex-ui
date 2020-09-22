@@ -9,6 +9,7 @@ import FloatingElement from './layout/FloatingElement';
 import CheckOutlined from '@ant-design/icons/lib/icons/CheckOutlined';
 import BalancesTable from './UserInfoTable/BalancesTable';
 import OpenOrderTable from './UserInfoTable/OpenOrderTable';
+import SyncOutlined from '@ant-design/icons/lib/icons/SyncOutlined';
 
 const { Title } = Typography;
 
@@ -19,6 +20,7 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
     loaded,
     refreshOpenOrders,
   } = useGetOpenOrdersForDeprecatedMarkets();
+
   const { refresh } = useUnmigratedOpenOrdersAccounts();
   const needToCancelOrders = !openOrders || openOrders.length > 0;
   const filteredBalances =
@@ -39,6 +41,11 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
         To migrate over to the new markets, please cancel your orders and settle
         your funds on old markets.
       </Typography>
+      <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+        <Button onClick={() => refresh(true)}>
+          <SyncOutlined /> Refresh data
+        </Button>
+      </div>
       {!balances ? (
         <Spin size="large" />
       ) : (
@@ -54,7 +61,7 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
                   setTimeout(() => {
                     refresh();
                     refreshOpenOrders();
-                  }, 1500); // Wait so that on-chain account state reflects the update
+                  }, 1000); // Wait so that on-chain account state reflects the update
                 }}
               />
             ) : (
@@ -70,7 +77,7 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
               hideWalletBalance
               showMarket
               onSettleSuccess={() => {
-                setTimeout(refresh, 1500); // Wait so that on-chain account state reflects the update
+                setTimeout(refresh, 1000); // Wait so that on-chain account state reflects the update
               }}
             />
           )}
