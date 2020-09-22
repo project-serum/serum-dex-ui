@@ -18,4 +18,4 @@ See the [Create React App documentation](https://facebook.github.io/create-react
 
 ## Referral fees for GUI hosters
 
-If you are publically hosting an UI and use this codebase (directly or indirectly) you can collect referral fees when your users trade through your UI. To do so fill in your addresses in the root `.env` file and recompile the UI. NOTE: if you do not recompile your referral addresses will not be used.
+If you are publicly hosting an UI and use this codebase (directly or indirectly) you can collect referral fees when your users trade through your UI. To do so fill in your addresses in the root `.env` file and recompile the UI. NOTE: if you do not recompile your referral addresses will not be used.
