@@ -4,7 +4,12 @@ An implementation of a UI for the Serum DEX.
 
 ### Setup referral fee addresses
 
-Add the referral fee addresses to `.env`
+Add the referral fee addresses to `.env`:
+
+```
+REACT_APP_USDT_REFERRAL_FEES_ADDRESS='put_address_here'
+REACT_APP_USDC_REFERRAL_FEES_ADDRESS='put_address_here'
+```
 
 ### Running the UI
 
