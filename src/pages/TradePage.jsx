@@ -110,15 +110,13 @@ export default function TradePage() {
             <React.Fragment>
               <Col>
                 <Typography>
-                  You have unsettled funds on deprecated markets! Please go
-                  through them to claim your funds.
+                  You have unsettled funds on old markets! Please go through
+                  them to claim your funds.
                 </Typography>
               </Col>
               <Col>
                 <Button onClick={() => setHandleDeprecated(!handleDeprecated)}>
-                  {handleDeprecated
-                    ? 'View live markets'
-                    : 'Handle deprecated markets'}
+                  {handleDeprecated ? 'View new markets' : 'Handle old markets'}
                 </Button>
               </Col>
             </React.Fragment>

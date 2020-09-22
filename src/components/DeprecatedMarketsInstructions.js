@@ -1,6 +1,5 @@
-import { Button, Divider, Spin } from 'antd';
+import { Button, Divider, Spin, Typography } from 'antd';
 import React from 'react';
-import styled from 'styled-components';
 import {
   useGetOpenOrdersForDeprecatedMarkets,
   useBalancesForDeprecatedMarkets,
@@ -11,9 +10,7 @@ import CheckOutlined from '@ant-design/icons/lib/icons/CheckOutlined';
 import BalancesTable from './UserInfoTable/BalancesTable';
 import OpenOrderTable from './UserInfoTable/OpenOrderTable';
 
-const Title = styled.div`
-  color: rgba(255, 255, 255, 1);
-`;
+const { Title } = Typography;
 
 export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
   const balances = useBalancesForDeprecatedMarkets();
@@ -30,7 +27,18 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
   const needToSettleFunds = filteredBalances && filteredBalances.length > 0;
   return (
     <FloatingElement>
-      <Title>Migrate off deprecated markets</Title>
+      <Title level={4} style={{ color: 'rgba(255, 255, 255, 1)' }}>
+        Migrate off deprecated markets
+      </Title>
+      <Typography>
+        Serum has rolled out upgraded markets! They're faster and support fee
+        discounts based on SRM holdings.
+      </Typography>
+      <br />
+      <Typography>
+        To migrate over to the new markets, please cancel your orders and settle
+        your funds on old markets.
+      </Typography>
       {!balances ? (
         <Spin size="large" />
       ) : (
@@ -66,12 +74,13 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
               }}
             />
           )}
+          <Divider>Switch to upgraded markets</Divider>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <Button
               onClick={switchToLiveMarkets}
               disabled={needToSettleFunds || needToCancelOrders}
             >
-              Switch to live markets
+              Switch to new markets
             </Button>
           </div>
         </>
