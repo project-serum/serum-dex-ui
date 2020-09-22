@@ -447,7 +447,7 @@ function mergeTransactions(transactions) {
   transactions
     .filter((t) => t)
     .forEach((t) => {
-      t.instructions.forEach((instruction) => transaction.add(instruction));
+      transaction.add(t);
     });
   return transaction;
 }
