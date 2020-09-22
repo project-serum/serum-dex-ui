@@ -88,7 +88,11 @@ export default function TradePage() {
           gutter={16}
         >
           <Col>
-            <MarketSelector markets={markets} placeholder={'Select market'} />
+            <MarketSelector
+              markets={markets}
+              setHandleDeprecated={setHandleDeprecated}
+              placeholder={'Select market'}
+            />
           </Col>
           {market ? (
             <Col>
@@ -106,15 +110,13 @@ export default function TradePage() {
             <React.Fragment>
               <Col>
                 <Typography>
-                  You have unsettled funds on deprecated markets! Please go
-                  through them to claim your funds.
+                  You have unsettled funds on old markets! Please go through
+                  them to claim your funds.
                 </Typography>
               </Col>
               <Col>
                 <Button onClick={() => setHandleDeprecated(!handleDeprecated)}>
-                  {handleDeprecated
-                    ? 'View live markets'
-                    : 'Handle deprecated markets'}
+                  {handleDeprecated ? 'View new markets' : 'Handle old markets'}
                 </Button>
               </Col>
             </React.Fragment>
@@ -126,8 +128,13 @@ export default function TradePage() {
   );
 }
 
-function MarketSelector({ markets, placeholder }) {
+function MarketSelector({ markets, placeholder, setHandleDeprecated }) {
   const { market, setMarketAddress } = useMarket();
+
+  const onSetMarketAddress = (marketAddress) => {
+    setHandleDeprecated(false);
+    setMarketAddress(marketAddress);
+  };
 
   const extractBase = (a) => a.split('/')[0];
   const extractQuote = (a) => a.split('/')[1];
@@ -139,7 +146,7 @@ function MarketSelector({ markets, placeholder }) {
       style={{ width: 200 }}
       placeholder={placeholder || 'Select a market'}
       optionFilterProp="name"
-      onSelect={setMarketAddress}
+      onSelect={onSetMarketAddress}
       listHeight={400}
       value={markets
         .find(
