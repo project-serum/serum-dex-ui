@@ -1,7 +1,12 @@
 import { notify } from './notifications';
 import { getDecimalCount, sleep } from './utils';
-import { Account, SystemProgram, Transaction } from '@solana/web3.js';
-import { TokenInstructions } from '@project-serum/serum';
+import {
+  Account,
+  SystemProgram,
+  Transaction,
+  PublicKey,
+} from '@solana/web3.js';
+import { TOKEN_MINTS, TokenInstructions } from '@project-serum/serum';
 
 export async function createTokenAccountTransaction({
   connection,
@@ -75,7 +80,28 @@ export async function settleFunds({
     createAccountTransaction = result?.transaction;
     createAccountSigner = result?.signer;
   }
-
+  let referrerQuoteWallet = null;
+  if (market.supportsReferralFees) {
+    if (
+      process.env.REACT_APP_USDT_REFERRAL_FEES_ADDRESS &&
+      market.quoteMintAddress.equals(
+        TOKEN_MINTS.find(({ name }) => name === 'USDT').address,
+      )
+    ) {
+      referrerQuoteWallet = new PublicKey(
+        process.env.REACT_APP_USDT_REFERRAL_FEES_ADDRESS,
+      );
+    } else if (
+      process.env.REACT_APP_USDC_REFERRAL_FEES_ADDRESS &&
+      market.quoteMintAddress.equals(
+        TOKEN_MINTS.find(({ name }) => name === 'USDC').address,
+      )
+    ) {
+      referrerQuoteWallet = new PublicKey(
+        process.env.REACT_APP_USDC_REFERRAL_FEES_ADDRESS,
+      );
+    }
+  }
   const {
     transaction: settleFundsTransaction,
     signers: settleFundsSigners,
@@ -84,6 +110,7 @@ export async function settleFunds({
     openOrders,
     baseCurrencyAccountPubkey,
     quoteCurrencyAccountPubkey,
+    referrerQuoteWallet,
   );
 
   let transaction = mergeTransactions([

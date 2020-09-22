@@ -87,7 +87,6 @@ export function useAccountInfo(publicKey) {
     cacheKey,
     { refreshInterval: 60_000 },
   );
-  let id = publicKey?.toBase58();
   useEffect(() => {
     if (!publicKey) {
       return;
