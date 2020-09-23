@@ -213,7 +213,7 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <Row
       style={{
-        minHeight: '750px',
+        minHeight: '800px',
         flexWrap: 'nowrap',
       }}
     >
@@ -240,13 +240,13 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
     <>
       <Row
         style={{
-          height: '750px',
+          height: '800px',
         }}
       >
         <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
           <Orderbook
             smallScreen={true}
-            depth={12}
+            depth={13}
             onPrice={onPrice}
             onSize={onSize}
           />
@@ -282,7 +282,11 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
           <StandaloneBalancesDisplay />
         </Col>
       </Row>
-      <Row style={{ minHeight: '500px' }}>
+      <Row
+        style={{
+          height: '500px',
+        }}
+      >
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <Orderbook smallScreen={true} onPrice={onPrice} onSize={onSize} />
         </Col>
