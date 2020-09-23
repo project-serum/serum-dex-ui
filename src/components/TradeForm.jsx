@@ -10,6 +10,7 @@ import {
   useSelectedBaseCurrencyAccount,
   useSelectedQuoteCurrencyAccount,
   useOrderbook,
+  calculateBestPrice,
 } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
@@ -164,10 +165,10 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     let parsedSize = parseFloat(baseSize);
     let parsedPrice;
     if (orderType === 'market') {
-      const bbo =
-        side === 'buy' ? orderbook.asks[0]?.[0] : orderbook.bids[0]?.[0];
       parsedPrice =
-        bbo + 100 * (side === 'buy' ? market?.tickSize : -market?.tickSize);
+        side === 'buy'
+          ? calculateBestPrice(orderbook, parsedSize)
+          : market?.tickSize;
     } else {
       parsedPrice = parseFloat(price);
     }

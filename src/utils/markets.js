@@ -996,3 +996,12 @@ export function useBalancesForDeprecatedMarkets() {
   });
   return openOrderAccountBalances;
 }
+
+export function calculateBestPrice(orderbook, size) {
+  let remainingSize = size;
+  for (let [price, size] of orderbook?.asks) {
+    remainingSize -= size;
+    if (remainingSize <= 0) return price;
+  }
+  return orderbook?.asks[orderbook.asks.length - 1]?.[0];
+}
