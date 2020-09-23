@@ -1,4 +1,4 @@
-import { Button, Input, Radio, Switch, Slider } from 'antd';
+import { Button, Input, Radio, Switch, Slider, Select } from 'antd';
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
@@ -9,6 +9,7 @@ import {
   useSelectedOpenOrdersAccount,
   useSelectedBaseCurrencyAccount,
   useSelectedQuoteCurrencyAccount,
+  useOrderbook,
 } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
@@ -20,6 +21,12 @@ import {
 import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { placeOrder } from '../utils/send';
+
+const DEFAULT_ORDER_TYPE = 'limit';
+const ORDER_TYPES = [
+  { label: 'Limit', value: 'limit' },
+  { label: 'Market', value: 'market' },
+];
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
@@ -42,7 +49,6 @@ const sliderMarks = {
 };
 
 export default function TradeForm({ style, setChangeOrderRef }) {
-  const [side, setSide] = useState('buy');
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const baseCurrencyBalances = useBaseCurrencyBalances();
   const quoteCurrencyBalances = useQuoteCurrencyBalances();
@@ -52,7 +58,10 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   const { wallet } = useWallet();
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
+  const [orderbook] = useOrderbook();
 
+  const [side, setSide] = useState('buy');
+  const [orderType, setOrderType] = useState(DEFAULT_ORDER_TYPE);
   const [postOnly, setPostOnly] = useState(false);
   const [ioc, setIoc] = useState(false);
   const [baseSize, setBaseSize] = useState(null);
@@ -152,8 +161,16 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   };
 
   async function onSubmit() {
-    const parsedPrice = parseFloat(price);
-    const parsedSize = parseFloat(baseSize);
+    let parsedSize = parseFloat(baseSize);
+    let parsedPrice;
+    if (orderType === 'market') {
+      const bbo =
+        side === 'buy' ? orderbook.asks[0]?.[0] : orderbook.bids[0]?.[0];
+      parsedPrice =
+        bbo + 100 * (side === 'buy' ? market?.tickSize : -market?.tickSize);
+    } else {
+      parsedPrice = parseFloat(price);
+    }
 
     setSubmitting(true);
     try {
@@ -217,15 +234,31 @@ export default function TradeForm({ style, setChangeOrderRef }) {
             SELL
           </Radio.Button>
         </Radio.Group>
+        <div style={{ display: 'flex', paddingBottom: 8 }}>
+          <span
+            className="ant-input-group-addon"
+            style={{ width: '53px', display: 'flex', alignItems: 'center' }}
+          >
+            Type
+          </span>
+          <Select
+            style={{ flex: 1, textAlign: 'center' }}
+            defaultValue={DEFAULT_ORDER_TYPE}
+            value={orderType}
+            options={ORDER_TYPES}
+            onSelect={setOrderType}
+          />
+        </div>
         <Input
           style={{ textAlign: 'right', paddingBottom: 8 }}
           addonBefore={<div style={{ width: '30px' }}>Price</div>}
           suffix={
             <span style={{ fontSize: 10, opacity: 0.5 }}>{quoteCurrency}</span>
           }
-          value={price}
-          type="number"
+          value={orderType === 'market' ? 'MARKET' : price}
+          type={orderType === 'market' ? 'text' : 'number'}
           step={market?.tickSize || 1}
+          disabled={orderType === 'market'}
           onChange={(e) => setPrice(e.target.value)}
         />
         <Input.Group compact style={{ paddingBottom: 8 }}>
@@ -272,7 +305,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
       </div>
       {side === 'buy' ? (
         <BuyButton
-          disabled={!price || !baseSize}
+          disabled={(orderType !== 'market' && !price) || !baseSize}
           onClick={onSubmit}
           block
           type="primary"
@@ -283,7 +316,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         </BuyButton>
       ) : (
         <SellButton
-          disabled={!price || !baseSize}
+          disabled={(orderType !== 'market' && !price) || !baseSize}
           onClick={onSubmit}
           block
           type="primary"
