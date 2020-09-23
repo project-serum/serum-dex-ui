@@ -280,6 +280,28 @@ export function _useUnfilteredTrades(limit = 10000) {
   //   .map(market.parseFillEvent.bind(market));
 }
 
+export function useBonfidaTrades() {
+  const { baseCurrency, quoteCurrency } = useMarket();
+  async function getBonfidaTrades() {
+    if (!baseCurrency || !quoteCurrency) {
+      return null;
+    }
+    const response = await fetch(
+      `https://serum-api.bonfida.com/trades/${baseCurrency + quoteCurrency}`,
+    );
+    if (response.ok) {
+      const responseJson = await response.json();
+      return responseJson.success ? responseJson.data : null;
+    }
+  }
+  const [trades] = useAsyncData(
+    getBonfidaTrades,
+    tuple('getBonfidaTrades', baseCurrency, quoteCurrency),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  );
+  return trades;
+}
+
 export function useOrderbookAccounts() {
   const { market } = useMarket();
   let bidData = useAccountData(market && market._decoded.bids);
