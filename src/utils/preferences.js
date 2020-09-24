@@ -11,7 +11,7 @@ const ConnectionContext = React.createContext(null);
 export function PreferencesProvider({ children }) {
   const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
     'autoSettleEnabled',
-    true,
+    false,
   );
 
   const [tokenAccounts] = useTokenAccounts();
@@ -20,7 +20,7 @@ export function PreferencesProvider({ children }) {
   const { connected, wallet } = useWallet();
 
   useInterval(() => {
-    if (connected && wallet?.autoApprove) {
+    if (connected && wallet?.autoApprove && autoSettleEnabled) {
       console.log('Auto settling');
       const markets = marketList.map((m) => m.market);
       settleAllFunds({ connection, wallet, tokenAccounts, markets });
