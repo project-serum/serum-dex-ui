@@ -48,7 +48,7 @@ export function useAllMarkets() {
           markets.push({ market, marketName: marketInfo.name });
         } catch (e) {
           notify({
-            message: 'Error loading market',
+            message: 'Error loading all market',
             description: e.message,
             type: 'error',
           });
@@ -143,23 +143,27 @@ export const DEFAULT_MARKET = USE_MARKETS.find(
   ({ name }) => name === 'SRM/USDT',
 );
 
-function getMarketDetails(market) {
+function getMarketDetails(market, customMarkets) {
   if (!market) {
     return {};
   }
-  const marketInfo = USE_MARKETS.find((otherMarket) =>
+  const marketInfos = getMarketInfos(customMarkets);
+  const marketInfo = marketInfos.find((otherMarket) =>
     otherMarket.address.equals(market.address),
   );
   const baseCurrency =
     (market?.baseMintAddress &&
       TOKEN_MINTS.find((token) => token.address.equals(market.baseMintAddress))
         ?.name) ||
+    (marketInfo?.baseLabel && `${marketInfo?.baseLabel}*`) ||
     'UNKNOWN';
   const quoteCurrency =
     (market?.quoteMintAddress &&
       TOKEN_MINTS.find((token) => token.address.equals(market.quoteMintAddress))
         ?.name) ||
+    (marketInfo?.quoteLabel && `${marketInfo?.quoteLabel}*`) ||
     'UNKNOWN';
+
   return {
     ...marketInfo,
     marketName: marketInfo?.name,
@@ -174,9 +178,15 @@ export function MarketProvider({ children }) {
     'marketAddress',
     DEFAULT_MARKET.address.toBase58(),
   );
+  const [customMarkets, setCustomMarkets] = useLocalStorageState(
+    'customMarkets',
+    [],
+  );
+
   const address = new PublicKey(marketAddress);
   const connection = useConnection();
-  const marketInfo = USE_MARKETS.find((market) =>
+  const marketInfos = getMarketInfos(customMarkets);
+  const marketInfo = marketInfos.find((market) =>
     market.address.equals(address),
   );
 
@@ -191,6 +201,13 @@ export function MarketProvider({ children }) {
 
   const [market, setMarket] = useState();
   useEffect(() => {
+    if (
+      market &&
+      marketInfo &&
+      market._decoded.ownAddress?.equals(marketInfo?.address)
+    ) {
+      return;
+    }
     setMarket(null);
     if (!marketInfo || !marketInfo.address) {
       notify({
@@ -209,14 +226,17 @@ export function MarketProvider({ children }) {
           type: 'error',
         }),
       );
+    // eslint-disable-next-line
   }, [connection, marketInfo]);
 
   return (
     <MarketContext.Provider
       value={{
         market,
-        ...getMarketDetails(market),
+        ...getMarketDetails(market, customMarkets),
         setMarketAddress,
+        customMarkets,
+        setCustomMarkets,
       }}
     >
       {children}
@@ -995,4 +1015,14 @@ export function useBalancesForDeprecatedMarkets() {
     });
   });
   return openOrderAccountBalances;
+}
+
+export function getMarketInfos(customMarkets) {
+  const customMarketsInfo = customMarkets.map((m) => ({
+    ...m,
+    address: new PublicKey(m.address),
+    programId: new PublicKey(m.programId),
+  }));
+
+  return [...customMarketsInfo, ...USE_MARKETS];
 }
