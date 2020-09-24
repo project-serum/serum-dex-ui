@@ -1,5 +1,6 @@
 import { notify } from './notifications';
 import { getDecimalCount, sleep } from './utils';
+import { getSelectedTokenAccountForMint } from './markets';
 import {
   Account,
   SystemProgram,
@@ -147,6 +148,77 @@ export async function settleFunds({
     onBeforeSend,
     onAfterSend,
     onConfirm,
+  });
+}
+
+export async function settleAllFunds({
+  connection,
+  wallet,
+  tokenAccounts,
+  markets,
+}) {
+  const getAccountsToSettle = async (market) => {
+    const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
+      connection,
+      wallet.publicKey,
+    );
+    const openOrders = openOrdersAccounts && openOrdersAccounts[0];
+    return {
+      baseTokenFree:
+        openOrders?.baseTokenFree &&
+        market.baseSplSizeToNumber(openOrders.baseTokenFree),
+      quoteTokenFree:
+        openOrders?.quoteTokenFree &&
+        market.baseSplSizeToNumber(openOrders.quoteTokenFree),
+      openOrders,
+      market,
+    };
+  };
+
+  const accountsToSettle = await Promise.all(
+    markets.map((market) => getAccountsToSettle(market)),
+  );
+  if (!accountsToSettle || accountsToSettle.length === 0) return;
+
+  const settleTransactions = await Promise.all(
+    accountsToSettle
+      .filter((a) => a.baseTokenFree > 0 || a.quoteTokenFree > 0)
+      .map((accountToSettle) => {
+        const { market, openOrders } = accountToSettle;
+        return market.makeSettleFundsTransaction(
+          connection,
+          openOrders,
+          getSelectedTokenAccountForMint(tokenAccounts, market?.baseMintAddress)
+            ?.pubkey,
+          getSelectedTokenAccountForMint(
+            tokenAccounts,
+            market?.quoteMintAddress,
+          )?.pubkey,
+        );
+      }),
+  );
+  if (!settleTransactions || settleTransactions.length === 0) return;
+
+  const transactions = settleTransactions.slice(0, 4).map((t) => t.transaction);
+  const signers = [];
+  settleTransactions
+    .reduce((cumulative, t) => cumulative.concat(t.signers), [])
+    .forEach((signer) => {
+      if (!signers.find((s) => s.equals(signer))) {
+        signers.push(signer);
+      }
+    });
+
+  const transaction = mergeTransactions(transactions);
+  const noOp = () => {};
+  return await sendTransaction({
+    transaction,
+    signers,
+    wallet,
+    connection,
+    onBeforeSend: noOp,
+    onAfterSend: noOp,
+    onConfirm: noOp,
   });
 }
 
@@ -469,7 +541,7 @@ async function awaitTransactionSignatureConfirmation(
   return result;
 }
 
-function mergeTransactions(transactions) {
+export function mergeTransactions(transactions) {
   const transaction = new Transaction();
   transactions
     .filter((t) => t)
