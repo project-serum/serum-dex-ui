@@ -18,8 +18,7 @@ NOTE: remember to re-build your app before deploying for your referral addresses
 
 ---
 
-See the [Create React App documentation](https://facebook.github.io/crea
-te-react-app/docs/getting-started) for other commands and options.
+See the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started) for other commands and options.
 
 ---
 
