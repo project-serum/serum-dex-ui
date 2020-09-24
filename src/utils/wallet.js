@@ -17,10 +17,7 @@ export function WalletProvider({ children }) {
     'walletProvider',
     'https://www.sollet.io',
   );
-  const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
-    'autoSettleEnabled',
-    false,
-  );
+
   const wallet = useMemo(() => new Wallet(providerUrl, endpoint), [
     providerUrl,
     endpoint,
@@ -64,8 +61,6 @@ export function WalletProvider({ children }) {
       value={{
         wallet,
         connected,
-        autoSettleEnabled,
-        setAutoSettleEnabled,
         providerUrl,
         setProviderUrl,
         providerName:
@@ -86,7 +81,5 @@ export function useWallet() {
     providerUrl: context.providerUrl,
     setProvider: context.setProviderUrl,
     providerName: context.providerName,
-    autoSettleEnabled: context.autoSettleEnabled,
-    setAutoSettleEnabled: context.setAutoSettleEnabled,
   };
 }

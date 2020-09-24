@@ -541,7 +541,7 @@ async function awaitTransactionSignatureConfirmation(
   return result;
 }
 
-export function mergeTransactions(transactions) {
+function mergeTransactions(transactions) {
   const transaction = new Transaction();
   transactions
     .filter((t) => t)
