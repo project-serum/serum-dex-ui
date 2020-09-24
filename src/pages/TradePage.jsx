@@ -215,7 +215,7 @@ function MarketSelector({
       listHeight={400}
       value={selectedMarket}
       filterOption={(input, option) =>
-        option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        option.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     >
       {customMarkets && customMarkets.length > 0 && (
