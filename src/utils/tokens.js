@@ -10,6 +10,12 @@ export const ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(93),
 ]);
 
+export const MINT_LAYOUT = BufferLayout.struct([
+  BufferLayout.blob(44),
+  BufferLayout.u8('decimals'),
+  BufferLayout.blob(37),
+]);
+
 export function parseTokenAccountData(data) {
   let { mint, owner, amount } = ACCOUNT_LAYOUT.decode(data);
   return {
@@ -17,6 +23,15 @@ export function parseTokenAccountData(data) {
     owner: new PublicKey(owner),
     amount,
   };
+}
+
+export async function getMintDecimals(connection, publicKey) {
+  const mintInfo = await connection.getAccountInfo(publicKey);
+  if (!mintInfo?.data) {
+    return;
+  }
+  let { decimals } = MINT_LAYOUT.decode(mintInfo.data);
+  return decimals;
 }
 
 export function getOwnedAccountsFilters(publicKey) {

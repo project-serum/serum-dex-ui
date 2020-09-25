@@ -10,6 +10,7 @@ import {
   useSelectedQuoteCurrencyAccount,
 } from '../utils/markets';
 import DepositDialog from './DepositDialog';
+import TransferDialog from './TransferDialog';
 import { useWallet } from '../utils/wallet';
 import Link from './Link';
 import { settleFunds } from '../utils/send';
@@ -37,6 +38,7 @@ export default function StandaloneBalancesDisplay() {
   const connection = useSendConnection();
   const { providerUrl, providerName, wallet } = useWallet();
   const [depositCoin, setDepositCoin] = useState('');
+  const [transferCoin, setTransferCoin] = useState(null);
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const baseCurrencyBalances =
@@ -58,9 +60,19 @@ export default function StandaloneBalancesDisplay() {
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
       {[
-        [baseCurrency, baseCurrencyBalances],
-        [quoteCurrency, quoteCurrencyBalances],
-      ].map(([currency, balances], index) => (
+        [
+          market?.baseMintAddress,
+          baseCurrency,
+          baseCurrencyAccount,
+          baseCurrencyBalances,
+        ],
+        [
+          market?.quoteMintAddress,
+          quoteCurrency,
+          quoteCurrencyAccount,
+          quoteCurrencyBalances,
+        ],
+      ].map(([mint, currency, account, balances], index) => (
         <React.Fragment key={index}>
           <Divider style={{ borderColor: 'white' }}>{currency}</Divider>
           <RowBox
@@ -80,7 +92,7 @@ export default function StandaloneBalancesDisplay() {
             <Col>{balances && balances.unsettled}</Col>
           </RowBox>
           <RowBox align="middle" justify="space-around">
-            <Col style={{ width: 150 }}>
+            <Col style={{ width: 100 }}>
               <ActionButton
                 block
                 size="large"
@@ -89,7 +101,22 @@ export default function StandaloneBalancesDisplay() {
                 Deposit
               </ActionButton>
             </Col>
-            <Col style={{ width: 150 }}>
+            <Col style={{ width: 100 }}>
+              <ActionButton
+                block
+                size="large"
+                onClick={() =>
+                  setTransferCoin({
+                    coin: currency,
+                    source: account?.pubkey,
+                    mint,
+                  })
+                }
+              >
+                Transfer
+              </ActionButton>
+            </Col>
+            <Col style={{ width: 100 }}>
               <ActionButton block size="large" onClick={onSettleFunds}>
                 Settle
               </ActionButton>
@@ -107,6 +134,10 @@ export default function StandaloneBalancesDisplay() {
       <DepositDialog
         depositCoin={depositCoin}
         onClose={() => setDepositCoin('')}
+      />
+      <TransferDialog
+        transferCoin={transferCoin}
+        onClose={() => setTransferCoin(null)}
       />
     </FloatingElement>
   );

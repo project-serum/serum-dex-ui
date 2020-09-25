@@ -8,10 +8,26 @@ import {
 } from '@solana/web3.js';
 import { TOKEN_MINTS, TokenInstructions } from '@project-serum/serum';
 
-export async function transferToken({ source, destination, amount, owner }) {
-  let transaction = source.equals(owner)
+export async function transferToken({
+  wallet,
+  connection,
+  source,
+  destination,
+  amount,
+  onBeforeSendCallBack,
+  onConfirmCallBack,
+}) {
+  console.log(
+    JSON.stringify({
+      wallet: wallet.publicKey,
+      source,
+      destination,
+      amount,
+    }),
+  );
+  let transaction = source.equals(wallet.publicKey)
     ? SystemProgram.transfer({
-        fromPubkey: owner,
+        fromPubkey: wallet.publicKey,
         toPubkey: destination,
         lamports: amount,
       })
@@ -19,7 +35,7 @@ export async function transferToken({ source, destination, amount, owner }) {
         TokenInstructions.transfer({
           source,
           destination,
-          owner,
+          owner: wallet.publicKey,
           amount,
         }),
       );
@@ -35,10 +51,13 @@ export async function transferToken({ source, destination, amount, owner }) {
       notify({ message: 'Error transferring tokens', type: 'error' });
     } else {
       notify({ message: 'Token transfer confirmed', type: 'success' });
-      onSuccess && onSuccess();
     }
+    onConfirmCallBack && onConfirmCallBack(result.err || result.timeout);
   };
-  const onBeforeSend = () => notify({ message: 'Transferring tokens...' });
+  const onBeforeSend = () => {
+    notify({ message: 'Transferring tokens...' });
+    onBeforeSendCallBack && onBeforeSendCallBack();
+  };
   const onAfterSend = () =>
     notify({ message: 'Tokens transferred', type: 'success' });
   return await sendTransaction({
