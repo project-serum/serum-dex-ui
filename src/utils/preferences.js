@@ -3,7 +3,7 @@ import { useLocalStorageState } from './utils';
 import { useInterval } from './useInterval';
 import { useConnection } from './connection';
 import { useWallet } from './wallet';
-import { useAllMarkets, useTokenAccounts } from './markets';
+import { useAllMarkets, useTokenAccounts, useMarket } from './markets';
 import { settleAllFunds } from './send';
 
 const ConnectionContext = React.createContext(null);
@@ -15,9 +15,10 @@ export function PreferencesProvider({ children }) {
   );
 
   const [tokenAccounts] = useTokenAccounts();
-  const marketList = useAllMarkets();
-  const connection = useConnection();
   const { connected, wallet } = useWallet();
+  const { customMarkets } = useMarket();
+  const marketList = useAllMarkets(customMarkets);
+  const connection = useConnection();
 
   useInterval(() => {
     if (connected && wallet?.autoApprove && autoSettleEnabled) {

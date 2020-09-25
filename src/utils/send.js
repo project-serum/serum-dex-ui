@@ -7,7 +7,11 @@ import {
   Transaction,
   PublicKey,
 } from '@solana/web3.js';
-import { TOKEN_MINTS, TokenInstructions } from '@project-serum/serum';
+import {
+  TOKEN_MINTS,
+  TokenInstructions,
+  OpenOrders,
+} from '@project-serum/serum';
 
 export async function createTokenAccountTransaction({
   connection,
@@ -157,45 +161,62 @@ export async function settleAllFunds({
   tokenAccounts,
   markets,
 }) {
-  const getAccountsToSettle = async (market) => {
-    const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
+  if (!markets || !wallet || !connection || !tokenAccounts) {
+    return;
+  }
+
+  const programIds = [];
+  markets
+    .reduce((cumulative, m) => {
+      cumulative.push(m._programId);
+      return cumulative;
+    }, [])
+    .forEach((programId) => {
+      if (!programIds.find((p) => p.equals(programId))) {
+        programIds.push(programId);
+      }
+    });
+
+  const getOpenOrdersAccountsForProgramId = async (programId) => {
+    const openOrdersAccounts = await OpenOrders.findForOwner(
       connection,
       wallet.publicKey,
+      programId,
     );
-    const openOrders = openOrdersAccounts && openOrdersAccounts[0];
-    return {
-      baseTokenFree:
-        openOrders?.baseTokenFree &&
-        market.baseSplSizeToNumber(openOrders.baseTokenFree),
-      quoteTokenFree:
-        openOrders?.quoteTokenFree &&
-        market.baseSplSizeToNumber(openOrders.quoteTokenFree),
-      openOrders,
-      market,
-    };
+    return openOrdersAccounts.filter(
+      (openOrders) =>
+        openOrders.baseTokenTotal.toNumber() ||
+        openOrders.quoteTokenTotal.toNumber(),
+    );
   };
 
-  const accountsToSettle = await Promise.all(
-    markets.map((market) => getAccountsToSettle(market)),
+  const openOrdersAccountsForProgramIds = await Promise.all(
+    programIds.map((programId) => getOpenOrdersAccountsForProgramId(programId)),
   );
-  if (!accountsToSettle || accountsToSettle.length === 0) return;
+  const openOrdersAccounts = openOrdersAccountsForProgramIds.reduce(
+    (accounts, current) => accounts.concat(current),
+    [],
+  );
 
   const settleTransactions = await Promise.all(
-    accountsToSettle
-      .filter((a) => a.baseTokenFree > 0 || a.quoteTokenFree > 0)
-      .map((accountToSettle) => {
-        const { market, openOrders } = accountToSettle;
-        return market.makeSettleFundsTransaction(
+    openOrdersAccounts.map((openOrdersAccount) => {
+      const market = markets.find((m) =>
+        m._decoded?.ownAddress?.equals(openOrdersAccount.market),
+      );
+      return (
+        market &&
+        market.makeSettleFundsTransaction(
           connection,
-          openOrders,
+          openOrdersAccount,
           getSelectedTokenAccountForMint(tokenAccounts, market?.baseMintAddress)
             ?.pubkey,
           getSelectedTokenAccountForMint(
             tokenAccounts,
             market?.quoteMintAddress,
           )?.pubkey,
-        );
-      }),
+        )
+      );
+    }),
   );
   if (!settleTransactions || settleTransactions.length === 0) return;
 
@@ -211,15 +232,20 @@ export async function settleAllFunds({
 
   const transaction = mergeTransactions(transactions);
   const noOp = () => {};
-  return await sendTransaction({
-    transaction,
-    signers,
-    wallet,
-    connection,
-    onBeforeSend: noOp,
-    onAfterSend: noOp,
-    onConfirm: noOp,
-  });
+
+  try {
+    return await sendTransaction({
+      transaction,
+      signers,
+      wallet,
+      connection,
+      onBeforeSend: noOp,
+      onAfterSend: noOp,
+      onConfirm: noOp,
+    });
+  } catch (e) {
+    console.log('Error settling all funds: ' + e.message);
+  }
 }
 
 export async function cancelOrder(params) {
