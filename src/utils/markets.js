@@ -900,7 +900,7 @@ export function useUnmigratedDeprecatedMarkets() {
 
 export function useGetOpenOrdersForDeprecatedMarkets() {
   const { connected, wallet } = useWallet();
-
+  const [customMarkets] = useLocalStorageState('customMarkets', []);
   const connection = useConnection();
   const marketsAndOrders = useUnmigratedDeprecatedMarkets();
   const marketsList =
@@ -919,7 +919,7 @@ export function useGetOpenOrdersForDeprecatedMarkets() {
     }
     console.log('refreshing getOpenOrdersForDeprecatedMarkets');
     const getOrders = async (market) => {
-      const { marketName } = getMarketDetails(market);
+      const { marketName } = getMarketDetails(market, customMarkets);
       try {
         console.log('Fetching open orders for', marketName);
         // Can do better than this, we have the open orders accounts already
@@ -965,6 +965,7 @@ export function useGetOpenOrdersForDeprecatedMarkets() {
 
 export function useBalancesForDeprecatedMarkets() {
   const markets = useUnmigratedDeprecatedMarkets();
+  const [customMarkets] = useLocalStorageState('customMarkets', []);
   if (!markets) {
     return null;
   }
@@ -973,6 +974,7 @@ export function useBalancesForDeprecatedMarkets() {
   markets.forEach(({ market, openOrdersList }) => {
     const { baseCurrency, quoteCurrency, marketName } = getMarketDetails(
       market,
+      customMarkets,
     );
     openOrdersList.forEach((openOrders) => {
       const inOrdersBase =
