@@ -8,6 +8,49 @@ import {
 } from '@solana/web3.js';
 import { TOKEN_MINTS, TokenInstructions } from '@project-serum/serum';
 
+export async function transferToken({ source, destination, amount, owner }) {
+  let transaction = source.equals(owner)
+    ? SystemProgram.transfer({
+        fromPubkey: owner,
+        toPubkey: destination,
+        lamports: amount,
+      })
+    : new Transaction().add(
+        TokenInstructions.transfer({
+          source,
+          destination,
+          owner,
+          amount,
+        }),
+      );
+  const onConfirm = (result) => {
+    if (result.timeout) {
+      notify({
+        message: 'Timed out',
+        type: 'error',
+        description: 'Timed out awaiting confirmation on transaction',
+      });
+    } else if (result.err) {
+      console.log(result.err);
+      notify({ message: 'Error transferring tokens', type: 'error' });
+    } else {
+      notify({ message: 'Token transfer confirmed', type: 'success' });
+      onSuccess && onSuccess();
+    }
+  };
+  const onBeforeSend = () => notify({ message: 'Transferring tokens...' });
+  const onAfterSend = () =>
+    notify({ message: 'Tokens transferred', type: 'success' });
+  return await sendTransaction({
+    transaction,
+    wallet,
+    connection,
+    onBeforeSend,
+    onAfterSend,
+    onConfirm,
+  });
+}
+
 export async function createTokenAccountTransaction({
   connection,
   wallet,
