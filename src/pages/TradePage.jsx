@@ -8,14 +8,21 @@ import {
   useMarket,
   useMarketsList,
   useUnmigratedDeprecatedMarkets,
+  getMarketInfos,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
 import DeprecatedMarketsInstructions from '../components/DeprecatedMarketsInstructions';
-import { InfoCircleOutlined } from '@ant-design/icons';
+import {
+  InfoCircleOutlined,
+  PlusCircleOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
+import CustomMarketDialog from '../components/CustomMarketDialog';
+import { notify } from '../utils/notifications';
 
-const { Option } = Select;
+const { Option, OptGroup } = Select;
 
 const Wrapper = styled.div`
   height: 100%;
@@ -28,9 +35,16 @@ const Wrapper = styled.div`
 `;
 
 export default function TradePage() {
-  const { marketName, market } = useMarket();
+  const {
+    market,
+    marketName,
+    customMarkets,
+    setCustomMarkets,
+    setMarketAddress,
+  } = useMarket();
   const markets = useMarketsList();
   const [handleDeprecated, setHandleDeprecated] = useState(false);
+  const [addMarketVisible, setAddMarketVisible] = useState(false);
   const deprecatedMarkets = useUnmigratedDeprecatedMarkets();
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
@@ -83,8 +97,34 @@ export default function TradePage() {
     }
   }, [width, componentProps, handleDeprecated]);
 
+  const onAddCustomMarket = (customMarket) => {
+    const marketInfo = getMarketInfos(customMarkets).some(
+      (m) => m.address.toBase58() === customMarket.address,
+    );
+    if (marketInfo) {
+      notify({
+        message: `A market with the given ID already exists`,
+        type: 'error',
+      });
+      return;
+    }
+    const newCustomMarkets = [...customMarkets, customMarket];
+    setCustomMarkets(newCustomMarkets);
+    setMarketAddress(customMarket.address);
+  };
+
+  const onDeleteCustomMarket = (address) => {
+    const newCustomMarkets = customMarkets.filter((m) => m.address !== address);
+    setCustomMarkets(newCustomMarkets);
+  };
+
   return (
     <>
+      <CustomMarketDialog
+        visible={addMarketVisible}
+        onClose={() => setAddMarketVisible(false)}
+        onAddCustomMarket={onAddCustomMarket}
+      />
       <Wrapper>
         <Row
           align="middle"
@@ -96,6 +136,8 @@ export default function TradePage() {
               markets={markets}
               setHandleDeprecated={setHandleDeprecated}
               placeholder={'Select market'}
+              customMarkets={customMarkets}
+              onDeleteCustomMarket={onDeleteCustomMarket}
             />
           </Col>
           {market ? (
@@ -110,6 +152,12 @@ export default function TradePage() {
               </Popover>
             </Col>
           ) : null}
+          <Col>
+            <PlusCircleOutlined
+              style={{ color: '#2abdd2' }}
+              onClick={() => setAddMarketVisible(true)}
+            />
+          </Col>
           {deprecatedMarkets && deprecatedMarkets.length > 0 && (
             <React.Fragment>
               <Col>
@@ -132,7 +180,13 @@ export default function TradePage() {
   );
 }
 
-function MarketSelector({ markets, placeholder, setHandleDeprecated }) {
+function MarketSelector({
+  markets,
+  placeholder,
+  setHandleDeprecated,
+  customMarkets,
+  onDeleteCustomMarket,
+}) {
   const { market, setMarketAddress } = useMarket();
 
   const onSetMarketAddress = (marketAddress) => {
@@ -143,6 +197,13 @@ function MarketSelector({ markets, placeholder, setHandleDeprecated }) {
   const extractBase = (a) => a.split('/')[0];
   const extractQuote = (a) => a.split('/')[1];
 
+  const selectedMarket = getMarketInfos(customMarkets)
+    .find(
+      (proposedMarket) =>
+        market?.address && proposedMarket.address.equals(market.address),
+    )
+    ?.address?.toBase58();
+
   return (
     <Select
       showSearch
@@ -152,45 +213,72 @@ function MarketSelector({ markets, placeholder, setHandleDeprecated }) {
       optionFilterProp="name"
       onSelect={onSetMarketAddress}
       listHeight={400}
-      value={markets
-        .find(
-          (proposedMarket) =>
-            market?.address && proposedMarket.address.equals(market.address),
-        )
-        ?.address?.toBase58()}
+      value={selectedMarket}
       filterOption={(input, option) =>
-        option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        option.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     >
-      {markets
-        .sort((a, b) =>
-          extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
-            ? -1
-            : extractQuote(a.name) !== 'USDT' && extractQuote(b.name) === 'USDT'
-            ? 1
-            : 0,
-        )
-        .sort((a, b) =>
-          extractBase(a.name) < extractBase(b.name)
-            ? -1
-            : extractBase(a.name) > extractBase(b.name)
-            ? 1
-            : 0,
-        )
-        .map(({ address, name, deprecated }, i) => (
-          <Option
-            value={address.toBase58()}
-            key={address}
-            name={name}
-            style={{
-              padding: '10px 0',
-              textAlign: 'center',
-              backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
-            }}
-          >
-            {name} {deprecated ? ' (Deprecated)' : null}
-          </Option>
-        ))}
+      {customMarkets && customMarkets.length > 0 && (
+        <OptGroup label="Custom">
+          {customMarkets.map(({ address, name }, i) => (
+            <Option
+              value={address}
+              key={address}
+              name={name}
+              style={{
+                padding: '10px',
+                backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+              }}
+            >
+              <Row>
+                <Col flex="auto">{name}</Col>
+                {selectedMarket !== address && (
+                  <Col>
+                    <DeleteOutlined
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.nativeEvent.stopImmediatePropagation();
+                        onDeleteCustomMarket && onDeleteCustomMarket(address);
+                      }}
+                    />
+                  </Col>
+                )}
+              </Row>
+            </Option>
+          ))}
+        </OptGroup>
+      )}
+      <OptGroup label="Markets">
+        {markets
+          .sort((a, b) =>
+            extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
+              ? -1
+              : extractQuote(a.name) !== 'USDT' &&
+                extractQuote(b.name) === 'USDT'
+              ? 1
+              : 0,
+          )
+          .sort((a, b) =>
+            extractBase(a.name) < extractBase(b.name)
+              ? -1
+              : extractBase(a.name) > extractBase(b.name)
+              ? 1
+              : 0,
+          )
+          .map(({ address, name, deprecated }, i) => (
+            <Option
+              value={address.toBase58()}
+              key={address}
+              name={name}
+              style={{
+                padding: '10px',
+                backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+              }}
+            >
+              {name} {deprecated ? ' (Deprecated)' : null}
+            </Option>
+          ))}
+      </OptGroup>
     </Select>
   );
 }
