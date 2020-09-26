@@ -97,6 +97,51 @@ export async function createTokenAccountTransaction({
   };
 }
 
+export async function createTokenAccount({
+  connection,
+  wallet,
+  mintPublicKey,
+  onBeforeSendCallBack,
+  onConfirmCallBack,
+}) {
+  const { transaction, signer } = await createTokenAccountTransaction({
+    connection,
+    wallet,
+    mintPublicKey,
+  });
+
+  const onConfirm = (result) => {
+    if (result.timeout) {
+      notify({
+        message: 'Timed out',
+        type: 'error',
+        description: 'Timed out awaiting confirmation on transaction',
+      });
+    } else if (result.err) {
+      console.log(result.err);
+      notify({ message: 'Error creating token account', type: 'error' });
+    } else {
+      notify({ message: 'Token account creation confirmed', type: 'success' });
+    }
+    onConfirmCallBack && onConfirmCallBack();
+  };
+  const onBeforeSend = () => {
+    notify({ message: 'Creating token account...' });
+    onBeforeSendCallBack && onBeforeSendCallBack();
+  };
+  const onAfterSend = () =>
+    notify({ message: 'Token account created', type: 'success' });
+  return await sendTransaction({
+    transaction,
+    signers: [signer, wallet.publicKey],
+    wallet,
+    connection,
+    onBeforeSend,
+    onAfterSend,
+    onConfirm,
+  });
+}
+
 export async function settleFunds({
   market,
   openOrders,
