@@ -36,7 +36,7 @@ export default function StandaloneBalancesDisplay() {
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
   const connection = useSendConnection();
   const { providerUrl, providerName, wallet } = useWallet();
-  const [depositCoin, setDepositCoin] = useState('');
+  const [baseOrQuote, setBaseOrQuote] = useState('');
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const baseCurrencyBalances =
@@ -58,9 +58,9 @@ export default function StandaloneBalancesDisplay() {
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
       {[
-        [baseCurrency, baseCurrencyBalances],
-        [quoteCurrency, quoteCurrencyBalances],
-      ].map(([currency, balances], index) => (
+        [baseCurrency, baseCurrencyBalances, 'base'],
+        [quoteCurrency, quoteCurrencyBalances, 'quote'],
+      ].map(([currency, balances, baseOrQuote], index) => (
         <React.Fragment key={index}>
           <Divider style={{ borderColor: 'white' }}>{currency}</Divider>
           <RowBox
@@ -84,7 +84,7 @@ export default function StandaloneBalancesDisplay() {
               <ActionButton
                 block
                 size="large"
-                onClick={() => setDepositCoin(currency)}
+                onClick={() => setBaseOrQuote(baseOrQuote)}
               >
                 Deposit
               </ActionButton>
@@ -105,8 +105,8 @@ export default function StandaloneBalancesDisplay() {
         </React.Fragment>
       ))}
       <DepositDialog
-        depositCoin={depositCoin}
-        onClose={() => setDepositCoin('')}
+        baseOrQuote={baseOrQuote}
+        onClose={() => setBaseOrQuote('')}
       />
     </FloatingElement>
   );
