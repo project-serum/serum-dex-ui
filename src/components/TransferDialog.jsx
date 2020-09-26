@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Modal, Input } from 'antd';
+import styled from 'styled-components';
+import { Modal, Input, Button, Row, Col, Typography } from 'antd';
+import { useBalances } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
 import { useConnection } from '../utils/connection';
 import { isValidPublicKey } from '../utils/utils';
@@ -8,17 +10,33 @@ import { notify } from '../utils/notifications';
 import { PublicKey } from '@solana/web3.js';
 import { getMintDecimals } from '../utils/tokens';
 
+const { Text } = Typography;
+
+const InputField = styled(Input)`
+  margin-bottom: 8px;
+`;
+
+const ActionButton = styled(Button)`
+  color: #2abdd2;
+  background-color: #212734;
+  border-width: 0px;
+`;
+
 export default function TransferDialog({ onClose, transferCoin }) {
   const { connected, wallet } = useWallet();
   const connection = useConnection();
+  const balances = useBalances();
 
-  const [destination, setDestination] = useState('');
-  const [amount, setAmount] = useState(0);
+  const [destination, setDestination] = useState(null);
+  const [amount, setAmount] = useState(null);
   const [transferInProgress, setTransferInProgress] = useState(false);
 
+  const balance =
+    balances && balances.find((b) => b.coin === transferCoin?.coin)?.wallet;
+
   const onDoClose = () => {
-    setDestination('');
-    setAmount(0);
+    setDestination(null);
+    setAmount(null);
     onClose();
   };
 
@@ -52,7 +70,11 @@ export default function TransferDialog({ onClose, transferCoin }) {
     }
   };
 
-  const canSubmit = connected && isValidPublicKey(destination) && amount > 0;
+  const canSubmit =
+    connected &&
+    isValidPublicKey(destination) &&
+    amount > 0 &&
+    amount <= balance;
 
   return (
     <Modal
@@ -64,17 +86,34 @@ export default function TransferDialog({ onClose, transferCoin }) {
       okButtonProps={{ disabled: !canSubmit, loading: transferInProgress }}
     >
       <div style={{ paddingTop: '20px' }}>
-        <Input
-          placeholder="Destination"
+        {destination && !isValidPublicKey(destination) && (
+          <Row style={{ marginBottom: 8 }}>
+            <Col>
+              <Text type="warning">Invalid address</Text>
+            </Col>
+          </Row>
+        )}
+        <InputField
+          placeholder="Destination address"
           value={destination}
           onChange={(e) => setDestination(e.target.value)}
         />
-        <Input
+        {amount > balance && (
+          <Row style={{ marginBottom: 8 }}>
+            <Col>
+              <Text type="warning">Not enough balances</Text>
+            </Col>
+          </Row>
+        )}
+        <InputField
           placeholder="Amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           type="number"
         />
+        <ActionButton block size="large" onClick={() => setAmount(balance)}>
+          Max: {balance}
+        </ActionButton>
       </div>
     </Modal>
   );

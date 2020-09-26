@@ -15,6 +15,7 @@ import { useWallet } from '../utils/wallet';
 import Link from './Link';
 import { settleFunds } from '../utils/send';
 import { useSendConnection } from '../utils/connection';
+import WalletConnect from './WalletConnect';
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -23,6 +24,10 @@ const RowBox = styled(Row)`
 const Tip = styled.p`
   font-size: 12px;
   padding-top: 6px;
+`;
+
+const Label = styled.span`
+  color: rgba(255, 255, 255, 0.5);
 `;
 
 const ActionButton = styled(Button)`
@@ -36,7 +41,7 @@ export default function StandaloneBalancesDisplay() {
   const balances = useBalances();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
   const connection = useSendConnection();
-  const { providerUrl, providerName, wallet } = useWallet();
+  const { providerUrl, providerName, wallet, connected } = useWallet();
   const [depositCoin, setDepositCoin] = useState('');
   const [transferCoin, setTransferCoin] = useState(null);
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
@@ -75,27 +80,46 @@ export default function StandaloneBalancesDisplay() {
       ].map(([mint, currency, account, balances], index) => (
         <React.Fragment key={index}>
           <Divider style={{ borderColor: 'white' }}>{currency}</Divider>
-          <RowBox
-            align="middle"
-            justify="space-between"
-            style={{ paddingBottom: 12 }}
-          >
-            <Col>Wallet balance:</Col>
-            <Col>{balances && balances.wallet}</Col>
-          </RowBox>
-          <RowBox
-            align="middle"
-            justify="space-between"
-            style={{ paddingBottom: 12 }}
-          >
-            <Col>Unsettled balance:</Col>
-            <Col>{balances && balances.unsettled}</Col>
-          </RowBox>
+          {connected ? (
+            <>
+              <RowBox
+                align="middle"
+                justify="space-between"
+                style={{ paddingBottom: 12 }}
+              >
+                <Col>
+                  <Label>Wallet balance:</Label>
+                </Col>
+                <Col>{balances && balances.wallet}</Col>
+              </RowBox>
+              <RowBox
+                align="middle"
+                justify="space-between"
+                style={{ paddingBottom: 12 }}
+              >
+                <Col>
+                  <Label>Unsettled balance:</Label>
+                </Col>
+                <Col>{balances && balances.unsettled}</Col>
+              </RowBox>
+            </>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                paddingBottom: 12,
+              }}
+            >
+              <WalletConnect />
+            </div>
+          )}
           <RowBox align="middle" justify="space-around">
             <Col style={{ width: 100 }}>
               <ActionButton
                 block
                 size="large"
+                disabled={!connected}
                 onClick={() => setDepositCoin(currency)}
               >
                 Deposit
@@ -105,6 +129,7 @@ export default function StandaloneBalancesDisplay() {
               <ActionButton
                 block
                 size="large"
+                disabled={!connected}
                 onClick={() =>
                   setTransferCoin({
                     coin: currency,
@@ -117,7 +142,12 @@ export default function StandaloneBalancesDisplay() {
               </ActionButton>
             </Col>
             <Col style={{ width: 100 }}>
-              <ActionButton block size="large" onClick={onSettleFunds}>
+              <ActionButton
+                block
+                size="large"
+                disabled={!connected}
+                onClick={onSettleFunds}
+              >
                 Settle
               </ActionButton>
             </Col>
