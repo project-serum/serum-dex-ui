@@ -21,11 +21,17 @@ export function PreferencesProvider({ children }) {
   const connection = useConnection();
 
   useInterval(() => {
-    if (connected && wallet?.autoApprove && autoSettleEnabled) {
-      console.log('Auto settling');
+    const autoSettle = async () => {
       const markets = marketList.map((m) => m.market);
-      settleAllFunds({ connection, wallet, tokenAccounts, markets });
-    }
+      try {
+        console.log('Auto settling');
+        await settleAllFunds({ connection, wallet, tokenAccounts, markets });
+      } catch (e) {
+        console.log('Error auto settling funds: ' + e.message);
+      }
+    };
+
+    connected && wallet?.autoApprove && autoSettleEnabled && autoSettle();
   }, 10000);
 
   return (

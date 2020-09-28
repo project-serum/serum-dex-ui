@@ -5,31 +5,32 @@ import {
   useMarket,
   useSelectedQuoteCurrencyAccount,
 } from '../utils/markets';
-import { TOKEN_MINTS } from '@project-serum/serum';
 import { useWallet } from '../utils/wallet';
 import Link from './Link';
 
-export default function DepositDialog({ onClose, depositCoin }) {
-  let coinMint =
-    depositCoin &&
-    TOKEN_MINTS.find(({ name }) => name === depositCoin)?.address;
-  const { market } = useMarket();
+export default function DepositDialog({ onClose, baseOrQuote }) {
+  const { market, baseCurrency, quoteCurrency } = useMarket();
+
   const { providerName, providerUrl } = useWallet();
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
-  if (!coinMint) {
-    return null;
-  }
-
+  let coinMint;
   let account;
-  if (market?.baseMintAddress?.equals(coinMint)) {
+  let depositCoin;
+  if (baseOrQuote === 'base') {
+    coinMint = market?.baseMintAddress;
     account = baseCurrencyAccount;
-  } else if (market?.quoteMintAddress?.equals(coinMint)) {
+    depositCoin = baseCurrency;
+  } else if (baseOrQuote === 'quote') {
+    coinMint = market?.quoteMintAddress;
     account = quoteCurrencyAccount;
+    depositCoin = quoteCurrency;
   } else {
     account = null;
   }
-
+  if (!coinMint) {
+    return null;
+  }
   return (
     <Modal
       title={depositCoin}
