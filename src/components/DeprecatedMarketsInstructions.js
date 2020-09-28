@@ -30,7 +30,7 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
   return (
     <FloatingElement>
       <Title level={4} style={{ color: 'rgba(255, 255, 255, 1)' }}>
-        Migrate off deprecated markets
+        Migrate to new markets
       </Title>
       <Typography>
         Serum has rolled out upgraded markets! They're faster and support fee
