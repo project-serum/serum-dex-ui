@@ -167,14 +167,16 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         wallet,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
-        onConfirmCallBack: () => {
-          setPrice(null);
-          onSetBaseSize(null);
-        },
       });
+      setPrice(null);
+      onSetBaseSize(null);
     } catch (e) {
       console.warn(e);
-      notify({ message: 'Error placing order: ' + e.message, type: 'error' });
+      notify({
+        message: 'Error placing order',
+        description: e.message,
+        type: 'error',
+      });
     } finally {
       setSubmitting(false);
     }

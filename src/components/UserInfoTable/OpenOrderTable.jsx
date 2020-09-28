@@ -21,25 +21,25 @@ export default function OpenOrderTable({ openOrders, onCancelSuccess }) {
   const [cancelId, setCancelId] = useState(null);
 
   async function cancel(order) {
+    setCancelId(order?.orderId);
     try {
       await cancelOrder({
         order,
         market: order.market,
         connection,
         wallet,
-        onBeforeSendCallBack: () => setCancelId(order?.orderId),
-        onConfirmCallBack: () => {
-          setCancelId(null);
-          onCancelSuccess && onCancelSuccess();
-        },
       });
     } catch (e) {
       notify({
-        message: 'Error cancelling order: ' + e.message,
+        message: 'Error cancelling order',
+        description: e.message,
         type: 'error',
       });
+      return;
+    } finally {
       setCancelId(null);
     }
+    onCancelSuccess && onCancelSuccess();
   }
 
   const columns = [

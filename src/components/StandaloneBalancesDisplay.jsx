@@ -14,6 +14,7 @@ import { useWallet } from '../utils/wallet';
 import Link from './Link';
 import { settleFunds } from '../utils/send';
 import { useSendConnection } from '../utils/connection';
+import { notify } from '../utils/notifications';
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -45,14 +46,22 @@ export default function StandaloneBalancesDisplay() {
     balances && balances.find((b) => b.coin === quoteCurrency);
 
   async function onSettleFunds() {
-    return await settleFunds({
-      market,
-      openOrders: openOrdersAccount,
-      connection,
-      wallet,
-      baseCurrencyAccount,
-      quoteCurrencyAccount,
-    });
+    try {
+      await settleFunds({
+        market,
+        openOrders: openOrdersAccount,
+        connection,
+        wallet,
+        baseCurrencyAccount,
+        quoteCurrencyAccount,
+      });
+    } catch (e) {
+      notify({
+        message: 'Error settling funds',
+        description: e.message,
+        type: 'error',
+      });
+    }
   }
 
   return (
