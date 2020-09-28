@@ -49,24 +49,22 @@ export default function TransferDialog({ onClose, transferCoin }) {
       }
 
       const parsedAmount = Math.round(amount * 10 ** decimals);
+      setTransferInProgress(true);
       await transferToken({
         wallet,
         connection,
         source: transferCoin?.source,
         destination: new PublicKey(destination),
         amount: parsedAmount,
-        onBeforeSendCallBack: () => setTransferInProgress(true),
-        onConfirmCallBack: (err) => {
-          setTransferInProgress(false);
-          if (!err) onDoClose();
-        },
       });
     } catch (e) {
       notify({
         message: 'Error transferring tokens: ' + e.message,
         type: 'error',
       });
+    } finally {
       setTransferInProgress(false);
+      onDoClose();
     }
   };
 

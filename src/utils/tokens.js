@@ -13,7 +13,8 @@ export const ACCOUNT_LAYOUT = BufferLayout.struct([
 export const MINT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(44),
   BufferLayout.u8('decimals'),
-  BufferLayout.blob(37),
+  BufferLayout.u8('initialized'),
+  BufferLayout.blob(36),
 ]);
 
 export function parseTokenAccountData(data) {
@@ -30,8 +31,13 @@ export async function getMintDecimals(connection, publicKey) {
   if (!mintInfo?.data) {
     return;
   }
-  let { decimals } = MINT_LAYOUT.decode(mintInfo.data);
+  let { decimals } = parseTokenMintData(mintInfo.data);
   return decimals;
+}
+
+export function parseTokenMintData(data) {
+  let { decimals, initialized } = MINT_LAYOUT.decode(data);
+  return { decimals, initialized };
 }
 
 export function getOwnedAccountsFilters(publicKey) {

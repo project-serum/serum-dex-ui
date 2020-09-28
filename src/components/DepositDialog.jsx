@@ -6,7 +6,6 @@ import {
   useMarket,
   useSelectedQuoteCurrencyAccount,
 } from '../utils/markets';
-import { TOKEN_MINTS } from '@project-serum/serum';
 import { useWallet } from '../utils/wallet';
 import { useConnection } from '../utils/connection';
 import { createTokenAccount } from '../utils/send';
@@ -20,11 +19,9 @@ const ActionButton = styled(Button)`
   border-width: 0px;
 `;
 
-export default function DepositDialog({ onClose, depositCoin }) {
-  let coinMint =
-    depositCoin &&
-    TOKEN_MINTS.find(({ name }) => name === depositCoin)?.address;
-  const { market } = useMarket();
+export default function DepositDialog({ onClose, baseOrQuote }) {
+  const { market, baseCurrency, quoteCurrency } = useMarket();
+
   const { connected, wallet } = useWallet();
   const connection = useConnection();
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
@@ -34,33 +31,38 @@ export default function DepositDialog({ onClose, depositCoin }) {
 
   const doCreateTokenAccount = async () => {
     try {
+      setIsCreatingTokenAccount(true);
       await createTokenAccount({
         wallet,
         connection,
         mintPublicKey: coinMint,
-        onBeforeSendCallBack: () => setIsCreatingTokenAccount(true),
-        onConfirmCallBack: () => setIsCreatingTokenAccount(false),
       });
     } catch (e) {
       notify({
         message: 'Error creating token account: ' + e.message,
         type: 'error',
       });
+    } finally {
       setIsCreatingTokenAccount(false);
     }
   };
 
-  if (!coinMint) {
-    return null;
-  }
-
+  let coinMint;
   let account;
-  if (market?.baseMintAddress?.equals(coinMint)) {
+  let depositCoin;
+  if (baseOrQuote === 'base') {
+    coinMint = market?.baseMintAddress;
     account = baseCurrencyAccount;
-  } else if (market?.quoteMintAddress?.equals(coinMint)) {
+    depositCoin = baseCurrency;
+  } else if (baseOrQuote === 'quote') {
+    coinMint = market?.quoteMintAddress;
     account = quoteCurrencyAccount;
+    depositCoin = quoteCurrency;
   } else {
     account = null;
+  }
+  if (!coinMint) {
+    return null;
   }
 
   return (

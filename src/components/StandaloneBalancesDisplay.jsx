@@ -16,6 +16,7 @@ import Link from './Link';
 import { settleFunds } from '../utils/send';
 import { useSendConnection } from '../utils/connection';
 import WalletConnect from './WalletConnect';
+import { notify } from '../utils/notifications';
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -42,8 +43,9 @@ export default function StandaloneBalancesDisplay() {
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
   const connection = useSendConnection();
   const { providerUrl, providerName, wallet, connected } = useWallet();
-  const [depositCoin, setDepositCoin] = useState('');
+  const [baseOrQuote, setBaseOrQuote] = useState('');
   const [transferCoin, setTransferCoin] = useState(null);
+
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const baseCurrencyBalances =
@@ -52,14 +54,22 @@ export default function StandaloneBalancesDisplay() {
     balances && balances.find((b) => b.coin === quoteCurrency);
 
   async function onSettleFunds() {
-    return await settleFunds({
-      market,
-      openOrders: openOrdersAccount,
-      connection,
-      wallet,
-      baseCurrencyAccount,
-      quoteCurrencyAccount,
-    });
+    try {
+      await settleFunds({
+        market,
+        openOrders: openOrdersAccount,
+        connection,
+        wallet,
+        baseCurrencyAccount,
+        quoteCurrencyAccount,
+      });
+    } catch (e) {
+      notify({
+        message: 'Error settling funds',
+        description: e.message,
+        type: 'error',
+      });
+    }
   }
 
   return (
@@ -70,14 +80,16 @@ export default function StandaloneBalancesDisplay() {
           baseCurrency,
           baseCurrencyAccount,
           baseCurrencyBalances,
+          'base',
         ],
         [
           market?.quoteMintAddress,
           quoteCurrency,
           quoteCurrencyAccount,
           quoteCurrencyBalances,
+          'quote',
         ],
-      ].map(([mint, currency, account, balances], index) => (
+      ].map(([mint, currency, account, balances, baseOrQuote], index) => (
         <React.Fragment key={index}>
           <Divider style={{ borderColor: 'white' }}>{currency}</Divider>
           {connected ? (
@@ -120,7 +132,7 @@ export default function StandaloneBalancesDisplay() {
                 block
                 size="large"
                 disabled={!connected}
-                onClick={() => setDepositCoin(currency)}
+                onClick={() => setBaseOrQuote(baseOrQuote)}
               >
                 Deposit
               </ActionButton>
@@ -129,7 +141,7 @@ export default function StandaloneBalancesDisplay() {
               <ActionButton
                 block
                 size="large"
-                disabled={!connected}
+                disabled={!connected || !account?.pubkey}
                 onClick={() =>
                   setTransferCoin({
                     coin: currency,
@@ -145,7 +157,7 @@ export default function StandaloneBalancesDisplay() {
               <ActionButton
                 block
                 size="large"
-                disabled={!connected}
+                disabled={!connected || !openOrdersAccount}
                 onClick={onSettleFunds}
               >
                 Settle
@@ -162,8 +174,8 @@ export default function StandaloneBalancesDisplay() {
         </React.Fragment>
       ))}
       <DepositDialog
-        depositCoin={depositCoin}
-        onClose={() => setDepositCoin('')}
+        baseOrQuote={baseOrQuote}
+        onClose={() => setBaseOrQuote('')}
       />
       <TransferDialog
         transferCoin={transferCoin}
