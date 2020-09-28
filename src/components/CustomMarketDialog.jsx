@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Input, Row, Col, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Col, Input, Modal, Row, Typography } from 'antd';
 import { notify } from '../utils/notifications';
 import { isValidPublicKey } from '../utils/utils';
 import { PublicKey } from '@solana/web3.js';
 import { Market, MARKETS, TOKEN_MINTS } from '@project-serum/serum';
-import { useConnection } from '../utils/connection';
+import { useAccountInfo, useConnection } from '../utils/connection';
 import { LoadingOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
@@ -15,23 +15,27 @@ export default function CustomMarketDialog({
   onClose,
 }) {
   const connection = useConnection();
-  const [marketId, setMarketId] = useState(null);
-  const [programId, setProgramId] = useState(
-    MARKETS.find(({ deprecated }) => !deprecated)?.programId?.toBase58(),
-  );
 
-  const [marketLabel, setMarketLabel] = useState(null);
-  const [baseLabel, setBaseLabel] = useState(null);
-  const [quoteLabel, setQuoteLabel] = useState(null);
+  const [marketId, setMarketId] = useState('');
+
+  const [marketLabel, setMarketLabel] = useState('');
+  const [baseLabel, setBaseLabel] = useState('');
+  const [quoteLabel, setQuoteLabel] = useState('');
 
   const [market, setMarket] = useState(null);
   const [loadingMarket, setLoadingMarket] = useState(false);
 
   const wellFormedMarketId = isValidPublicKey(marketId);
-  const wellFormedProgramId = isValidPublicKey(programId);
+
+  const [marketAccountInfo] = useAccountInfo(
+    wellFormedMarketId ? new PublicKey(marketId) : null,
+  );
+  const programId = marketAccountInfo
+    ? marketAccountInfo.owner.toBase58()
+    : MARKETS.find(({ deprecated }) => !deprecated).programId.toBase58();
 
   useEffect(() => {
-    if (!wellFormedMarketId || !wellFormedProgramId) {
+    if (!wellFormedMarketId || !programId) {
       resetLabels();
       return;
     }
@@ -79,12 +83,12 @@ export default function CustomMarketDialog({
   const canSubmit =
     !loadingMarket &&
     !!market &&
+    market.publicKey.toBase58() === marketId &&
     marketId &&
     programId &&
     marketLabel &&
     (knownBaseCurrency || baseLabel) &&
     (knownQuoteCurrency || quoteLabel) &&
-    wellFormedProgramId &&
     wellFormedMarketId;
 
   const onSubmit = () => {
@@ -115,7 +119,6 @@ export default function CustomMarketDialog({
     resetLabels();
     setMarket(null);
     setMarketId(null);
-    setProgramId(null);
     onClose();
   };
 
@@ -129,13 +132,11 @@ export default function CustomMarketDialog({
       okButtonProps={{ disabled: !canSubmit }}
     >
       <div>
-        {wellFormedMarketId && wellFormedProgramId ? (
+        {wellFormedMarketId ? (
           <>
-            {!market && (
+            {!market && !loadingMarket && (
               <Row style={{ marginBottom: 8 }}>
-                <Text type="danger">
-                  Not a valid market and program ID combination
-                </Text>
+                <Text type="danger">Not a valid market</Text>
               </Row>
             )}
             {market && knownMarket && (
@@ -161,11 +162,6 @@ export default function CustomMarketDialog({
                 <Text type="danger">Invalid market ID</Text>
               </Row>
             )}
-            {marketId && !wellFormedProgramId && (
-              <Row style={{ marginBottom: 8 }}>
-                <Text type="danger">Invalid program ID</Text>
-              </Row>
-            )}
           </>
         )}
         <Row style={{ marginBottom: 8 }}>
@@ -179,20 +175,6 @@ export default function CustomMarketDialog({
           </Col>
         </Row>
 
-        {programId && !isValidPublicKey(programId) && (
-          <Row style={{ marginBottom: 8 }}>
-            <Text type="danger">Invalid program ID</Text>
-          </Row>
-        )}
-        <Row style={{ marginBottom: 8 }}>
-          <Col span={24}>
-            <Input
-              placeholder="Program Id"
-              value={programId}
-              onChange={(e) => setProgramId(e.target.value)}
-            />
-          </Col>
-        </Row>
         <Row style={{ marginBottom: 8, marginTop: 8 }}>
           <Col span={24}>
             <Input

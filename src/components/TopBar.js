@@ -1,6 +1,6 @@
 import { InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Menu, Popover, Select } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.svg';
 import styled from 'styled-components';
@@ -29,7 +29,6 @@ const LogoWrapper = styled.div`
 `;
 
 export default function TopBar() {
-  const [current, setCurrent] = useState('/');
   const { connected, wallet, providerUrl, setProvider } = useWallet();
   const { endpoint, setEndpoint } = useConnectionConfig();
   const location = useLocation();
@@ -44,24 +43,16 @@ export default function TopBar() {
     [history],
   );
 
-  useEffect(() => {
-    if (location.pathname.includes('/orders')) {
-      setCurrent('/orders');
-    } else if (location.pathname.includes('/balances')) {
-      setCurrent('/balances');
-    }
-  }, [location]);
-
   return (
     <Wrapper>
       <LogoWrapper>
-        <img src={logo} alt="" />
+        <img src={logo} alt="" onClick={() => history.push('/')} />
         {'SERUM'}
       </LogoWrapper>
       <Menu
         mode="horizontal"
         onClick={handleClick}
-        selectedKeys={[current]}
+        selectedKeys={[location.pathname]}
         style={{
           borderBottom: 'none',
           backgroundColor: 'transparent',
