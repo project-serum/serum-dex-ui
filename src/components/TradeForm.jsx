@@ -10,14 +10,17 @@ import {
   useSelectedBaseCurrencyAccount,
   useSelectedQuoteCurrencyAccount,
   useOrderbook,
+  useFeeDiscountKeys,
   calculateBestPrice,
 } from '../utils/markets';
+import { getFeeRates } from '@project-serum/serum';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
 import {
   getDecimalCount,
   roundToDecimal,
   floorToDecimal,
+  isIncrement,
 } from '../utils/utils';
 import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
@@ -60,6 +63,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
   const [orderbook] = useOrderbook();
+  const [feeAccounts] = useFeeDiscountKeys();
 
   const [side, setSide] = useState('buy');
   const [orderType, setOrderType] = useState(DEFAULT_ORDER_TYPE);
@@ -75,6 +79,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
     : 0;
 
+  let feeRates = getFeeRates(feeAccounts && feeAccounts[0]?.feeTier);
   let quoteBalance = (quoteCurrencyBalances || 0) + (availableQuote || 0);
   let baseBalance = baseCurrencyBalances || 0;
   let sizeDecimalCount =
@@ -96,11 +101,21 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [price, baseSize]);
 
+  const onSetPrice = (price) => {
+    const formattedPrice = isIncrement(price, market?.tickSize)
+      ? price
+      : floorToDecimal(price, priceDecimalCount);
+    setPrice(formattedPrice);
+  };
+
   const onSetBaseSize = (baseSize) => {
-    setBaseSize(baseSize);
-    const rawQuoteSize = baseSize * (price || markPrice);
+    const formattedBaseSize = isIncrement(baseSize, market?.minOrderSize)
+      ? baseSize
+      : floorToDecimal(baseSize, sizeDecimalCount);
+    setBaseSize(formattedBaseSize);
+    const rawQuoteSize = formattedBaseSize * (price || markPrice);
     const quoteSize =
-      baseSize && roundToDecimal(rawQuoteSize, sizeDecimalCount);
+      formattedBaseSize && roundToDecimal(rawQuoteSize, sizeDecimalCount);
     setQuoteSize(quoteSize);
   };
 
@@ -115,11 +130,20 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     const formattedSize = size && roundToDecimal(size, sizeDecimalCount);
     const formattedPrice = price && roundToDecimal(price, priceDecimalCount);
     formattedSize && onSetBaseSize(formattedSize);
-    formattedPrice && setPrice(formattedPrice);
+    formattedPrice && onSetPrice(formattedPrice);
   };
 
   const updateSizeFraction = () => {
-    const rawMaxSize = side === 'buy' ? quoteBalance / price : baseBalance;
+    let rawMaxSize;
+    if (side === 'sell') {
+      rawMaxSize = baseBalance;
+    } else {
+      let maxQuoteBalance =
+        orderType === 'market' || price >= orderbook?.asks[0]?.[0]
+          ? (1 - feeRates.taker) * quoteBalance
+          : quoteBalance;
+      rawMaxSize = maxQuoteBalance / price;
+    }
     const maxSize = floorToDecimal(rawMaxSize, sizeDecimalCount);
     const sizeFraction = Math.min((baseSize / maxSize) * 100, 100);
     setSizeFraction(sizeFraction);
@@ -130,7 +154,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
       let formattedMarkPrice = priceDecimalCount
         ? markPrice.toFixed(priceDecimalCount)
         : markPrice;
-      setPrice(formattedMarkPrice);
+      onSetPrice(formattedMarkPrice);
     }
 
     let newSize;
@@ -186,7 +210,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
       });
-      setPrice(null);
+      onSetPrice(null);
       onSetBaseSize(null);
     } catch (e) {
       console.warn(e);
@@ -262,7 +286,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
           type={orderType === 'market' ? 'text' : 'number'}
           step={market?.tickSize || 1}
           disabled={orderType === 'market'}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={(e) => onSetPrice(e.target.value)}
         />
         <Input.Group compact style={{ paddingBottom: 8 }}>
           <Input

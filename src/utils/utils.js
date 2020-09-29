@@ -13,6 +13,12 @@ export function isValidPublicKey(key) {
   }
 }
 
+export function isIncrement(num, step) {
+  return (
+    Math.abs((num / step) % 1) < 1e-5 || Math.abs(((num / step) % 1) - 1) < 1e-5
+  );
+}
+
 export async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
