@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Form, Input, Typography } from 'antd';
+import { Button, Form, Input, Tooltip, Typography } from 'antd';
 import { notify } from '../utils/notifications';
 import { isValidPublicKey } from '../utils/utils';
 import { PublicKey } from '@solana/web3.js';
@@ -10,6 +10,7 @@ import styled from 'styled-components';
 import { parseTokenMintData } from '../utils/tokens';
 import { useWallet } from '../utils/wallet';
 import { listMarket } from '../utils/send';
+import Link from '../components/Link';
 
 const { Text, Title } = Typography;
 
@@ -26,11 +27,13 @@ export default function ListNewMarketPage() {
   const { wallet, connected } = useWallet();
   const [baseMintInput, baseMintInfo] = useMintInput(
     'baseMint',
-    'Base Mint Address',
+    'Base Token Mint Address',
+    'The base token is the token being traded. For example, the base token of a BTC/USDT market is BTC.',
   );
   const [quoteMintInput, quoteMintInfo] = useMintInput(
     'quoteMint',
-    'Quote Mint Address',
+    'Quote Token Mint Address',
+    'The quote token is the token used to price trades. For example, the quote token of a BTC/USDT market is USDT.',
   );
   const [lotSize, setLotSize] = useState('1');
   const [tickSize, setTickSize] = useState('0.01');
@@ -98,7 +101,11 @@ export default function ListNewMarketPage() {
           {baseMintInput}
           {quoteMintInput}
           <Form.Item
-            label="Min Order Size (Lot Size)"
+            label={
+              <Tooltip title="Smallest allowed order size. For a BTC/USDT market, this would be in units of BTC.">
+                Minimum Order Size (Lot Size)
+              </Tooltip>
+            }
             name="lotSize"
             initialValue="1"
             validateStatus={
@@ -119,7 +126,11 @@ export default function ListNewMarketPage() {
             />
           </Form.Item>
           <Form.Item
-            label="Tick Size (Price Increment)"
+            label={
+              <Tooltip title="Smallest amount by which prices can move. For a BTC/USDT market, this would be in units of USDT.">
+                Tick Size (Price Increment)
+              </Tooltip>
+            }
             name="tickSize"
             initialValue="0.01"
             validateStatus={
@@ -139,7 +150,7 @@ export default function ListNewMarketPage() {
               step="any"
             />
           </Form.Item>
-          <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+          <Form.Item label=" " colon={false}>
             <Button
               type="primary"
               htmlType="submit"
@@ -160,7 +171,7 @@ export default function ListNewMarketPage() {
   );
 }
 
-function useMintInput(name, label) {
+function useMintInput(name, label, tooltip) {
   const [address, setAddress] = useState('');
   const [accountInfo, loaded] = useAccountInfo(
     isValidPublicKey(address) ? new PublicKey(address) : null,
@@ -202,7 +213,21 @@ function useMintInput(name, label) {
 
   const input = (
     <Form.Item
-      label={label}
+      label={
+        <Tooltip
+          title={
+            <>
+              {tooltip} You can look up token mint addresses on{' '}
+              <Link external to="https://sollet.io">
+                sollet.io
+              </Link>
+              .
+            </>
+          }
+        >
+          {label}
+        </Tooltip>
+      }
       name={name}
       validateStatus={validateStatus}
       hasFeedback={hasFeedback}
