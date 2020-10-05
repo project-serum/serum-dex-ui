@@ -726,7 +726,23 @@ export function useWalletBalancesForAllMarkets() {
   );
 }
 
-export async function getCurrencyBalance(connection, market, currencyAccount) {
+async function getCurrencyBalance(market, connection, wallet, base = true) {
+  const currencyAccounts = base
+    ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
+    : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
+
+  const currencyAccount = currencyAccounts && currencyAccounts[0];
+  const tokenAccountBalances = await connection.getTokenAccountBalance(
+    currencyAccount.pubkey,
+  );
+  return tokenAccountBalances?.value?.uiAmount;
+}
+
+export async function getCurrencyBalanceForAccount(
+  connection,
+  market,
+  currencyAccount,
+) {
   const accountInfo = await connection.getAccountInfo(currencyAccount.pubkey);
   return (
     accountInfo &&
@@ -855,32 +871,6 @@ export function useOpenOrderAccountBalancesForAllMarkets() {
     ),
     { refreshInterval: _SLOW_REFRESH_INTERVAL },
   );
-}
-
-export async function getTradeAccountsForMarket(connection, wallet, market) {
-  // get base currency account
-  const baseCurrencyAccounts = await market.findBaseTokenAccountsForOwner(
-    connection,
-    wallet.publicKey,
-  );
-  const baseCurrencyAccount = baseCurrencyAccounts && baseCurrencyAccounts[0];
-
-  // get quote currency account
-  const quoteCurrencyAccounts = await market.findQuoteTokenAccountsForOwner(
-    connection,
-    wallet.publicKey,
-  );
-  const quoteCurrencyAccount =
-    quoteCurrencyAccounts && quoteCurrencyAccounts[0];
-
-  // get open orders account
-  const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
-    connection,
-    wallet.publicKey,
-  );
-  const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
-
-  return { baseCurrencyAccount, quoteCurrencyAccount, openOrdersAccount };
 }
 
 export function useUnmigratedDeprecatedMarkets() {

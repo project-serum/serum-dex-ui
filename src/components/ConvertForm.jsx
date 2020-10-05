@@ -3,9 +3,8 @@ import { Typography, Select, Button, Input, Row, Col } from 'antd';
 import styled from 'styled-components';
 import { Market, Orderbook } from '@project-serum/serum';
 import {
-  getTradeAccountsForMarket,
   getSelectedTokenAccountForMint,
-  getCurrencyBalance,
+  getCurrencyBalanceForAccount,
   getOpenOrdersAccountsBalance,
   useMarket,
   getMarketInfos,
@@ -34,7 +33,7 @@ const ConvertButton = styled(Button)`
   border-color: #02bf76;
 `;
 
-export default function ConvertForm({}) {
+export default function ConvertForm() {
   const { connected, wallet } = useWallet();
   const { customMarkets } = useMarket();
 
@@ -65,7 +64,7 @@ export default function ConvertForm({}) {
         : tokenMap.set(quote, [...tokenMap.get(quote), base]);
     });
     setTokenMap(tokenMap);
-  }, []);
+  }, [marketInfos]);
 
   useEffect(() => {
     if (!fromToken || !toToken) {
@@ -88,7 +87,7 @@ export default function ConvertForm({}) {
             type: 'error',
           }),
         );
-  }, [connection, fromToken, toToken]);
+  }, [marketInfos, connection, fromToken, toToken]);
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -104,7 +103,7 @@ export default function ConvertForm({}) {
           ? market?.baseMintAddress
           : market?.quoteMintAddress,
       );
-      const currencyBalance = await getCurrencyBalance(
+      const currencyBalance = await getCurrencyBalanceForAccount(
         connection,
         market,
         currenyAccount,
@@ -113,7 +112,8 @@ export default function ConvertForm({}) {
     };
 
     market && fetchBalance();
-  }, [market]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [market, accounts]);
 
   const isFromTokenBaseOfMarket = (market) => {
     const { marketName } = getMarketDetails(market, customMarkets);
@@ -157,26 +157,30 @@ export default function ConvertForm({}) {
       market?.minOrderSize && getDecimalCount(market.minOrderSize);
     const parsedSize = floorToDecimal(size, sizeDecimalCount);
 
-    !(await placeOrder({
-      side,
-      price: parsedPrice,
-      size: parsedSize,
-      orderType: 'ioc',
-      market,
-      connection: sendConnection,
-      wallet,
-      baseCurrencyAccount: baseCurrencyAccount?.pubkey,
-      quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
-      onBeforeSendCallBack: () => setIsConverting(true),
-      onConfirmCallBack: (error) => {
-        notify({
-          message: error ? 'Convert failed' : 'Convert successfull',
-          type: error ? 'error' : 'success',
-        });
-        reset();
-        setIsConverting(false);
-      },
-    })) && setIsConverting(false);
+    setIsConverting(true);
+    try {
+      await placeOrder({
+        side,
+        price: parsedPrice,
+        size: parsedSize,
+        orderType: 'ioc',
+        market,
+        connection: sendConnection,
+        wallet,
+        baseCurrencyAccount: baseCurrencyAccount?.pubkey,
+        quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
+      });
+      reset();
+    } catch (e) {
+      console.warn(e);
+      notify({
+        message: 'Error placing order',
+        description: e.message,
+        type: 'error',
+      });
+    } finally {
+      setIsConverting(false);
+    }
   };
 
   const reset = () => {

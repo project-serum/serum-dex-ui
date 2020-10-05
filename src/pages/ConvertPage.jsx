@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import FloatingElement from '../components/layout/FloatingElement';
 import ConvertForm from '../components/ConvertForm';
 import { Row, Col } from 'antd';
 

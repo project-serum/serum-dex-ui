@@ -1,5 +1,5 @@
-import { InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Menu, Popover, Select } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Menu, Popover, Select } from 'antd';
 import React, { useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.svg';
