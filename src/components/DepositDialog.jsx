@@ -73,7 +73,7 @@ export default function DepositDialog({ onClose, baseOrQuote }) {
       onCancel={onClose}
     >
       <div>
-        <p style={{ color: 'white' }}>Deposit address:</p>
+        <p style={{ color: 'white' }}>SPL Deposit address:</p>
         <p style={{ color: 'rgba(255,255,255,0.5)' }}>
           {account ? (
             account.pubkey.toBase58()
