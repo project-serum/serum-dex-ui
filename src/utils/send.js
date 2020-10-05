@@ -376,20 +376,26 @@ export async function listMarket({
     }),
   );
 
-  await Promise.all([
-    sendTransaction({
+  const signedTransactions = await Promise.all([
+    signTransaction({
       transaction: tx1,
       wallet,
       connection,
       signers: [wallet.publicKey, baseVault, quoteVault],
     }),
-    sendTransaction({
+    signTransaction({
       transaction: tx2,
       wallet,
       connection,
       signers: [wallet.publicKey, market, requestQueue, eventQueue, bids, asks],
     }),
   ]);
+  for (let signedTransaction of signedTransactions) {
+    await sendSignedTransaction({
+      signedTransaction,
+      connection,
+    });
+  }
 
   return market.publicKey;
 }
@@ -410,13 +416,44 @@ async function sendTransaction({
   successMessage = 'Transaction confirmed',
   timeout = DEFAULT_TIMEOUT,
 }) {
+  const signedTransaction = await signTransaction({
+    transaction,
+    wallet,
+    signers,
+    connection,
+  });
+  return await sendSignedTransaction({
+    signedTransaction,
+    connection,
+    sendingMessage,
+    sentMessage,
+    successMessage,
+    timeout,
+  });
+}
+
+async function signTransaction({
+  transaction,
+  wallet,
+  signers = [wallet.publicKey],
+  connection,
+}) {
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash('max')
   ).blockhash;
   transaction.signPartial(...signers);
-  const rawTransaction = (
-    await wallet.signTransaction(transaction)
-  ).serialize();
+  return await wallet.signTransaction(transaction);
+}
+
+async function sendSignedTransaction({
+  signedTransaction,
+  connection,
+  sendingMessage = 'Sending transaction...',
+  sentMessage = 'Transaction sent',
+  successMessage = 'Transaction confirmed',
+  timeout = DEFAULT_TIMEOUT,
+}) {
+  const rawTransaction = signedTransaction.serialize();
   const startTime = getUnixTs();
   notify({ message: sendingMessage });
   const txid = await connection.sendRawTransaction(rawTransaction, {
