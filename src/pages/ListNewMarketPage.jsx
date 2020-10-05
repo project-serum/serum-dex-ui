@@ -30,7 +30,13 @@ export default function ListNewMarketPage() {
     <Text>
       Base Token Mint Address{' '}
       <Text type="secondary">
-        (e.g. BTC solana address: {<Text type="secondary" code>9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E</Text>})
+        (e.g. BTC solana address:{' '}
+        {
+          <Text type="secondary" code>
+            9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E
+          </Text>
+        }
+        )
       </Text>
     </Text>,
     'The base token is the token being traded. For example, the base token of a BTC/USDT market is BTC.',
@@ -40,7 +46,13 @@ export default function ListNewMarketPage() {
     <Text>
       Quote Token Mint Address{' '}
       <Text type="secondary">
-        (e.g. USDT solana address: {<Text type="secondary" code>BQcdHdAQW1hczDbBi9hiegXAR7A98Q9jx3X3iBBBDiq4</Text>})
+        (e.g. USDT solana address:{' '}
+        {
+          <Text type="secondary" code>
+            BQcdHdAQW1hczDbBi9hiegXAR7A98Q9jx3X3iBBBDiq4
+          </Text>
+        }
+        )
       </Text>
     </Text>,
     'The quote token is the token used to price trades. For example, the quote token of a BTC/USDT market is USDT.',
@@ -106,7 +118,7 @@ export default function ListNewMarketPage() {
         <Form
           labelCol={{ span: 24 }}
           wrapperCol={{ span: 24 }}
-          layout={"vertical"}
+          layout={'vertical'}
           onFinish={onSubmit}
         >
           {baseMintInput}
@@ -114,7 +126,8 @@ export default function ListNewMarketPage() {
           <Form.Item
             label={
               <Tooltip title="Smallest allowed order size. For a BTC/USDT market, this would be in units of BTC.">
-                Minimum Order Size <Text type="secondary">(Lot size in e.g. BTC)</Text>
+                Minimum Order Size{' '}
+                <Text type="secondary">(Lot size in e.g. BTC)</Text>
               </Tooltip>
             }
             name="lotSize"
@@ -139,7 +152,8 @@ export default function ListNewMarketPage() {
           <Form.Item
             label={
               <Tooltip title="Smallest amount by which prices can move. For a BTC/USDT market, this would be in units of USDT.">
-                Tick Size <Text type="secondary">(Price increment in e.g. USDT)</Text>
+                Tick Size{' '}
+                <Text type="secondary">(Price increment in e.g. USDT)</Text>
               </Tooltip>
             }
             name="tickSize"

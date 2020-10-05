@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import { useWallet, WALLET_PROVIDERS } from '../utils/wallet';
 import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
 import LinkAddress from './LinkAddress';
+import WalletConnect from './WalletConnect';
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -86,15 +87,7 @@ export default function TopBar() {
         </Select>
       </div>
       <div>
-        <Button
-          type="text"
-          size="large"
-          onClick={connected ? wallet.disconnect : wallet.connect}
-          style={{ color: '#2abdd2' }}
-        >
-          <UserOutlined />
-          {!connected ? 'Connect wallet' : 'Disconnect'}
-        </Button>
+        <WalletConnect />
         {connected && (
           <Popover
             content={<LinkAddress address={publicKey} />}

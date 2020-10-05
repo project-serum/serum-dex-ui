@@ -26,6 +26,15 @@ export function parseTokenAccountData(data) {
   };
 }
 
+export async function getMintDecimals(connection, publicKey) {
+  const mintInfo = await connection.getAccountInfo(publicKey);
+  if (!mintInfo?.data) {
+    return;
+  }
+  let { decimals } = parseTokenMintData(mintInfo.data);
+  return decimals;
+}
+
 export function parseTokenMintData(data) {
   let { decimals, initialized } = MINT_LAYOUT.decode(data);
   return { decimals, initialized };

@@ -14,6 +14,38 @@ import {
   TokenInstructions,
 } from '@project-serum/serum';
 
+export async function transferToken({
+  wallet,
+  connection,
+  source,
+  destination,
+  amount,
+}) {
+  let transaction = source.equals(wallet.publicKey)
+    ? SystemProgram.transfer({
+        fromPubkey: wallet.publicKey,
+        toPubkey: destination,
+        lamports: amount,
+      })
+    : new Transaction().add(
+        TokenInstructions.transfer({
+          source,
+          destination,
+          owner: wallet.publicKey,
+          amount,
+        }),
+      );
+
+  return await sendTransaction({
+    transaction,
+    wallet,
+    connection,
+    sendingMessage: 'Transferring tokens...',
+    sentMessage: 'Tokens transferred',
+    successMessage: 'Token transfer confirmed',
+  });
+}
+
 export async function createTokenAccountTransaction({
   connection,
   wallet,
@@ -39,6 +71,28 @@ export async function createTokenAccountTransaction({
     signer: newAccount,
     newAccountPubkey: newAccount.publicKey,
   };
+}
+
+export async function createTokenAccount({
+  connection,
+  wallet,
+  mintPublicKey,
+}) {
+  const { transaction, signer } = await createTokenAccountTransaction({
+    connection,
+    wallet,
+    mintPublicKey,
+  });
+
+  return await sendTransaction({
+    transaction,
+    signers: [signer, wallet.publicKey],
+    wallet,
+    connection,
+    sendingMessage: 'Creating token account...',
+    sentMessage: 'Token account created',
+    successMessage: 'Token account creation confirmed',
+  });
 }
 
 export async function settleFunds({
