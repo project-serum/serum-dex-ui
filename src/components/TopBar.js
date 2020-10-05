@@ -1,4 +1,8 @@
-import { InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  InfoCircleOutlined,
+  SettingOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { Button, Menu, Popover, Select } from 'antd';
 import React, { useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -7,6 +11,7 @@ import styled from 'styled-components';
 import { useWallet, WALLET_PROVIDERS } from '../utils/wallet';
 import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
 import LinkAddress from './LinkAddress';
+import Settings from './Settings';
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -63,6 +68,21 @@ export default function TopBar() {
       >
         <Menu.Item key="/">TRADE</Menu.Item>
       </Menu>
+      {connected && (
+        <div>
+          <Popover
+            content={<Settings autoApprove={wallet?.autoApprove} />}
+            placement="bottomRight"
+            title="Settings"
+            trigger="click"
+          >
+            <Button style={{ marginRight: 8 }}>
+              <SettingOutlined />
+              Settings
+            </Button>
+          </Popover>
+        </div>
+      )}
       <div>
         <Select
           onSelect={setEndpoint}

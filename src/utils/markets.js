@@ -29,15 +29,14 @@ export function useMarketsList() {
   return USE_MARKETS.filter(({ deprecated }) => !deprecated);
 }
 
-export function useAllMarkets() {
+export function useAllMarkets(customMarkets) {
   const connection = useConnection();
   const [markets, setMarkets] = useState([]);
 
   useEffect(() => {
     const getAllMarkets = async () => {
       const markets = [];
-      let marketInfo;
-      for (marketInfo of USE_MARKETS) {
+      for (let marketInfo of getMarketInfos(customMarkets)) {
         try {
           const market = await Market.load(
             connection,
@@ -45,7 +44,11 @@ export function useAllMarkets() {
             {},
             marketInfo.programId,
           );
-          markets.push({ market, marketName: marketInfo.name });
+          markets.push({
+            market,
+            marketName: marketInfo.name,
+            programId: marketInfo.programId,
+          });
         } catch (e) {
           notify({
             message: 'Error loading all market',

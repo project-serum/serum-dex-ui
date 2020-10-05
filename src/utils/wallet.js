@@ -12,16 +12,19 @@ const WalletContext = React.createContext(null);
 
 export function WalletProvider({ children }) {
   const { endpoint } = useConnectionConfig();
+
   const [providerUrl, setProviderUrl] = useLocalStorageState(
     'walletProvider',
     'https://www.sollet.io',
   );
+
   const wallet = useMemo(() => new Wallet(providerUrl, endpoint), [
     providerUrl,
     endpoint,
   ]);
 
   const [connected, setConnected] = useState(false);
+
   useEffect(() => {
     console.log('trying to connect');
     wallet.on('connect', () => {
@@ -52,6 +55,7 @@ export function WalletProvider({ children }) {
       setConnected(false);
     };
   }, [wallet]);
+
   return (
     <WalletContext.Provider
       value={{
