@@ -207,7 +207,7 @@ export async function settleAllFunds({
   settleTransactions
     .reduce((cumulative, t) => cumulative.concat(t.signers), [])
     .forEach((signer) => {
-      if (!signers.find((s) => s.equals(signer))) {
+      if (!signers.find((s) => s.constructor.name === signer.constructor.name && s.equals(signer))) {
         signers.push(signer);
       }
     });

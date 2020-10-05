@@ -6,7 +6,7 @@ import { useWallet } from './wallet';
 import { useAllMarkets, useTokenAccounts, useMarket } from './markets';
 import { settleAllFunds } from './send';
 
-const ConnectionContext = React.createContext(null);
+const PreferencesContext = React.createContext(null);
 
 export function PreferencesProvider({ children }) {
   const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
@@ -35,19 +35,19 @@ export function PreferencesProvider({ children }) {
   }, 10000);
 
   return (
-    <ConnectionContext.Provider
+    <PreferencesContext.Provider
       value={{
         autoSettleEnabled,
         setAutoSettleEnabled,
       }}
     >
       {children}
-    </ConnectionContext.Provider>
+    </PreferencesContext.Provider>
   );
 }
 
 export function usePreferences() {
-  const context = useContext(ConnectionContext);
+  const context = useContext(PreferencesContext);
   return {
     autoSettleEnabled: context.autoSettleEnabled,
     setAutoSettleEnabled: context.setAutoSettleEnabled,
