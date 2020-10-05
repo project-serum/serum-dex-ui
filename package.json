@@ -6,9 +6,9 @@
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@craco/craco": "^5.6.4",
-    "@project-serum/serum": "^0.12.17",
-    "@project-serum/sol-wallet-adapter": "^0.1.0",
-    "@solana/web3.js": "^0.71.10",
+    "@project-serum/serum": "0.13.1",
+    "@project-serum/sol-wallet-adapter": "^0.1.1",
+    "@solana/web3.js": "0.71.10",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
@@ -28,7 +28,7 @@
     "styled-components": "^5.1.1"
   },
   "scripts": {
-    "predeploy": "yarn build",
+    "predeploy": "git pull --ff-only && yarn build",
     "deploy": "gh-pages -d build",
     "start": "craco start",
     "build": "craco build",

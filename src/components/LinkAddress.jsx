@@ -11,6 +11,7 @@ export default function LinkAddress({ title, address }) {
         icon={<LinkOutlined />}
         href={'https://explorer.solana.com/address/' + address}
         target="_blank"
+        rel="noopener noreferrer"
       >
         {address}
       </Button>

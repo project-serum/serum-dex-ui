@@ -1,6 +1,5 @@
-import { Button, Divider, Spin } from 'antd';
+import { Button, Divider, Spin, Typography } from 'antd';
 import React from 'react';
-import styled from 'styled-components';
 import {
   useGetOpenOrdersForDeprecatedMarkets,
   useBalancesForDeprecatedMarkets,
@@ -10,10 +9,9 @@ import FloatingElement from './layout/FloatingElement';
 import CheckOutlined from '@ant-design/icons/lib/icons/CheckOutlined';
 import BalancesTable from './UserInfoTable/BalancesTable';
 import OpenOrderTable from './UserInfoTable/OpenOrderTable';
+import SyncOutlined from '@ant-design/icons/lib/icons/SyncOutlined';
 
-const Title = styled.div`
-  color: rgba(255, 255, 255, 1);
-`;
+const { Title } = Typography;
 
 export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
   const balances = useBalancesForDeprecatedMarkets();
@@ -22,6 +20,7 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
     loaded,
     refreshOpenOrders,
   } = useGetOpenOrdersForDeprecatedMarkets();
+
   const { refresh } = useUnmigratedOpenOrdersAccounts();
   const needToCancelOrders = !openOrders || openOrders.length > 0;
   const filteredBalances =
@@ -30,7 +29,23 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
   const needToSettleFunds = filteredBalances && filteredBalances.length > 0;
   return (
     <FloatingElement>
-      <Title>Migrate off of deprecated market</Title>
+      <Title level={4} style={{ color: 'rgba(255, 255, 255, 1)' }}>
+        Migrate to new markets
+      </Title>
+      <Typography>
+        Serum has rolled out upgraded markets! They're faster and support fee
+        discounts based on SRM holdings.
+      </Typography>
+      <br />
+      <Typography>
+        To migrate over to the new markets, please cancel your orders and settle
+        your funds on old markets.
+      </Typography>
+      <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+        <Button onClick={() => refresh(true)}>
+          <SyncOutlined /> Refresh data
+        </Button>
+      </div>
       {!balances ? (
         <Spin size="large" />
       ) : (
@@ -46,7 +61,7 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
                   setTimeout(() => {
                     refresh();
                     refreshOpenOrders();
-                  }, 1500); // Wait so that on-chain account state reflects the update
+                  }, 1000); // Wait so that on-chain account state reflects the update
                 }}
               />
             ) : (
@@ -62,16 +77,17 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
               hideWalletBalance
               showMarket
               onSettleSuccess={() => {
-                setTimeout(refresh, 1500); // Wait so that on-chain account state reflects the update
+                setTimeout(refresh, 1000); // Wait so that on-chain account state reflects the update
               }}
             />
           )}
+          <Divider>Switch to upgraded markets</Divider>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <Button
               onClick={switchToLiveMarkets}
               disabled={needToSettleFunds || needToCancelOrders}
             >
-              Switch to live markets
+              Switch to new markets
             </Button>
           </div>
         </>

@@ -1,15 +1,25 @@
 import { notify } from './notifications';
 import { getDecimalCount, sleep } from './utils';
-import { Account, SystemProgram } from '@solana/web3.js';
-import { TokenInstructions } from '@project-serum/serum';
+import {
+  Account,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+} from '@solana/web3.js';
+import { BN } from 'bn.js';
+import {
+  DexInstructions,
+  Market,
+  TOKEN_MINTS,
+  TokenInstructions,
+} from '@project-serum/serum';
 
-export async function createTokenAccount({
+export async function createTokenAccountTransaction({
   connection,
   wallet,
   mintPublicKey,
-  onConfirmCallBack,
 }) {
-  let newAccount = new Account();
+  const newAccount = new Account();
   const transaction = SystemProgram.createAccount({
     fromPubkey: wallet.publicKey,
     newAccountPubkey: newAccount.publicKey,
@@ -24,33 +34,11 @@ export async function createTokenAccount({
       owner: wallet.publicKey,
     }),
   );
-  const onConfirm = (result) => {
-    if (result.timeout) {
-      notify({
-        message: 'Timed out',
-        type: 'error',
-        description: 'Timed out awaiting confirmation on transaction',
-      });
-    } else if (result.err) {
-      console.log(result.err);
-      notify({ message: 'Error creating account', type: 'error' });
-    } else {
-      notify({ message: 'Account creation confirmed', type: 'success' });
-    }
-    onConfirmCallBack && onConfirmCallBack();
-  };
-  const onBeforeSend = () => notify({ message: 'Creating account...' });
-  const onAfterSend = () =>
-    notify({ message: 'Account created', type: 'success' });
-  return await sendTransaction({
+  return {
     transaction,
-    wallet,
-    connection,
-    onBeforeSend: onBeforeSend,
-    onAfterSend: onAfterSend,
-    onConfirm,
-    signers: [wallet.publicKey, newAccount],
-  });
+    signer: newAccount,
+    newAccountPubkey: newAccount.publicKey,
+  };
 }
 
 export async function settleFunds({
@@ -60,101 +48,90 @@ export async function settleFunds({
   wallet,
   baseCurrencyAccount,
   quoteCurrencyAccount,
-  onSuccess,
 }) {
   if (
     !market ||
     !wallet ||
     !connection ||
     !openOrders ||
-    !baseCurrencyAccount ||
-    !quoteCurrencyAccount
+    (!baseCurrencyAccount && !quoteCurrencyAccount)
   ) {
-    if (baseCurrencyAccount && !quoteCurrencyAccount) {
-      return await createTokenAccount({
-        connection,
-        wallet,
-        mintPublicKey: market.quoteMintAddress,
-        onConfirmCallBack: async () => {
-          await sleep(1000); // wait to make sure currency account is available
-          const quoteCurrencyAccounts = await market.findQuoteTokenAccountsForOwner(
-            connection,
-            wallet.publicKey,
-            true,
-          );
-          quoteCurrencyAccounts &&
-            settleFunds({
-              market,
-              openOrders,
-              connection,
-              wallet,
-              baseCurrencyAccount,
-              quoteCurrencyAccount: quoteCurrencyAccounts[0],
-            });
-        },
-      });
-    } else if (quoteCurrencyAccount && !baseCurrencyAccount) {
-      return await createTokenAccount({
-        connection,
-        wallet,
-        mintPublicKey: market.baseMintAddress,
-        onConfirmCallBack: async () => {
-          await sleep(1000); // wait to make sure currency account is available
-          const baseCurrencyAccounts = await market.findBaseTokenAccountsForOwner(
-            connection,
-            wallet.publicKey,
-            true,
-          );
-          baseCurrencyAccounts &&
-            settleFunds({
-              market,
-              openOrders,
-              connection,
-              wallet,
-              baseCurrencyAccount: baseCurrencyAccounts[0],
-              quoteCurrencyAccount,
-            });
-        },
-      });
-    } else {
-      notify({ message: 'Not connected' });
-      return;
-    }
+    notify({ message: 'Not connected' });
+    return;
   }
 
-  const { transaction, signers } = await market.makeSettleFundsTransaction(
+  let createAccountTransaction;
+  let createAccountSigner;
+  let baseCurrencyAccountPubkey = baseCurrencyAccount?.pubkey;
+  let quoteCurrencyAccountPubkey = quoteCurrencyAccount?.pubkey;
+
+  if (!baseCurrencyAccountPubkey) {
+    const result = await createTokenAccountTransaction({
+      connection,
+      wallet,
+      mintPublicKey: market.baseMintAddress,
+    });
+    baseCurrencyAccountPubkey = result?.newAccountPubkey;
+    createAccountTransaction = result?.transaction;
+    createAccountSigner = result?.signer;
+  }
+  if (!quoteCurrencyAccountPubkey) {
+    const result = await createTokenAccountTransaction({
+      connection,
+      wallet,
+      mintPublicKey: market.quoteMintAddress,
+    });
+    quoteCurrencyAccountPubkey = result?.newAccountPubkey;
+    createAccountTransaction = result?.transaction;
+    createAccountSigner = result?.signer;
+  }
+  let referrerQuoteWallet = null;
+  if (market.supportsReferralFees) {
+    if (
+      process.env.REACT_APP_USDT_REFERRAL_FEES_ADDRESS &&
+      market.quoteMintAddress.equals(
+        TOKEN_MINTS.find(({ name }) => name === 'USDT').address,
+      )
+    ) {
+      referrerQuoteWallet = new PublicKey(
+        process.env.REACT_APP_USDT_REFERRAL_FEES_ADDRESS,
+      );
+    } else if (
+      process.env.REACT_APP_USDC_REFERRAL_FEES_ADDRESS &&
+      market.quoteMintAddress.equals(
+        TOKEN_MINTS.find(({ name }) => name === 'USDC').address,
+      )
+    ) {
+      referrerQuoteWallet = new PublicKey(
+        process.env.REACT_APP_USDC_REFERRAL_FEES_ADDRESS,
+      );
+    }
+  }
+  const {
+    transaction: settleFundsTransaction,
+    signers: settleFundsSigners,
+  } = await market.makeSettleFundsTransaction(
     connection,
     openOrders,
-    baseCurrencyAccount.pubkey,
-    quoteCurrencyAccount.pubkey,
+    baseCurrencyAccountPubkey,
+    quoteCurrencyAccountPubkey,
+    referrerQuoteWallet,
   );
 
-  const onConfirm = (result) => {
-    if (result.timeout) {
-      notify({
-        message: 'Timed out',
-        type: 'error',
-        description: 'Timed out awaiting confirmation on transaction',
-      });
-    } else if (result.err) {
-      console.log(result.err);
-      notify({ message: 'Error settling funds', type: 'error' });
-    } else {
-      notify({ message: 'Fund settlement confirmed', type: 'success' });
-      onSuccess && onSuccess();
-    }
-  };
-  const onBeforeSend = () => notify({ message: 'Settling funds...' });
-  const onAfterSend = () =>
-    notify({ message: 'Funds settled', type: 'success' });
+  let transaction = mergeTransactions([
+    createAccountTransaction,
+    settleFundsTransaction,
+  ]);
+  let signers = createAccountSigner
+    ? [...settleFundsSigners, createAccountSigner]
+    : settleFundsSigners;
+
   return await sendTransaction({
     transaction,
     signers,
     wallet,
     connection,
-    onBeforeSend,
-    onAfterSend,
-    onConfirm,
+    sendingMessage: 'Settling funds...',
   });
 }
 
@@ -162,15 +139,7 @@ export async function cancelOrder(params) {
   return cancelOrders({ ...params, orders: [params.order] });
 }
 
-export async function cancelOrders({
-  market,
-  wallet,
-  connection,
-  orders,
-  onBeforeSendCallBack,
-  onAfterSendCallBack,
-  onConfirmCallBack,
-}) {
+export async function cancelOrders({ market, wallet, connection, orders }) {
   const transaction = market.makeMatchOrdersTransaction(5);
   orders.forEach((order) => {
     transaction.add(
@@ -178,52 +147,11 @@ export async function cancelOrders({
     );
   });
   transaction.add(market.makeMatchOrdersTransaction(5));
-  const onConfirm = (result) => {
-    if (result.timeout) {
-      notify({
-        message: 'Timed out',
-        type: 'error',
-        description: 'Timed out awaiting confirmation on transaction',
-      });
-    } else if (result.err) {
-      console.log(result.err);
-      notify({
-        message:
-          orders.length > 1
-            ? 'Error cancelling orders'
-            : 'Error cancelling order',
-        type: 'error',
-      });
-    } else {
-      notify({
-        message:
-          orders.length > 1
-            ? 'Order cancellations confirmed'
-            : 'Order cancellation confirmed',
-        type: 'success',
-      });
-    }
-    onConfirmCallBack && onConfirmCallBack();
-  };
-  const onBeforeSend = () => {
-    notify({ message: 'Sending cancel...' });
-    onBeforeSendCallBack && onBeforeSendCallBack();
-  };
-  const onAfterSend = () => {
-    notify({
-      message: orders.length > 1 ? 'Orders cancelled' : 'Order cancelled',
-      type: 'success',
-    });
-    onAfterSendCallBack && onAfterSendCallBack();
-  };
-
   return await sendTransaction({
     transaction,
     wallet,
     connection,
-    onBeforeSend,
-    onAfterSend,
-    onConfirm,
+    sendingMessage: 'Sending cancel...',
   });
 }
 
@@ -237,9 +165,6 @@ export async function placeOrder({
   wallet,
   baseCurrencyAccount,
   quoteCurrencyAccount,
-  onBeforeSendCallBack,
-  onAfterSendCallBack,
-  onConfirmCallBack,
 }) {
   let formattedMinOrderSize =
     market?.minOrderSize?.toFixed(getDecimalCount(market.minOrderSize)) ||
@@ -321,39 +246,158 @@ export async function placeOrder({
   transaction.add(placeOrderTx);
   transaction.add(market.makeMatchOrdersTransaction(5));
 
-  const onConfirm = (result) => {
-    if (result.timeout) {
-      notify({
-        message: 'Timed out',
-        type: 'error',
-        description: 'Timed out awaiting confirmation on transaction',
-      });
-    } else if (result.err) {
-      console.log(result.err);
-      notify({ message: 'Error placing order', type: 'error' });
-    } else {
-      notify({ message: 'Order confirmed', type: 'success' });
-    }
-    onConfirmCallBack && onConfirmCallBack(result.timeout || result.err);
-  };
-  const onBeforeSend = () => {
-    notify({ message: 'Sending order...' });
-    onBeforeSendCallBack && onBeforeSendCallBack();
-  };
-  const onAfterSend = () => {
-    notify({ message: 'Order sent', type: 'success' });
-    onAfterSendCallBack && onAfterSendCallBack();
-  };
-
   return await sendTransaction({
     transaction,
     wallet,
     connection,
-    onBeforeSend,
-    onAfterSend,
-    onConfirm,
     signers,
+    sendingMessage: 'Sending order...',
   });
+}
+
+export async function listMarket({
+  connection,
+  wallet,
+  baseMint,
+  quoteMint,
+  baseLotSize,
+  quoteLotSize,
+  dexProgramId,
+}) {
+  const market = new Account();
+  const requestQueue = new Account();
+  const eventQueue = new Account();
+  const bids = new Account();
+  const asks = new Account();
+  const baseVault = new Account();
+  const quoteVault = new Account();
+  const feeRateBps = 0;
+  const quoteDustThreshold = new BN(100);
+
+  async function getVaultOwnerAndNonce() {
+    const nonce = new BN(0);
+    while (true) {
+      try {
+        const vaultOwner = await PublicKey.createProgramAddress(
+          [market.publicKey.toBuffer(), nonce.toArrayLike(Buffer, 'le', 8)],
+          dexProgramId,
+        );
+        return [vaultOwner, nonce];
+      } catch (e) {
+        nonce.iaddn(1);
+      }
+    }
+  }
+  const [vaultOwner, vaultSignerNonce] = await getVaultOwnerAndNonce();
+
+  const tx1 = new Transaction();
+  tx1.add(
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: baseVault.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(165),
+      space: 165,
+      programId: TokenInstructions.TOKEN_PROGRAM_ID,
+    }),
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: quoteVault.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(165),
+      space: 165,
+      programId: TokenInstructions.TOKEN_PROGRAM_ID,
+    }),
+    TokenInstructions.initializeAccount({
+      account: baseVault.publicKey,
+      mint: baseMint,
+      owner: vaultOwner,
+    }),
+    TokenInstructions.initializeAccount({
+      account: quoteVault.publicKey,
+      mint: quoteMint,
+      owner: vaultOwner,
+    }),
+  );
+
+  const tx2 = new Transaction();
+  tx2.add(
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: market.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(
+        Market.getLayout(dexProgramId).span,
+      ),
+      space: Market.getLayout(dexProgramId).span,
+      programId: dexProgramId,
+    }),
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: requestQueue.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(5120 + 12),
+      space: 5120 + 12,
+      programId: dexProgramId,
+    }),
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: eventQueue.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(262144 + 12),
+      space: 262144 + 12,
+      programId: dexProgramId,
+    }),
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: bids.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(65536 + 12),
+      space: 65536 + 12,
+      programId: dexProgramId,
+    }),
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: asks.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(65536 + 12),
+      space: 65536 + 12,
+      programId: dexProgramId,
+    }),
+    DexInstructions.initializeMarket({
+      market: market.publicKey,
+      requestQueue: requestQueue.publicKey,
+      eventQueue: eventQueue.publicKey,
+      bids: bids.publicKey,
+      asks: asks.publicKey,
+      baseVault: baseVault.publicKey,
+      quoteVault: quoteVault.publicKey,
+      baseMint,
+      quoteMint,
+      baseLotSize: new BN(baseLotSize),
+      quoteLotSize: new BN(quoteLotSize),
+      feeRateBps,
+      vaultSignerNonce,
+      quoteDustThreshold,
+      programId: dexProgramId,
+    }),
+  );
+
+  const signedTransactions = await Promise.all([
+    signTransaction({
+      transaction: tx1,
+      wallet,
+      connection,
+      signers: [wallet.publicKey, baseVault, quoteVault],
+    }),
+    signTransaction({
+      transaction: tx2,
+      wallet,
+      connection,
+      signers: [wallet.publicKey, market, requestQueue, eventQueue, bids, asks],
+    }),
+  ]);
+  for (let signedTransaction of signedTransactions) {
+    await sendSignedTransaction({
+      signedTransaction,
+      connection,
+    });
+  }
+
+  return market.publicKey;
 }
 
 const getUnixTs = () => {
@@ -367,41 +411,79 @@ async function sendTransaction({
   wallet,
   signers = [wallet.publicKey],
   connection,
-  onBeforeSend,
-  onAfterSend,
-  onConfirm,
+  sendingMessage = 'Sending transaction...',
+  sentMessage = 'Transaction sent',
+  successMessage = 'Transaction confirmed',
   timeout = DEFAULT_TIMEOUT,
+}) {
+  const signedTransaction = await signTransaction({
+    transaction,
+    wallet,
+    signers,
+    connection,
+  });
+  return await sendSignedTransaction({
+    signedTransaction,
+    connection,
+    sendingMessage,
+    sentMessage,
+    successMessage,
+    timeout,
+  });
+}
+
+async function signTransaction({
+  transaction,
+  wallet,
+  signers = [wallet.publicKey],
+  connection,
 }) {
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash('max')
   ).blockhash;
   transaction.signPartial(...signers);
-  const rawTransaction = (
-    await wallet.signTransaction(transaction)
-  ).serialize();
-  let done = false;
+  return await wallet.signTransaction(transaction);
+}
+
+async function sendSignedTransaction({
+  signedTransaction,
+  connection,
+  sendingMessage = 'Sending transaction...',
+  sentMessage = 'Transaction sent',
+  successMessage = 'Transaction confirmed',
+  timeout = DEFAULT_TIMEOUT,
+}) {
+  const rawTransaction = signedTransaction.serialize();
   const startTime = getUnixTs();
-  onBeforeSend();
+  notify({ message: sendingMessage });
   const txid = await connection.sendRawTransaction(rawTransaction, {
     skipPreflight: true,
   });
-  onAfterSend();
-  console.log('Started sending transaction for', txid);
-  awaitTransactionSignatureConfirmation(txid, timeout, connection)
-    .then((res) => {
-      done = true;
-      onConfirm(res);
-    })
-    .catch((res) => {
-      done = true;
-      onConfirm(res);
-    });
-  while (!done && getUnixTs() - startTime < timeout) {
-    connection.sendRawTransaction(rawTransaction, {
-      skipPreflight: true,
-    });
-    await sleep(300);
+  notify({ message: sentMessage, type: 'success', txid });
+
+  console.log('Started awaiting confirmation for', txid);
+
+  let done = false;
+  (async () => {
+    while (!done && getUnixTs() - startTime < timeout) {
+      connection.sendRawTransaction(rawTransaction, {
+        skipPreflight: true,
+      });
+      await sleep(300);
+    }
+  })();
+  try {
+    await awaitTransactionSignatureConfirmation(txid, timeout, connection);
+  } catch (err) {
+    if (err.timeout) {
+      throw new Error('Timed out awaiting confirmation on transaction');
+    }
+    throw new Error('Transaction failed');
+  } finally {
+    done = true;
   }
+  notify({ message: successMessage, type: 'success', txid });
+
   console.log('Latency', txid, getUnixTs() - startTime);
   return txid;
 }
@@ -429,7 +511,7 @@ async function awaitTransactionSignatureConfirmation(
             console.log('WS confirmed', txid, result);
             done = true;
             if (result.err) {
-              reject(result);
+              reject(result.err);
             } else {
               resolve(result);
             }
@@ -442,6 +524,7 @@ async function awaitTransactionSignatureConfirmation(
         console.log('WS error in setup', txid, e);
       }
       while (!done) {
+        // eslint-disable-next-line no-loop-func
         (async () => {
           try {
             const signatureStatuses = await connection.getSignatureStatuses([
@@ -454,7 +537,7 @@ async function awaitTransactionSignatureConfirmation(
               } else if (result.err) {
                 console.log('REST error for', txid, result);
                 done = true;
-                reject(result);
+                reject(result.err);
               } else if (!result.confirmations) {
                 console.log('REST no confirmations for', txid, result);
               } else {
@@ -475,4 +558,14 @@ async function awaitTransactionSignatureConfirmation(
   });
   done = true;
   return result;
+}
+
+function mergeTransactions(transactions) {
+  const transaction = new Transaction();
+  transactions
+    .filter((t) => t)
+    .forEach((t) => {
+      transaction.add(t);
+    });
+  return transaction;
 }

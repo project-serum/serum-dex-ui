@@ -5,6 +5,7 @@ import React from 'react';
 import BalancesPage from './pages/BalancesPage';
 import ConvertPage from './pages/ConvertPage';
 import BasicLayout from './components/BasicLayout';
+import ListNewMarketPage from './pages/ListNewMarketPage';
 
 export function Routes() {
   return (
@@ -13,6 +14,11 @@ export function Routes() {
       <Route exact path="/orders" component={OpenOrdersPageContents} />
       <Route exact path="/balances" component={BalancesPageContents} />
       <Route exact path="/convert" component={ConvertPageContents} />
+      <Route exact path="/list-new-market">
+        <BasicLayout>
+          <ListNewMarketPage />
+        </BasicLayout>
+      </Route>
     </HashRouter>
   );
 }

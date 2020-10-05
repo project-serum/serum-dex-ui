@@ -8,6 +8,7 @@ import DataTable from '../layout/DataTable';
 import { useSendConnection } from '../../utils/connection';
 import { useWallet } from '../../utils/wallet';
 import { settleFunds } from '../../utils/send';
+import { notify } from '../../utils/notifications';
 
 export default function BalancesTable({
   balances,
@@ -20,21 +21,30 @@ export default function BalancesTable({
   const { wallet } = useWallet();
 
   async function onSettleFunds(market, openOrders) {
-    return await settleFunds({
-      market,
-      openOrders,
-      connection,
-      wallet,
-      baseCurrencyAccount: getSelectedTokenAccountForMint(
-        accounts,
-        market?.baseMintAddress,
-      ),
-      quoteCurrencyAccount: getSelectedTokenAccountForMint(
-        accounts,
-        market?.quoteMintAddress,
-      ),
-      onSuccess: onSettleSuccess,
-    });
+    try {
+      await settleFunds({
+        market,
+        openOrders,
+        connection,
+        wallet,
+        baseCurrencyAccount: getSelectedTokenAccountForMint(
+          accounts,
+          market?.baseMintAddress,
+        ),
+        quoteCurrencyAccount: getSelectedTokenAccountForMint(
+          accounts,
+          market?.quoteMintAddress,
+        ),
+      });
+    } catch (e) {
+      notify({
+        message: 'Error settling funds',
+        description: e.message,
+        type: 'error',
+      });
+      return;
+    }
+    onSettleSuccess && onSettleSuccess();
   }
 
   const columns = [

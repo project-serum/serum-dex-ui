@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Input, Row, Col, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Col, Input, Modal, Row, Typography } from 'antd';
 import { notify } from '../utils/notifications';
 import { isValidPublicKey } from '../utils/utils';
 import { PublicKey } from '@solana/web3.js';
 import { Market, MARKETS, TOKEN_MINTS } from '@project-serum/serum';
-import { useConnection } from '../utils/connection';
+import { useAccountInfo, useConnection } from '../utils/connection';
 import { LoadingOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
@@ -15,22 +15,30 @@ export default function CustomMarketDialog({
   onClose,
 }) {
   const connection = useConnection();
-  const [marketId, setMarketId] = useState(null);
-  const [programId, setProgramId] = useState(null);
-  const [marketLabel, setMarketLabel] = useState(null);
-  const [baseLabel, setBaseLabel] = useState(null);
-  const [quoteLabel, setQuoteLabel] = useState(null);
+
+  const [marketId, setMarketId] = useState('');
+
+  const [marketLabel, setMarketLabel] = useState('');
+  const [baseLabel, setBaseLabel] = useState('');
+  const [quoteLabel, setQuoteLabel] = useState('');
 
   const [market, setMarket] = useState(null);
   const [loadingMarket, setLoadingMarket] = useState(false);
-  const [validMarket, setValidMarket] = useState(true);
+
+  const wellFormedMarketId = isValidPublicKey(marketId);
+
+  const [marketAccountInfo] = useAccountInfo(
+    wellFormedMarketId ? new PublicKey(marketId) : null,
+  );
+  const programId = marketAccountInfo
+    ? marketAccountInfo.owner.toBase58()
+    : MARKETS.find(({ deprecated }) => !deprecated).programId.toBase58();
 
   useEffect(() => {
-    if (!isValidPublicKey(marketId) || !isValidPublicKey(programId)) {
+    if (!wellFormedMarketId || !programId) {
       resetLabels();
       return;
     }
-
     setLoadingMarket(true);
     Market.load(
       connection,
@@ -39,34 +47,14 @@ export default function CustomMarketDialog({
       new PublicKey(programId),
     )
       .then((market) => {
-        const knownMarket = MARKETS.find((m) =>
-          m.address.equals(market._decoded?.ownAddress),
-        );
-        setMarketLabel(knownMarket?.name);
-
-        const baseCurrency =
-          market?.baseMintAddress &&
-          TOKEN_MINTS.find((token) =>
-            token.address.equals(market.baseMintAddress),
-          )?.name;
-        setBaseLabel(baseCurrency);
-
-        const quoteCurrency =
-          market?.quoteMintAddress &&
-          TOKEN_MINTS.find((token) =>
-            token.address.equals(market.quoteMintAddress),
-          )?.name;
-        setQuoteLabel(quoteCurrency);
-
         setMarket(market);
-        setValidMarket(true);
       })
       .catch(() => {
         resetLabels();
         setMarket(null);
-        setValidMarket(false);
       })
       .finally(() => setLoadingMarket(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connection, marketId, programId]);
 
   const resetLabels = () => {
@@ -75,33 +63,55 @@ export default function CustomMarketDialog({
     setQuoteLabel(null);
   };
 
+  const knownMarket = MARKETS.find(
+    (m) =>
+      m.address.toBase58() === marketId && m.programId.toBase58() === programId,
+  );
+  const knownProgram = MARKETS.find(
+    (m) => m.programId.toBase58() === programId,
+  );
+  const knownBaseCurrency =
+    market?.baseMintAddress &&
+    TOKEN_MINTS.find((token) => token.address.equals(market.baseMintAddress))
+      ?.name;
+
+  const knownQuoteCurrency =
+    market?.quoteMintAddress &&
+    TOKEN_MINTS.find((token) => token.address.equals(market.quoteMintAddress))
+      ?.name;
+
+  const canSubmit =
+    !loadingMarket &&
+    !!market &&
+    market.publicKey.toBase58() === marketId &&
+    marketId &&
+    programId &&
+    marketLabel &&
+    (knownBaseCurrency || baseLabel) &&
+    (knownQuoteCurrency || quoteLabel) &&
+    wellFormedMarketId;
+
   const onSubmit = () => {
-    if (!marketId || !programId || !marketLabel || !baseLabel || !quoteLabel) {
-      notify({ message: 'Please fill in all fields', type: 'error' });
+    if (!canSubmit) {
+      notify({
+        message: 'Please fill in all fields with valid values',
+        type: 'error',
+      });
       return;
     }
 
-    try {
-      new PublicKey(marketId);
-    } catch {
-      notify({ message: 'Not a valid market id', type: 'error' });
-      return;
-    }
-
-    try {
-      new PublicKey(programId);
-    } catch {
-      notify({ message: 'Not a valid program id', type: 'error' });
-      return;
-    }
-
-    onAddCustomMarket({
+    let params = {
       address: marketId,
       programId,
       name: marketLabel,
-      base: baseLabel,
-      quote: quoteLabel,
-    });
+    };
+    if (!knownBaseCurrency) {
+      params.baseLabel = baseLabel;
+    }
+    if (!knownQuoteCurrency) {
+      params.quoteLabel = quoteLabel;
+    }
+    onAddCustomMarket(params);
     onDoClose();
   };
 
@@ -109,22 +119,8 @@ export default function CustomMarketDialog({
     resetLabels();
     setMarket(null);
     setMarketId(null);
-    setProgramId(null);
     onClose();
   };
-
-  const knownMarket = MARKETS.some(
-    (m) =>
-      m.address.toBase58() === marketId && m.programId.toBase58() === programId,
-  );
-
-  const canSubmit =
-    marketId &&
-    programId &&
-    marketLabel &&
-    baseLabel &&
-    quoteLabel &&
-    validMarket;
 
   return (
     <Modal
@@ -136,22 +132,39 @@ export default function CustomMarketDialog({
       okButtonProps={{ disabled: !canSubmit }}
     >
       <div>
+        {wellFormedMarketId ? (
+          <>
+            {!market && !loadingMarket && (
+              <Row style={{ marginBottom: 8 }}>
+                <Text type="danger">Not a valid market</Text>
+              </Row>
+            )}
+            {market && knownMarket && (
+              <Row style={{ marginBottom: 8 }}>
+                <Text type="warning">Market known: {knownMarket.name}</Text>
+              </Row>
+            )}
+            {market && !knownProgram && (
+              <Row style={{ marginBottom: 8 }}>
+                <Text type="danger">Warning: unknown DEX program</Text>
+              </Row>
+            )}
+            {market && knownProgram && knownProgram.deprecated && (
+              <Row style={{ marginBottom: 8 }}>
+                <Text type="warning">Warning: deprecated DEX program</Text>
+              </Row>
+            )}
+          </>
+        ) : (
+          <>
+            {marketId && !wellFormedMarketId && (
+              <Row style={{ marginBottom: 8 }}>
+                <Text type="danger">Invalid market ID</Text>
+              </Row>
+            )}
+          </>
+        )}
         <Row style={{ marginBottom: 8 }}>
-          {marketId && !isValidPublicKey(marketId) && (
-            <div style={{ marginBottom: 8 }}>
-              <Text type="danger">Invalid market ID</Text>
-            </div>
-          )}
-          {!validMarket && (
-            <div style={{ marginBottom: 8 }}>
-              <Text type="danger">Not a valid market</Text>
-            </div>
-          )}
-          {market && !knownMarket && (
-            <div style={{ marginBottom: 8 }}>
-              <Text type="warning">Warning: unknown market</Text>
-            </div>
-          )}
           <Col span={24}>
             <Input
               placeholder="Market Id"
@@ -161,24 +174,12 @@ export default function CustomMarketDialog({
             />
           </Col>
         </Row>
-        <Row style={{ marginBottom: 8 }}>
-          {programId && !isValidPublicKey(programId) && (
-            <div style={{ marginBottom: 8 }}>
-              <Text type="danger">Invalid program ID</Text>
-            </div>
-          )}
+
+        <Row style={{ marginBottom: 8, marginTop: 8 }}>
           <Col span={24}>
             <Input
-              placeholder="Program Id"
-              value={programId}
-              onChange={(e) => setProgramId(e.target.value)}
-            />
-          </Col>
-        </Row>
-        <Row style={{ marginBottom: 8 }}>
-          <Col span={24}>
-            <Input
-              placeholder="Label"
+              placeholder="Market Label"
+              disabled={!market}
               value={marketLabel}
               onChange={(e) => setMarketLabel(e.target.value)}
             />
@@ -188,10 +189,11 @@ export default function CustomMarketDialog({
           <Col span={12}>
             <Input
               placeholder="Base label"
-              value={baseLabel}
+              disabled={!market || knownBaseCurrency}
+              value={knownBaseCurrency || baseLabel}
               onChange={(e) => setBaseLabel(e.target.value)}
             />
-            {market && !baseLabel && (
+            {market && !knownBaseCurrency && (
               <div style={{ marginTop: 8 }}>
                 <Text type="warning">Warning: unknown token</Text>
               </div>
@@ -200,10 +202,11 @@ export default function CustomMarketDialog({
           <Col span={12}>
             <Input
               placeholder="Quote label"
-              value={quoteLabel}
+              disabled={!market || knownQuoteCurrency}
+              value={knownQuoteCurrency || quoteLabel}
               onChange={(e) => setQuoteLabel(e.target.value)}
             />
-            {market && !quoteLabel && (
+            {market && !knownQuoteCurrency && (
               <div style={{ marginTop: 8 }}>
                 <Text type="warning">Warning: unknown token</Text>
               </div>

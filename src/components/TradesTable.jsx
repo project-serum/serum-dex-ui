@@ -29,7 +29,11 @@ export default function PublicTrades({ smallScreen }) {
       style={
         smallScreen
           ? { flex: 1 }
-          : { marginTop: '10px', height: 'calc(100% - 520px)' }
+          : {
+              marginTop: '10px',
+              minHeight: '270px',
+              height: 'calc(100vh - 710px)',
+            }
       }
     >
       <Title>Recent Market trades</Title>

@@ -43,6 +43,8 @@ export default function TradePage() {
     setMarketAddress,
   } = useMarket();
   const markets = useMarketsList();
+  const [handleDeprecated, setHandleDeprecated] = useState(false);
+  const [addMarketVisible, setAddMarketVisible] = useState(false);
   const deprecatedMarkets = useUnmigratedDeprecatedMarkets();
 
   const [handleDeprecated, setHandleDeprecated] = useState(false);
@@ -54,7 +56,7 @@ export default function TradePage() {
   });
 
   useEffect(() => {
-    document.title = `${marketName} — Serum`;
+    document.title = marketName ? `${marketName} — Serum` : 'Serum';
   }, [marketName]);
 
   const changeOrderRef = useRef();
@@ -74,10 +76,14 @@ export default function TradePage() {
   const width = dimensions?.width;
   const componentProps = {
     onChangeOrderRef: (ref) => (changeOrderRef.current = ref),
-    onPrice: (price) =>
-      changeOrderRef.current && changeOrderRef.current({ price }),
-    onSize: (size) =>
-      changeOrderRef.current && changeOrderRef.current({ size }),
+    onPrice: useCallback(
+      (price) => changeOrderRef.current && changeOrderRef.current({ price }),
+      [],
+    ),
+    onSize: useCallback(
+      (size) => changeOrderRef.current && changeOrderRef.current({ size }),
+      [],
+    ),
   };
   const getComponent = useCallback(() => {
     if (handleDeprecated) {
@@ -96,13 +102,12 @@ export default function TradePage() {
   }, [width, componentProps, handleDeprecated]);
 
   const onAddCustomMarket = (customMarket) => {
-    if (
-      getMarketInfos(customMarkets).some(
-        (m) => m.address.toBase58() === customMarket.address,
-      )
-    ) {
+    const marketInfo = getMarketInfos(customMarkets).some(
+      (m) => m.address.toBase58() === customMarket.address,
+    );
+    if (marketInfo) {
       notify({
-        message: 'A market with the given ID already exists',
+        message: `A market with the given ID already exists`,
         type: 'error',
       });
       return;
@@ -133,8 +138,9 @@ export default function TradePage() {
           <Col>
             <MarketSelector
               markets={markets}
-              customMarkets={customMarkets}
+              setHandleDeprecated={setHandleDeprecated}
               placeholder={'Select market'}
+              customMarkets={customMarkets}
               onDeleteCustomMarket={onDeleteCustomMarket}
             />
           </Col>
@@ -160,15 +166,13 @@ export default function TradePage() {
             <React.Fragment>
               <Col>
                 <Typography>
-                  You have unsettled funds on deprecated markets! Please go
-                  through them to claim your funds.
+                  You have unsettled funds on old markets! Please go through
+                  them to claim your funds.
                 </Typography>
               </Col>
               <Col>
                 <Button onClick={() => setHandleDeprecated(!handleDeprecated)}>
-                  {handleDeprecated
-                    ? 'View live markets'
-                    : 'Handle deprecated markets'}
+                  {handleDeprecated ? 'View new markets' : 'Handle old markets'}
                 </Button>
               </Col>
             </React.Fragment>
@@ -182,11 +186,17 @@ export default function TradePage() {
 
 function MarketSelector({
   markets,
-  customMarkets,
   placeholder,
+  setHandleDeprecated,
+  customMarkets,
   onDeleteCustomMarket,
 }) {
   const { market, setMarketAddress } = useMarket();
+
+  const onSetMarketAddress = (marketAddress) => {
+    setHandleDeprecated(false);
+    setMarketAddress(marketAddress);
+  };
 
   const extractBase = (a) => a.split('/')[0];
   const extractQuote = (a) => a.split('/')[1];
@@ -205,11 +215,11 @@ function MarketSelector({
       style={{ width: 200 }}
       placeholder={placeholder || 'Select a market'}
       optionFilterProp="name"
-      onSelect={setMarketAddress}
+      onSelect={onSetMarketAddress}
       listHeight={400}
       value={selectedMarket}
       filterOption={(input, option) =>
-        option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        option.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     >
       {customMarkets && customMarkets.length > 0 && (
@@ -295,7 +305,7 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <Row
       style={{
-        minHeight: '750px',
+        minHeight: '800px',
         flexWrap: 'nowrap',
       }}
     >
@@ -322,13 +332,13 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
     <>
       <Row
         style={{
-          height: '750px',
+          height: '800px',
         }}
       >
         <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
           <Orderbook
             smallScreen={true}
-            depth={12}
+            depth={13}
             onPrice={onPrice}
             onSize={onSize}
           />
@@ -364,7 +374,11 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
           <StandaloneBalancesDisplay />
         </Col>
       </Row>
-      <Row style={{ minHeight: '500px' }}>
+      <Row
+        style={{
+          height: '500px',
+        }}
+      >
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <Orderbook smallScreen={true} onPrice={onPrice} onSize={onSize} />
         </Col>

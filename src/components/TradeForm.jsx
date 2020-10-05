@@ -77,7 +77,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   }, [setChangeOrderRef]);
 
   useEffect(() => {
-    onSliderChange(sizeFraction);
+    baseSize && price && onSliderChange(sizeFraction);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [side]);
 
@@ -167,14 +167,16 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         wallet,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
-        onConfirmCallBack: () => {
-          setPrice(null);
-          onSetBaseSize(null);
-        },
       });
+      setPrice(null);
+      onSetBaseSize(null);
     } catch (e) {
       console.warn(e);
-      notify({ message: 'Error placing order: ' + e.message, type: 'error' });
+      notify({
+        message: 'Error placing order',
+        description: e.message,
+        type: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -221,7 +223,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
           style={{ textAlign: 'right', paddingBottom: 8 }}
           addonBefore={<div style={{ width: '30px' }}>Price</div>}
           suffix={
-            <span style={{ fontSize: 10, opacity: 0.5 }}>{baseCurrency}</span>
+            <span style={{ fontSize: 10, opacity: 0.5 }}>{quoteCurrency}</span>
           }
           value={price}
           type="number"
