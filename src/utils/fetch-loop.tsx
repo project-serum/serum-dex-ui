@@ -1,5 +1,4 @@
-import { useEffect, useReducer } from 'react';
-import tuple from 'immutable-tuple';
+import {useEffect, useReducer} from 'react';
 
 import assert from 'assert';
 
@@ -74,7 +73,7 @@ class FetchLoopInternal<T = any> {
     }
   }
 
-  removeListener(listener: FetchLoopListener<T>) {
+  removeListener(listener: FetchLoopListener<T>): void {
     assert(this.listeners.delete(listener));
     if (this.stopped) {
       if (this.timeoutId) {
@@ -84,7 +83,7 @@ class FetchLoopInternal<T = any> {
     }
   }
 
-  notifyListeners() {
+  notifyListeners(): void {
     this.listeners.forEach((listener) => listener.callback());
   }
 
@@ -125,7 +124,7 @@ class FetchLoopInternal<T = any> {
         }
 
         // Don't do any refreshing for the first five seconds, to make way for other things to load.
-        const timeSincePageLoad = new Date() - pageLoadTime;
+        const timeSincePageLoad = +new Date() - +pageLoadTime;
         if (timeSincePageLoad < 5000) {
           waitTime += 5000 - timeSincePageLoad / 2;
         }
@@ -149,17 +148,17 @@ class FetchLoopInternal<T = any> {
 class FetchLoops {
   loops = new Map();
 
-  addListener(listener) {
+  addListener<T>(listener: FetchLoopListener<T>) {
     if (!this.loops.has(listener.cacheKey)) {
       this.loops.set(
         listener.cacheKey,
-        new FetchLoopInternal(listener.cacheKey, listener.fn),
+        new FetchLoopInternal<T>(listener.cacheKey, listener.fn),
       );
     }
     this.loops.get(listener.cacheKey).addListener(listener);
   }
 
-  removeListener(listener) {
+  removeListener<T>(listener: FetchLoopListener<T>) {
     const loop = this.loops.get(listener.cacheKey);
     loop.removeListener(listener);
     if (loop.stopped) {

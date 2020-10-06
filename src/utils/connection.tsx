@@ -91,7 +91,7 @@ export function useConnectionConfig() {
   return { endpoint: context.endpoint, setEndpoint: context.setEndpoint };
 }
 
-export function useAccountInfo(publicKey: PublicKey) {
+export function useAccountInfo(publicKey: PublicKey | undefined | null): [AccountInfo<Buffer> | null | undefined, boolean] {
   const connection = useConnection();
   const cacheKey = tuple(connection, publicKey?.toBase58());
   const [accountInfo, loaded] = useAsyncData<AccountInfo<Buffer> | null>(
