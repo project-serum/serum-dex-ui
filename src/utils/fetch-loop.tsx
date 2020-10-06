@@ -1,13 +1,26 @@
 import { useEffect, useReducer } from 'react';
+import tuple from 'immutable-tuple';
 
 import assert from 'assert';
 
 const pageLoadTime = new Date();
 
-const globalCache = new Map();
+const globalCache: Map<any, any> = new Map();
 
-class FetchLoopListener {
-  constructor(cacheKey, fn, refreshInterval, refreshIntervalOnError, callback) {
+class FetchLoopListener<T = any> {
+  cacheKey: any;
+  fn: () => Promise<T>;
+  refreshInterval: number;
+  refreshIntervalOnError: number | null;
+  callback: () => void;
+
+  constructor(
+      cacheKey: any,
+      fn: () => Promise<T>,
+      refreshInterval: number,
+      refreshIntervalOnError: number | null,
+      callback: () => void
+  ) {
     this.cacheKey = cacheKey;
     this.fn = fn;
     this.refreshInterval = refreshInterval;
@@ -16,7 +29,13 @@ class FetchLoopListener {
   }
 }
 
-class FetchLoopInternal {
+class FetchLoopInternal<T = any> {
+  cacheKey: any;
+  fn: () => Promise<T>;
+  timeoutId: null | any;
+  listeners: Set<FetchLoopListener<T>>;
+  errors: number;
+
   constructor(cacheKey, fn) {
     this.cacheKey = cacheKey;
     this.fn = fn;
@@ -25,25 +44,29 @@ class FetchLoopInternal {
     this.errors = 0;
   }
 
-  get refreshInterval() {
+  get refreshInterval(): number {
     return Math.min(
       ...[...this.listeners].map((listener) => listener.refreshInterval),
     );
   }
 
-  get refreshIntervalOnError() {
-    return Math.min(
-      ...[...this.listeners]
+  get refreshIntervalOnError(): number | null {
+    const refreshIntervalsOnError: number[] = [...this.listeners]
         .map((listener) => listener.refreshIntervalOnError)
-        .filter((x) => x),
+        .filter((x): x is number => x !== null);
+    if (refreshIntervalsOnError.length === 0) {
+      return null;
+    }
+    return Math.min(
+      ...refreshIntervalsOnError,
     );
   }
 
-  get stopped() {
+  get stopped(): boolean {
     return this.listeners.size === 0;
   }
 
-  addListener(listener) {
+  addListener(listener: FetchLoopListener<T>): void {
     const previousRefreshInterval = this.refreshInterval;
     this.listeners.add(listener);
     if (this.refreshInterval < previousRefreshInterval) {
@@ -51,7 +74,7 @@ class FetchLoopInternal {
     }
   }
 
-  removeListener(listener) {
+  removeListener(listener: FetchLoopListener<T>) {
     assert(this.listeners.delete(listener));
     if (this.stopped) {
       if (this.timeoutId) {
@@ -156,11 +179,11 @@ class FetchLoops {
 }
 const globalLoops = new FetchLoops();
 
-export function useAsyncData(
-  asyncFn,
-  cacheKey,
+export function useAsyncData<T = any>(
+  asyncFn: () => Promise<T>,
+  cacheKey: any,
   { refreshInterval = 60000, refreshIntervalOnError = null } = {},
-) {
+): [null | undefined | T, boolean] {
   const [, rerender] = useReducer((i) => i + 1, 0);
 
   useEffect(() => {
@@ -168,7 +191,7 @@ export function useAsyncData(
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       return () => {};
     }
-    const listener = new FetchLoopListener(
+    const listener = new FetchLoopListener<T>(
       cacheKey,
       asyncFn,
       refreshInterval,
@@ -189,7 +212,7 @@ export function useAsyncData(
   return [data, loaded];
 }
 
-export function refreshCache(cacheKey, clearCache = false) {
+export function refreshCache(cacheKey: any, clearCache = false): void {
   if (clearCache) {
     globalCache.delete(cacheKey);
   }
@@ -202,13 +225,13 @@ export function refreshCache(cacheKey, clearCache = false) {
   }
 }
 
-export function refreshAllCaches() {
+export function refreshAllCaches(): void {
   for (const loop of globalLoops.loops.values()) {
     loop.refresh();
   }
 }
 
-export function setCache(cacheKey, value, { initializeOnly = false } = {}) {
+export function setCache(cacheKey: any, value: any, { initializeOnly = false } = {}): void {
   if (initializeOnly && globalCache.has(cacheKey)) {
     return;
   }
