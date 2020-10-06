@@ -1,4 +1,4 @@
-import { Button, Input, Radio, Switch, Slider } from 'antd';
+import { Button, Input, Radio, Switch, Slider, Select } from 'antd';
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
@@ -9,17 +9,28 @@ import {
   useSelectedOpenOrdersAccount,
   useSelectedBaseCurrencyAccount,
   useSelectedQuoteCurrencyAccount,
+  useOrderbook,
+  useFeeDiscountKeys,
+  calculateBestPrice,
 } from '../utils/markets';
+import { getFeeRates } from '@project-serum/serum';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
 import {
   getDecimalCount,
   roundToDecimal,
   floorToDecimal,
+  isIncrement,
 } from '../utils/utils';
 import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { placeOrder } from '../utils/send';
+
+const DEFAULT_ORDER_TYPE = 'limit';
+const ORDER_TYPES = [
+  { label: 'Limit', value: 'limit' },
+  { label: 'Market', value: 'market' },
+];
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
@@ -42,7 +53,6 @@ const sliderMarks = {
 };
 
 export default function TradeForm({ style, setChangeOrderRef }) {
-  const [side, setSide] = useState('buy');
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const baseCurrencyBalances = useBaseCurrencyBalances();
   const quoteCurrencyBalances = useQuoteCurrencyBalances();
@@ -52,7 +62,11 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   const { wallet } = useWallet();
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
+  const [orderbook] = useOrderbook();
+  const [feeAccounts] = useFeeDiscountKeys();
 
+  const [side, setSide] = useState('buy');
+  const [orderType, setOrderType] = useState(DEFAULT_ORDER_TYPE);
   const [postOnly, setPostOnly] = useState(false);
   const [ioc, setIoc] = useState(false);
   const [baseSize, setBaseSize] = useState(null);
@@ -65,6 +79,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
     : 0;
 
+  let feeRates = getFeeRates(feeAccounts && feeAccounts[0]?.feeTier);
   let quoteBalance = (quoteCurrencyBalances || 0) + (availableQuote || 0);
   let baseBalance = baseCurrencyBalances || 0;
   let sizeDecimalCount =
@@ -86,11 +101,21 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [price, baseSize]);
 
+  const onSetPrice = (price) => {
+    const formattedPrice = isIncrement(price, market?.tickSize)
+      ? price
+      : floorToDecimal(price, priceDecimalCount);
+    setPrice(formattedPrice);
+  };
+
   const onSetBaseSize = (baseSize) => {
-    setBaseSize(baseSize);
-    const rawQuoteSize = baseSize * (price || markPrice);
+    const formattedBaseSize = isIncrement(baseSize, market?.minOrderSize)
+      ? baseSize
+      : floorToDecimal(baseSize, sizeDecimalCount);
+    setBaseSize(formattedBaseSize);
+    const rawQuoteSize = formattedBaseSize * (price || markPrice);
     const quoteSize =
-      baseSize && roundToDecimal(rawQuoteSize, sizeDecimalCount);
+      formattedBaseSize && roundToDecimal(rawQuoteSize, sizeDecimalCount);
     setQuoteSize(quoteSize);
   };
 
@@ -105,11 +130,20 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     const formattedSize = size && roundToDecimal(size, sizeDecimalCount);
     const formattedPrice = price && roundToDecimal(price, priceDecimalCount);
     formattedSize && onSetBaseSize(formattedSize);
-    formattedPrice && setPrice(formattedPrice);
+    formattedPrice && onSetPrice(formattedPrice);
   };
 
   const updateSizeFraction = () => {
-    const rawMaxSize = side === 'buy' ? quoteBalance / price : baseBalance;
+    let rawMaxSize;
+    if (side === 'sell') {
+      rawMaxSize = baseBalance;
+    } else {
+      let maxQuoteBalance =
+        orderType === 'market' || price >= orderbook?.asks[0]?.[0]
+          ? (1 - feeRates.taker) * quoteBalance
+          : quoteBalance;
+      rawMaxSize = maxQuoteBalance / price;
+    }
     const maxSize = floorToDecimal(rawMaxSize, sizeDecimalCount);
     const sizeFraction = Math.min((baseSize / maxSize) * 100, 100);
     setSizeFraction(sizeFraction);
@@ -120,7 +154,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
       let formattedMarkPrice = priceDecimalCount
         ? markPrice.toFixed(priceDecimalCount)
         : markPrice;
-      setPrice(formattedMarkPrice);
+      onSetPrice(formattedMarkPrice);
     }
 
     let newSize;
@@ -152,8 +186,16 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   };
 
   async function onSubmit() {
-    const parsedPrice = parseFloat(price);
-    const parsedSize = parseFloat(baseSize);
+    let parsedSize = parseFloat(baseSize);
+    let parsedPrice;
+    if (orderType === 'market') {
+      parsedPrice =
+        side === 'buy'
+          ? calculateBestPrice(orderbook, parsedSize)
+          : market?.tickSize;
+    } else {
+      parsedPrice = parseFloat(price);
+    }
 
     setSubmitting(true);
     try {
@@ -168,7 +210,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
       });
-      setPrice(null);
+      onSetPrice(null);
       onSetBaseSize(null);
     } catch (e) {
       console.warn(e);
@@ -219,16 +261,32 @@ export default function TradeForm({ style, setChangeOrderRef }) {
             SELL
           </Radio.Button>
         </Radio.Group>
+        <div style={{ display: 'flex', paddingBottom: 8 }}>
+          <span
+            className="ant-input-group-addon"
+            style={{ width: '53px', display: 'flex', alignItems: 'center' }}
+          >
+            Type
+          </span>
+          <Select
+            style={{ flex: 1, textAlign: 'center' }}
+            defaultValue={DEFAULT_ORDER_TYPE}
+            value={orderType}
+            options={ORDER_TYPES}
+            onSelect={setOrderType}
+          />
+        </div>
         <Input
           style={{ textAlign: 'right', paddingBottom: 8 }}
           addonBefore={<div style={{ width: '30px' }}>Price</div>}
           suffix={
             <span style={{ fontSize: 10, opacity: 0.5 }}>{quoteCurrency}</span>
           }
-          value={price}
-          type="number"
+          value={orderType === 'market' ? 'MARKET' : price}
+          type={orderType === 'market' ? 'text' : 'number'}
           step={market?.tickSize || 1}
-          onChange={(e) => setPrice(e.target.value)}
+          disabled={orderType === 'market'}
+          onChange={(e) => onSetPrice(e.target.value)}
         />
         <Input.Group compact style={{ paddingBottom: 8 }}>
           <Input
@@ -274,7 +332,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
       </div>
       {side === 'buy' ? (
         <BuyButton
-          disabled={!price || !baseSize}
+          disabled={(orderType !== 'market' && !price) || !baseSize}
           onClick={onSubmit}
           block
           type="primary"
@@ -285,7 +343,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         </BuyButton>
       ) : (
         <SellButton
-          disabled={!price || !baseSize}
+          disabled={(orderType !== 'market' && !price) || !baseSize}
           onClick={onSubmit}
           block
           type="primary"
