@@ -180,7 +180,7 @@ export async function settleAllFunds({
     [],
   );
 
-  const settleTransactions = await Promise.all(
+  const settleTransactions = (await Promise.all(
     openOrdersAccounts.map((openOrdersAccount) => {
       const market = markets.find((m) =>
         m._decoded?.ownAddress?.equals(openOrdersAccount.market),
@@ -199,7 +199,7 @@ export async function settleAllFunds({
         )
       );
     }),
-  );
+  )).filter((x) => x);
   if (!settleTransactions || settleTransactions.length === 0) return;
 
   const transactions = settleTransactions.slice(0, 4).map((t) => t.transaction);
