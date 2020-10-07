@@ -9,6 +9,6 @@ declare module '@project-serum/sol-wallet-adapter' {
         autoApprove: boolean;
         connect: () => Promise<void>;
         disconnect: () => void;
-        signTransaction: () => Promise<Transaction>;
+        signTransaction: (transaction: Transaction) => Promise<Transaction>;
     }
 }

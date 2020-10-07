@@ -19,7 +19,7 @@ import {BN} from 'bn.js';
 import {getTokenAccountInfo} from './tokens';
 import {
   Balances,
-  CustomMarketInfo,
+  CustomMarketInfo, DeprecatedOpenOrdersBalances,
   FullMarketInfo,
   MarketContextValues,
   MarketInfo, OpenOrdersBalances,
@@ -938,7 +938,11 @@ export function useUnmigratedDeprecatedMarkets() {
   }));
 }
 
-export function useGetOpenOrdersForDeprecatedMarkets() {
+export function useGetOpenOrdersForDeprecatedMarkets(): {
+  openOrders: OrderWithMarketAndMarketName[] | null | undefined;
+  loaded: boolean;
+  refreshOpenOrders: () => void;
+} {
   const { connected, wallet } = useWallet();
   const [customMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', []);
   const connection = useConnection();
@@ -1008,18 +1012,21 @@ export function useGetOpenOrdersForDeprecatedMarkets() {
 
 export function useBalancesForDeprecatedMarkets() {
   const markets = useUnmigratedDeprecatedMarkets();
-  const [customMarkets] = useLocalStorageState('customMarkets', []);
+  const [customMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', []);
   if (!markets) {
     return null;
   }
 
-  const openOrderAccountBalances = [];
+  const openOrderAccountBalances: DeprecatedOpenOrdersBalances[] = [];
   markets.forEach(({ market, openOrdersList }) => {
     const { baseCurrency, quoteCurrency, marketName } = getMarketDetails(
       market,
       customMarkets,
     );
-    openOrdersList.forEach((openOrders) => {
+    if (!baseCurrency || !quoteCurrency || !market) {
+      return;
+    }
+    (openOrdersList || []).forEach((openOrders) => {
       const inOrdersBase =
         openOrders?.baseTokenTotal &&
         openOrders?.baseTokenFree &&

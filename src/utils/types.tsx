@@ -96,3 +96,13 @@ export interface OpenOrdersBalances extends BalancesBase {
     baseCurrencyAccount: { pubkey: PublicKey; account: AccountInfo<Buffer> } | null | undefined;
     quoteCurrencyAccount: { pubkey: PublicKey; account: AccountInfo<Buffer> } | null | undefined;
 }
+
+export interface DeprecatedOpenOrdersBalances extends BalancesBase {
+    market: Market | null | undefined;
+    marketName: string | null | undefined;
+}
+
+export interface PreferencesContextValues {
+    autoSettleEnabled: boolean;
+    setAutoSettleEnabled: (newAutoSettleEnabled: boolean) => void;
+}
