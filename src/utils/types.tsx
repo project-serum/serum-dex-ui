@@ -75,7 +75,7 @@ export interface OrderWithMarket extends Order {
 
 export interface OrderWithMarketAndMarketName extends Order {
     market: Market;
-    marketName?: string;
+    marketName: string | undefined;
 }
 
 interface BalancesBase {

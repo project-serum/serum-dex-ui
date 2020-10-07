@@ -938,7 +938,6 @@ export function useUnmigratedDeprecatedMarkets() {
   }));
 }
 
-// todo: fix the types here!
 export function useGetOpenOrdersForDeprecatedMarkets() {
   const { connected, wallet } = useWallet();
   const [customMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', []);
@@ -959,7 +958,10 @@ export function useGetOpenOrdersForDeprecatedMarkets() {
       return null;
     }
     console.log('refreshing getOpenOrdersForDeprecatedMarkets');
-    const getOrders = async (market: Market) => {
+    const getOrders = async (market: Market | null) => {
+      if (!market) {
+        return null;
+      }
       const { marketName } = getMarketDetails(market, customMarkets);
       try {
         console.log('Fetching open orders for', marketName);
@@ -977,9 +979,9 @@ export function useGetOpenOrdersForDeprecatedMarkets() {
         return null;
       }
     };
-    return (await Promise.all(marketsList.map(getOrders)))
-      .filter((x: OrderWithMarketAndMarketName[] | null): x is OrderWithMarketAndMarketName[] => !!x)
-      .flat();
+    return (await Promise.all(marketsList.map(getOrders))).filter(
+        (x): x is OrderWithMarketAndMarketName[] => !!x
+    ).flat();
   }
 
   const cacheKey = tuple(

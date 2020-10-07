@@ -16,7 +16,8 @@
     "noEmit": true,
     "jsx": "react",
     "lib": [
-      "dom"
+      "dom",
+      "esnext",
     ]
   },
   "include": [
