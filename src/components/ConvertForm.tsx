@@ -45,7 +45,7 @@ export default function ConvertForm() {
   const [isConverting, setIsConverting] = useState(false);
   const [market, setMarket] = useState<Market | null>(null);
   const [balance, setBalance] = useState<number | undefined>(undefined);
-  const [tokenMap, setTokenMap] = useState<Map<string, string[]>>(new Map());
+  const [tokenMap, setTokenMap] = useState<Map<string, string[]> | undefined>(undefined);
   const [fromToken, setFromToken] = useState<string | undefined>(undefined);
   const [toToken, setToToken] = useState<string | undefined>(undefined);
   const [size, setSize] = useState<number | undefined>(undefined);
