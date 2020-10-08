@@ -185,8 +185,8 @@ export async function settleAllFunds({
     );
     return openOrdersAccounts.filter(
       (openOrders) =>
-        openOrders.baseTokenTotal.toNumber() ||
-        openOrders.quoteTokenTotal.toNumber(),
+        openOrders.baseTokenFree.toNumber() ||
+        openOrders.quoteTokenFree.toNumber(),
     );
   };
 
