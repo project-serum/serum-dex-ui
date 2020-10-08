@@ -126,7 +126,7 @@ export default function ConvertForm() {
   const isFromTokenBaseOfMarket = (market) => {
     const { marketName } = getMarketDetails(market, customMarkets);
     if (!marketName) {
-      return false;
+      throw Error('Cannot determine if coin is quote or base because marketName is missing');
     }
     const [base] = marketName.split('/');
     return fromToken === base;
@@ -152,7 +152,19 @@ export default function ConvertForm() {
     );
 
     // get approximate price
-    const side = isFromTokenBaseOfMarket(market) ? 'sell' : 'buy';
+    let side;
+    try {
+      side = isFromTokenBaseOfMarket(market) ? 'sell' : 'buy';
+    } catch (e) {
+      console.warn(e);
+      notify({
+        message: 'Error placing order',
+        description: e.message,
+        type: 'error',
+      });
+      return;
+    }
+
     const orderbookMarket =
       // @ts-ignore
       side === 'buy' ? market._decoded.asks : market._decoded.bids;
@@ -189,7 +201,6 @@ export default function ConvertForm() {
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
       });
-      reset();
     } catch (e) {
       console.warn(e);
       notify({
@@ -229,7 +240,10 @@ export default function ConvertForm() {
                 style={{ minWidth: 300 }}
                 placeholder="Select a token"
                 value={fromToken}
-                onChange={setFromToken}
+                onChange={(token) => {
+                  setFromToken(token);
+                  setToToken(undefined);
+                }}
               >
                 {Array.from(tokenMap.keys()).map((token) => (
                   <Option value={token} key={token}>
