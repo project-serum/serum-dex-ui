@@ -181,12 +181,18 @@ export default function ConvertForm() {
       notify({ message: 'No best price found', type: 'error' });
       return;
     }
+    if (!size) {
+      notify({ message: 'Size not specified', type: 'error' });
+      return;
+    }
     const parsedPrice =
       bbo + 100 * (side === 'buy' ? market.tickSize : -market.tickSize);
 
     // round size
     const sizeDecimalCount = getDecimalCount(market.minOrderSize);
-    const parsedSize = floorToDecimal(size, sizeDecimalCount);
+
+    const nativeSize = side === 'sell' ? size : size / parsedPrice;
+    const parsedSize = floorToDecimal(nativeSize, sizeDecimalCount);
 
     setIsConverting(true);
     try {
