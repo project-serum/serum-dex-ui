@@ -43,25 +43,25 @@ export default function ConvertForm() {
   const sendConnection = useSendConnection();
 
   const [isConverting, setIsConverting] = useState(false);
-  const [market, setMarket] = useState(null);
-  const [balance, setBalance] = useState(null);
-  const [tokenMap, setTokenMap] = useState(null);
-  const [fromToken, setFromToken] = useState(null);
-  const [toToken, setToToken] = useState(null);
-  const [size, setSize] = useState(null);
+  const [market, setMarket] = useState<Market | null>(null);
+  const [balance, setBalance] = useState<number | undefined>(undefined);
+  const [tokenMap, setTokenMap] = useState<Map<string, string[]>>(new Map());
+  const [fromToken, setFromToken] = useState<string | undefined>(undefined);
+  const [toToken, setToToken] = useState<string | undefined>(undefined);
+  const [size, setSize] = useState<number | undefined>(undefined);
 
   const marketInfos = getMarketInfos(customMarkets);
 
   useEffect(() => {
-    const tokenMap = new Map();
+    const tokenMap: Map<string, string[]> = new Map();
     marketInfos.forEach((market) => {
       let [base, quote] = market.name.split('/');
       !tokenMap.has(base)
         ? tokenMap.set(base, [quote])
-        : tokenMap.set(base, [...tokenMap.get(base), quote]);
+        : tokenMap.set(base, [...(tokenMap.get(base) || []), quote]);
       !tokenMap.has(quote)
         ? tokenMap.set(quote, [base])
-        : tokenMap.set(quote, [...tokenMap.get(quote), base]);
+        : tokenMap.set(quote, [...(tokenMap.get(quote) || []), base]);
     });
     setTokenMap(tokenMap);
   }, [marketInfos]);
@@ -91,24 +91,30 @@ export default function ConvertForm() {
 
   useEffect(() => {
     const fetchBalance = async () => {
+      if (!market) {
+        return;
+      }
       const openOrdersAccountBalance = await getOpenOrdersAccountsBalance(
         connection,
         wallet,
         market,
         isFromTokenBaseOfMarket(market),
       );
-      const currenyAccount = getSelectedTokenAccountForMint(
+      const currencyAccount = getSelectedTokenAccountForMint(
         accounts,
         isFromTokenBaseOfMarket(market)
           ? market?.baseMintAddress
           : market?.quoteMintAddress,
       );
+      if (!currencyAccount) {
+        return;
+      }
       const currencyBalance = await getCurrencyBalanceForAccount(
         connection,
         market,
-        currenyAccount,
+        currencyAccount,
       );
-      setBalance(openOrdersAccountBalance + currencyBalance);
+      setBalance(openOrdersAccountBalance + (currencyBalance || 0));
     };
 
     market && fetchBalance();
@@ -117,11 +123,22 @@ export default function ConvertForm() {
 
   const isFromTokenBaseOfMarket = (market) => {
     const { marketName } = getMarketDetails(market, customMarkets);
+    if (!marketName) {
+      return false;
+    }
     const [base] = marketName.split('/');
     return fromToken === base;
   };
 
   const onConvert = async () => {
+    if (!market) {
+      console.warn('Market is null when attempting convert.');
+      notify({
+        message: 'Invalid market',
+        type: 'error',
+      });
+      return;
+    }
     // get accounts
     const baseCurrencyAccount = getSelectedTokenAccountForMint(
       accounts,
@@ -135,13 +152,14 @@ export default function ConvertForm() {
     // get approximate price
     const side = isFromTokenBaseOfMarket(market) ? 'sell' : 'buy';
     const orderbookMarket =
+      // @ts-ignore
       side === 'buy' ? market._decoded.asks : market._decoded.bids;
     const orderbookData = await connection.getAccountInfo(orderbookMarket);
     if (!orderbookData?.data) {
       notify({ message: 'Invalid orderbook data', type: 'error' });
       return;
     }
-    const decodedOrderbookData = Orderbook.decode(market, orderbookData?.data);
+    const decodedOrderbookData = Orderbook.decode(market, orderbookData.data);
     const [bbo] =
       decodedOrderbookData &&
       decodedOrderbookData.getL2(1).map(([price]) => price);
@@ -153,8 +171,7 @@ export default function ConvertForm() {
       bbo + 100 * (side === 'buy' ? market.tickSize : -market.tickSize);
 
     // round size
-    const sizeDecimalCount =
-      market?.minOrderSize && getDecimalCount(market.minOrderSize);
+    const sizeDecimalCount = getDecimalCount(market.minOrderSize);
     const parsedSize = floorToDecimal(size, sizeDecimalCount);
 
     setIsConverting(true);
@@ -184,13 +201,13 @@ export default function ConvertForm() {
   };
 
   const reset = () => {
-    setFromToken(null);
-    setToToken(null);
-    setBalance(null);
-    setSize(null);
+    setFromToken(undefined);
+    setToToken(undefined);
+    setBalance(undefined);
+    setSize(undefined);
   };
 
-  const canConvert = market && size > 0;
+  const canConvert = market && size && size > 0;
 
   return (
     <FloatingElement style={{ maxWidth: 500 }}>
@@ -247,11 +264,11 @@ export default function ConvertForm() {
                     placeholder="Size"
                     value={size}
                     type="number"
-                    onChange={(e) => setSize(e.target.value)}
+                    onChange={(e) => setSize(parseFloat(e.target.value))}
                   />
                 </Col>
               </Row>
-              <Row gutter={[12]} style={{ marginBottom: 8 }}>
+              <Row gutter={12} style={{ marginBottom: 8 }}>
                 <Col span={12}>
                   <ActionButton
                     block

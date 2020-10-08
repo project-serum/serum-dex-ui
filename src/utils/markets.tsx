@@ -7,7 +7,7 @@ import {
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
-import {AccountInfo, PublicKey, RpcResponseAndContext, TokenAmount} from '@solana/web3.js';
+import {AccountInfo, Connection, PublicKey, RpcResponseAndContext, TokenAmount} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
 import {useLocalStorageState} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
@@ -30,6 +30,7 @@ import {
   Trade,
 } from "./types";
 import {Buffer} from "buffer";
+import Wallet from "@project-serum/sol-wallet-adapter";
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -774,9 +775,9 @@ async function getCurrencyBalance(market: Market, connection, wallet, base = tru
 }
 
 export async function getCurrencyBalanceForAccount(
-  connection,
-  market,
-  currencyAccount,
+  connection: Connection,
+  market: Market,
+  currencyAccount: TokenAccount,
 ) {
   const accountInfo = await connection.getAccountInfo(currencyAccount.pubkey);
   return (
@@ -786,9 +787,9 @@ export async function getCurrencyBalanceForAccount(
 }
 
 export async function getOpenOrdersAccountsBalance(
-  connection,
-  wallet,
-  market,
+  connection: Connection,
+  wallet: Wallet,
+  market: Market,
   base = true,
 ) {
   const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
