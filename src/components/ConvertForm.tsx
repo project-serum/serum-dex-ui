@@ -123,7 +123,7 @@ export default function ConvertForm() {
 
     market && fetchBalance();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market, stringAccountKeys]);
+  }, [market, stringAccountKeys, isConverting]);
 
   const isFromTokenBaseOfMarket = (market) => {
     const { marketName } = getMarketDetails(market, customMarkets);
