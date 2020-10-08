@@ -5,8 +5,9 @@ import { useConnection } from './connection';
 import { useWallet } from './wallet';
 import { useAllMarkets, useTokenAccounts, useMarket } from './markets';
 import { settleAllFunds } from './send';
+import {PreferencesContextValues} from "./types";
 
-const PreferencesContext = React.createContext(null);
+const PreferencesContext = React.createContext<PreferencesContextValues | null>(null);
 
 export function PreferencesProvider({ children }) {
   const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
@@ -48,6 +49,9 @@ export function PreferencesProvider({ children }) {
 
 export function usePreferences() {
   const context = useContext(PreferencesContext);
+  if (!context) {
+    throw new Error('Missing preferences context')
+  }
   return {
     autoSettleEnabled: context.autoSettleEnabled,
     setAutoSettleEnabled: context.setAutoSettleEnabled,

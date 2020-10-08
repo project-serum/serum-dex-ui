@@ -14,13 +14,13 @@ export default function AccountsTable({ accountBalances }) {
     try {
       const {
         market,
-        openOrdersAccount,
+        openOrders,
         baseCurrencyAccount,
         quoteCurrencyAccount,
       } = account;
       return await settleFunds({
         market,
-        openOrders: openOrdersAccount,
+        openOrders,
         connection,
         wallet,
         baseCurrencyAccount,

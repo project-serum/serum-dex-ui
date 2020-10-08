@@ -1,6 +1,7 @@
 {
   "extends": "@tsconfig/node12/tsconfig.json",
   "compilerOptions": {
+    "target": "esnext",
     "outDir": "./lib",
     "allowJs": true,
     "checkJs": false,
@@ -14,7 +15,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react"
+    "jsx": "react",
+    "lib": [
+      "dom",
+      "esnext"
+    ]
   },
   "include": [
     "./src/"
