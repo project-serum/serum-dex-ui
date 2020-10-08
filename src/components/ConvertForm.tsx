@@ -7,9 +7,8 @@ import {
   getCurrencyBalanceForAccount,
   getOpenOrdersAccountsBalance,
   useMarket,
-  getMarketInfos,
   getMarketDetails,
-  useTokenAccounts,
+  useTokenAccounts, useMarketInfos,
 } from '../utils/markets';
 import { notify } from '../utils/notifications';
 import { useWallet } from '../utils/wallet';
@@ -36,6 +35,7 @@ const ConvertButton = styled(Button)`
 export default function ConvertForm() {
   const { connected, wallet } = useWallet();
   const { customMarkets } = useMarket();
+  const marketInfos = useMarketInfos();
 
   const [accounts] = useTokenAccounts();
 
@@ -45,26 +45,28 @@ export default function ConvertForm() {
   const [isConverting, setIsConverting] = useState(false);
   const [market, setMarket] = useState<Market | null>(null);
   const [balance, setBalance] = useState<number | undefined>(undefined);
-  const [tokenMap, setTokenMap] = useState<Map<string, string[]> | undefined>(undefined);
+  const [tokenMap, setTokenMap] = useState<Map<string, Set<string>> | undefined>(undefined);
   const [fromToken, setFromToken] = useState<string | undefined>(undefined);
   const [toToken, setToToken] = useState<string | undefined>(undefined);
   const [size, setSize] = useState<number | undefined>(undefined);
 
-  const marketInfos = getMarketInfos(customMarkets);
+  const marketNames = marketInfos.map(market => market.name);
+  const stringMarketNames = JSON.stringify(marketNames);
 
   useEffect(() => {
-    const tokenMap: Map<string, string[]> = new Map();
-    marketInfos.forEach((market) => {
-      let [base, quote] = market.name.split('/');
+    const tokenMap: Map<string, Set<string>> = new Map();
+    marketNames.forEach((market) => {
+      let [base, quote] = market.split('/');
       !tokenMap.has(base)
-        ? tokenMap.set(base, [quote])
-        : tokenMap.set(base, [...(tokenMap.get(base) || []), quote]);
+        ? tokenMap.set(base, new Set([quote]))
+        : tokenMap.set(base, new Set([...(tokenMap.get(base) || []), quote]));
       !tokenMap.has(quote)
-        ? tokenMap.set(quote, [base])
-        : tokenMap.set(quote, [...(tokenMap.get(quote) || []), base]);
+        ? tokenMap.set(quote, new Set([base]))
+        : tokenMap.set(quote, new Set([...(tokenMap.get(quote) || []), base]));
     });
     setTokenMap(tokenMap);
-  }, [marketInfos]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stringMarketNames]);
 
   useEffect(() => {
     if (!fromToken || !toToken) {
@@ -245,7 +247,7 @@ export default function ConvertForm() {
                   value={toToken}
                   onChange={setToToken}
                 >
-                  {(tokenMap.get(fromToken) || []).map((token) => (
+                  {[...(tokenMap.get(fromToken) || [])].map((token) => (
                     <Option value={token} key={token}>
                       {token}
                     </Option>

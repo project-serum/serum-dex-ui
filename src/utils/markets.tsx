@@ -7,7 +7,7 @@ import {
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
-import {AccountInfo, Connection, PublicKey, RpcResponseAndContext, TokenAmount} from '@solana/web3.js';
+import {Connection, PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
 import {useLocalStorageState} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
@@ -29,7 +29,6 @@ import {
   TokenAccount,
   Trade,
 } from "./types";
-import {Buffer} from "buffer";
 import Wallet from "@project-serum/sol-wallet-adapter";
 
 // Used in debugging, should be false in production
@@ -762,17 +761,17 @@ export function useWalletBalancesForAllMarkets() {
   // );
 }
 
-async function getCurrencyBalance(market: Market, connection, wallet, base = true) {
-  const currencyAccounts: { pubkey: PublicKey; account: AccountInfo<Buffer> }[] = base
-    ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
-    : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
-
-  const currencyAccount = currencyAccounts && currencyAccounts[0];
-  const tokenAccountBalances: RpcResponseAndContext<TokenAmount> = await connection.getTokenAccountBalance(
-    currencyAccount.pubkey,
-  );
-  return tokenAccountBalances?.value?.uiAmount;
-}
+// async function getCurrencyBalance(market: Market, connection, wallet, base = true) {
+//   const currencyAccounts: { pubkey: PublicKey; account: AccountInfo<Buffer> }[] = base
+//     ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
+//     : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
+//
+//   const currencyAccount = currencyAccounts && currencyAccounts[0];
+//   const tokenAccountBalances: RpcResponseAndContext<TokenAmount> = await connection.getTokenAccountBalance(
+//     currencyAccount.pubkey,
+//   );
+//   return tokenAccountBalances?.value?.uiAmount;
+// }
 
 export async function getCurrencyBalanceForAccount(
   connection: Connection,
@@ -1117,4 +1116,9 @@ export function getMarketInfos(customMarkets: CustomMarketInfo[]): MarketInfo[] 
   }));
 
   return [...customMarketsInfo, ...USE_MARKETS];
+}
+
+export function useMarketInfos() {
+  const { customMarkets } = useMarket();
+  return getMarketInfos(customMarkets);
 }
