@@ -72,7 +72,7 @@ export function useAllMarkets(customMarkets) {
     };
 
     getAllMarkets();
-  }, [connection]);
+  }, [connection, customMarkets]);
 
   return markets;
 }
