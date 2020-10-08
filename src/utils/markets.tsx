@@ -790,7 +790,7 @@ export async function getOpenOrdersAccountsBalance(
   wallet: Wallet,
   market: Market,
   base = true,
-) {
+): Promise<undefined | number> {
   const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
     connection,
     wallet.publicKey,

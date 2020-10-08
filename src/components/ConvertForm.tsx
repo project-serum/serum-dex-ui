@@ -89,8 +89,10 @@ export default function ConvertForm() {
             type: 'error',
           }),
         );
-  }, [marketInfos, connection, fromToken, toToken]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stringMarketNames, connection, fromToken, toToken]);
 
+  let stringAccountKeys = JSON.stringify(accounts?.map(account => account.pubkey.toBase58()))
   useEffect(() => {
     const fetchBalance = async () => {
       if (!market) {
@@ -116,12 +118,12 @@ export default function ConvertForm() {
         market,
         currencyAccount,
       );
-      setBalance(openOrdersAccountBalance + (currencyBalance || 0));
+      setBalance((openOrdersAccountBalance || 0.) + (currencyBalance || 0));
     };
 
     market && fetchBalance();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market, accounts]);
+  }, [market, stringAccountKeys]);
 
   const isFromTokenBaseOfMarket = (market) => {
     const { marketName } = getMarketDetails(market, customMarkets);
@@ -186,7 +188,7 @@ export default function ConvertForm() {
       return;
     }
     const parsedPrice =
-      bbo + 100 * (side === 'buy' ? market.tickSize : -market.tickSize);
+      Math.max(bbo + 100 * (side === 'buy' ? market.tickSize : -market.tickSize), market.tickSize);
 
     // round size
     const sizeDecimalCount = getDecimalCount(market.minOrderSize);
@@ -217,13 +219,6 @@ export default function ConvertForm() {
     } finally {
       setIsConverting(false);
     }
-  };
-
-  const reset = () => {
-    setFromToken(undefined);
-    setToToken(undefined);
-    setBalance(undefined);
-    setSize(undefined);
   };
 
   const canConvert = market && size && size > 0;
@@ -295,9 +290,9 @@ export default function ConvertForm() {
                   <ActionButton
                     block
                     size="large"
-                    onClick={() => setSize(balance)}
+                    onClick={() => setSize(balance || 0.)}
                   >
-                    Max: {balance}
+                    Max: {(balance || 0.).toFixed(4)}
                   </ActionButton>
                 </Col>
                 <Col span={12}>
