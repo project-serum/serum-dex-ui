@@ -8,6 +8,12 @@ export function notify({
   txid,
   type = 'info',
   placement = 'bottomLeft',
+}: {
+  message: string;
+  description?: string | JSX.Element;
+  txid?: string;
+  type?: string;
+  placement?: string;
 }) {
   if (txid) {
     description = (

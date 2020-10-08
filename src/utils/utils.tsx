@@ -37,8 +37,8 @@ export function getDecimalCount(value) {
   return 0;
 }
 
-export function useLocalStorageState(key, defaultState = null) {
-  const [state, setState] = useState(() => {
+export function useLocalStorageState<T = any>(key: string, defaultState: T | null = null): [T, (newState: T) => void] {
+  const [state, setState] = useState<T>(() => {
     // NOTE: Not sure if this is ok
     const storedState = localStorage.getItem(key);
     if (storedState) {
@@ -47,7 +47,7 @@ export function useLocalStorageState(key, defaultState = null) {
     return defaultState;
   });
 
-  const setLocalStorageState = useCallback(
+  const setLocalStorageState = useCallback<(newState: T) => void>(
     (newState) => {
       const changed = state !== newState;
       if (!changed) {
