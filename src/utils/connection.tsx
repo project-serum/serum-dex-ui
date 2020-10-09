@@ -96,6 +96,7 @@ export function useConnectionConfig() {
   }
   return {
     endpoint: context.endpoint,
+    endpointInfo: context.availableEndpoints.find(info => info.endpoint === context.endpoint),
     setEndpoint: context.setEndpoint,
     availableEndpoints: context.availableEndpoints,
     setCustomEndpoints: context.setCustomEndpoints,

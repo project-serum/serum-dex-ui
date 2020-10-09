@@ -1,11 +1,11 @@
 import {InfoCircleOutlined, PlusCircleOutlined, SettingOutlined, UserOutlined,} from '@ant-design/icons';
 import {Button, Col, Menu, Popover, Row, Select} from 'antd';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useHistory, useLocation} from 'react-router-dom';
 import logo from '../assets/logo.svg';
 import styled from 'styled-components';
 import {useWallet, WALLET_PROVIDERS} from '../utils/wallet';
-import {useConnectionConfig} from '../utils/connection';
+import {ENDPOINTS, useConnectionConfig} from '../utils/connection';
 import LinkAddress from './LinkAddress';
 import Settings from './Settings';
 import CustomClusterEndpointDialog from "./CustomClusterEndpointDialog";
@@ -34,7 +34,7 @@ const LogoWrapper = styled.div`
 
 export default function TopBar() {
   const { connected, wallet, providerUrl, setProvider } = useWallet();
-  const { endpoint, setEndpoint, availableEndpoints, setCustomEndpoints } = useConnectionConfig();
+  const { endpoint, endpointInfo, setEndpoint, availableEndpoints, setCustomEndpoints } = useConnectionConfig();
   const [ addEndpointVisible, setAddEndpointVisible ] = useState(false)
   const location = useLocation();
   const history = useHistory();
@@ -63,6 +63,17 @@ export default function TopBar() {
     setEndpoint(info.endpoint);
     setCustomEndpoints(newCustomEndpoints);
   }
+
+  const endpointInfoCustom = endpointInfo && endpointInfo.custom
+  useEffect(() => {
+    const handler = () => {
+      if (endpointInfoCustom) {
+        setEndpoint(ENDPOINTS[0].endpoint)
+      }
+    }
+    window.addEventListener("beforeunload", handler)
+    return () => window.removeEventListener("beforeunload", handler)
+  }, [endpointInfoCustom, setEndpoint])
 
   return (
     <>
