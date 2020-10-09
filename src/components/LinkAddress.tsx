@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from 'antd';
 import { LinkOutlined } from '@ant-design/icons';
 
-export default function LinkAddress({ title, address }) {
+export default function LinkAddress({ title, address }: {title?: undefined | any; address: string;}) {
   return (
     <div>
       {title && <p style={{ color: 'white' }}>{title}</p>}
