@@ -8,7 +8,7 @@ import {
   getOpenOrdersAccountsBalance,
   useMarket,
   getMarketDetails,
-  useTokenAccounts, useMarketInfos,
+  useTokenAccounts, useMarketInfos, getMarketOrderPrice,
 } from '../utils/markets';
 import { notify } from '../utils/notifications';
 import { useWallet } from '../utils/wallet';
@@ -118,7 +118,7 @@ export default function ConvertForm() {
         market,
         currencyAccount,
       );
-      setBalance((openOrdersAccountBalance || 0.) + (currencyBalance || 0));
+      setBalance(((openOrdersAccountBalance || 0.) + (currencyBalance || 0)) * 0.97);
     };
 
     market && fetchBalance();
@@ -167,10 +167,10 @@ export default function ConvertForm() {
       return;
     }
 
-    const orderbookMarket =
+    const sidedOrderbookAccount =
       // @ts-ignore
       side === 'buy' ? market._decoded.asks : market._decoded.bids;
-    const orderbookData = await connection.getAccountInfo(orderbookMarket);
+    const orderbookData = await connection.getAccountInfo(sidedOrderbookAccount);
     if (!orderbookData?.data) {
       notify({ message: 'Invalid orderbook data', type: 'error' });
       return;
@@ -187,12 +187,11 @@ export default function ConvertForm() {
       notify({ message: 'Size not specified', type: 'error' });
       return;
     }
-    const parsedPrice =
-      Math.max(bbo + 100 * (side === 'buy' ? market.tickSize : -market.tickSize), market.tickSize);
+
+    const parsedPrice = getMarketOrderPrice(decodedOrderbookData, size);
 
     // round size
     const sizeDecimalCount = getDecimalCount(market.minOrderSize);
-
     const nativeSize = side === 'sell' ? size : size / parsedPrice;
     const parsedSize = floorToDecimal(nativeSize, sizeDecimalCount);
 

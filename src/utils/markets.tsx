@@ -1122,3 +1122,31 @@ export function useMarketInfos() {
   const { customMarkets } = useMarket();
   return getMarketInfos(customMarkets);
 }
+
+/**
+ * If selling, choose min tick size. If buying choose a price
+ * s.t. given the state of the orderbook, the order will spend
+ * `cost` cost currency.
+ *
+ * @param orderbook serum Orderbook object
+ * @param cost quantity to spend. Base currency if selling,
+ *  quote currency if buying.
+ */
+export function getMarketOrderPrice(
+  orderbook: Orderbook,
+  cost: number,
+) {
+  if (orderbook.isBids) {
+    return orderbook.market.tickSize;
+  }
+  let spentCost = 0.;
+  let price, sizeAtLevel, costAtLevel: number;
+  for ([price, sizeAtLevel] of orderbook.getL2(1000)) {
+    costAtLevel = price * sizeAtLevel;
+    if (spentCost + costAtLevel > cost) {
+      return price;
+    }
+    spentCost += costAtLevel;
+  }
+  return price;
+}
