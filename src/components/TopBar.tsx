@@ -90,21 +90,6 @@ export default function TopBar() {
         >
           <Menu.Item key="/">TRADE</Menu.Item>
         </Menu>
-        {connected && (
-          <div>
-            <Popover
-              content={<Settings autoApprove={wallet?.autoApprove} />}
-              placement="bottomRight"
-              title="Settings"
-              trigger="click"
-            >
-              <Button style={{ marginRight: 8 }}>
-                <SettingOutlined />
-                Settings
-              </Button>
-            </Popover>
-          </div>
-        )}
         <div>
           <Row
             align="middle"
@@ -142,6 +127,21 @@ export default function TopBar() {
             </Col>
           </Row>
         </div>
+        {connected && (
+          <div>
+            <Popover
+              content={<Settings autoApprove={wallet?.autoApprove} />}
+              placement="bottomRight"
+              title="Settings"
+              trigger="click"
+            >
+              <Button style={{ marginRight: 8 }}>
+                <SettingOutlined />
+                Settings
+              </Button>
+            </Popover>
+          </div>
+        )}
         <div>
           <Select onSelect={setProvider} value={providerUrl}>
             {WALLET_PROVIDERS.map(({ name, url }) => (

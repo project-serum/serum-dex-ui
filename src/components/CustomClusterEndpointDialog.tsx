@@ -21,6 +21,7 @@ export default function CustomClusterEndpointDialog({
       custom: true,
     }
     onAddCustomEndpoint(params);
+    onDoClose();
   };
   const onDoClose = () => {
     setCustomEndpoint('')
