@@ -60,7 +60,7 @@ export default function TopBar() {
       return;
     }
     const newCustomEndpoints = [...availableEndpoints.filter(e => e.custom), info];
-    setEndpoint(info.name);
+    setEndpoint(info.endpoint);
     setCustomEndpoints(newCustomEndpoints);
   }
 
