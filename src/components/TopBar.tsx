@@ -11,6 +11,7 @@ import Settings from './Settings';
 import CustomClusterEndpointDialog from "./CustomClusterEndpointDialog";
 import {EndpointInfo} from "../utils/types";
 import {notify} from "../utils/notifications";
+import {Connection} from "@solana/web3.js";
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -36,6 +37,7 @@ export default function TopBar() {
   const { connected, wallet, providerUrl, setProvider } = useWallet();
   const { endpoint, endpointInfo, setEndpoint, availableEndpoints, setCustomEndpoints } = useConnectionConfig();
   const [ addEndpointVisible, setAddEndpointVisible ] = useState(false)
+  const [ testingConnection, setTestingConnection] = useState(false)
   const location = useLocation();
   const history = useHistory();
 
@@ -59,9 +61,29 @@ export default function TopBar() {
       });
       return;
     }
-    const newCustomEndpoints = [...availableEndpoints.filter(e => e.custom), info];
-    setEndpoint(info.endpoint);
-    setCustomEndpoints(newCustomEndpoints);
+
+    const handleError = (e) => {
+      console.log(`Connection to ${info.endpoint} failed: ${e}`)
+      notify({
+        message: `Failed to connect to ${info.endpoint}`,
+        type: 'error',
+      });
+    }
+
+    try {
+      const connection = new Connection(info.endpoint, 'recent');
+      connection.getEpochInfo().then(result => {
+        setTestingConnection(true);
+        console.log(`testing connection to ${info.endpoint}`);
+        const newCustomEndpoints = [...availableEndpoints.filter(e => e.custom), info];
+        setEndpoint(info.endpoint);
+        setCustomEndpoints(newCustomEndpoints);
+      }).catch(handleError);
+    } catch (e) {
+      handleError(e);
+    } finally {
+      setTestingConnection(false);
+    }
   }
 
   const endpointInfoCustom = endpointInfo && endpointInfo.custom
@@ -79,6 +101,7 @@ export default function TopBar() {
     <>
       <CustomClusterEndpointDialog
         visible={addEndpointVisible}
+        testingConnection={testingConnection}
         onAddCustomEndpoint={onAddCustomEndpoint}
         onClose={() => setAddEndpointVisible(false)}
       />

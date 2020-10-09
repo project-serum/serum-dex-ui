@@ -4,10 +4,12 @@ import {EndpointInfo} from "../utils/types";
 
 export default function CustomClusterEndpointDialog({
   visible,
+  testingConnection,
   onAddCustomEndpoint,
   onClose,
 } : {
   visible: boolean;
+  testingConnection: boolean;
   onAddCustomEndpoint: (info: EndpointInfo) => void;
   onClose?: () => void;
 }) {
@@ -15,9 +17,10 @@ export default function CustomClusterEndpointDialog({
   const [ customEndpointName, setCustomEndpointName] = useState('');
 
   const onSubmit = () => {
+    const fullEndpoint = 'https://' + customEndpoint;
     const params = {
       name: customEndpointName,
-      endpoint: customEndpoint,
+      endpoint: fullEndpoint,
       custom: true,
     }
     onAddCustomEndpoint(params);
@@ -37,7 +40,7 @@ export default function CustomClusterEndpointDialog({
       onOk={onSubmit}
       okText={'Add'}
       onCancel={onDoClose}
-      okButtonProps={{ disabled: !canSubmit }}
+      okButtonProps={{ disabled: !canSubmit, loading: testingConnection }}
     >
       <Row style={{ marginBottom: 8 }}>
         <Col span={24}>
@@ -53,6 +56,7 @@ export default function CustomClusterEndpointDialog({
           <Input
             placeholder="Cluster Endpoint"
             value={customEndpoint}
+            addonBefore={'https://'}
             onChange={(e) => setCustomEndpoint(e.target.value)}
           />
         </Col>
