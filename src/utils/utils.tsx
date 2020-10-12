@@ -31,7 +31,7 @@ export function roundToDecimal(value, decimals) {
   return decimals ? Math.round(value * 10 ** decimals) / 10 ** decimals : value;
 }
 
-export function getDecimalCount(value) {
+export function getDecimalCount(value): number {
   if (!isNaN(value) && Math.floor(value) !== value)
     return value.toString().split('.')[1].length || 0;
   return 0;
