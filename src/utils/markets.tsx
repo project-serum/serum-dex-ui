@@ -25,7 +25,8 @@ import {
   MarketContextValues,
   MarketInfo,
   OrderWithMarket,
-  OrderWithMarketAndMarketName, SelectedTokenAccounts,
+  OrderWithMarketAndMarketName,
+  SelectedTokenAccounts,
   TokenAccount,
   Trade,
 } from "./types";
@@ -199,10 +200,10 @@ export function MarketProvider({ children }) {
     [],
   );
 
-  const address = new PublicKey(marketAddress);
+  const address = marketAddress && new PublicKey(marketAddress);
   const connection = useConnection();
   const marketInfos = getMarketInfos(customMarkets);
-  const marketInfo = marketInfos.find((market) =>
+  const marketInfo = address && marketInfos.find((market) =>
     market.address.equals(address),
   );
 

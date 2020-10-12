@@ -10,10 +10,12 @@ import {PreferencesContextValues} from "./types";
 const PreferencesContext = React.createContext<PreferencesContextValues | null>(null);
 
 export function PreferencesProvider({ children }) {
-  const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
+  const [autoSettleEnabledString, setAutoSettleEnabledString] = useLocalStorageState(
     'autoSettleEnabled',
-    false,
+    'false',
   );
+  const autoSettleEnabled = autoSettleEnabledString === 'true';
+  const setAutoSettleEnabled = (bool) => setAutoSettleEnabledString(bool.toString());
 
   const [tokenAccounts] = useTokenAccounts();
   const { connected, wallet } = useWallet();

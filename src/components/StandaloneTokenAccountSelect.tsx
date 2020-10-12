@@ -1,9 +1,9 @@
 import React from 'react';
 import {TokenAccount} from "../utils/types";
 import styled from 'styled-components';
-import {useSelectedTokenAccounts, useTokenAccounts} from "../utils/markets";
+import {useSelectedTokenAccounts} from "../utils/markets";
 import {Button, Col, Row, Select, Typography} from "antd";
-import { CopyOutlined } from '@ant-design/icons';
+import {CopyOutlined} from '@ant-design/icons';
 import {abbreviateAddress} from "../utils/utils";
 import {notify} from "../utils/notifications";
 
@@ -40,7 +40,7 @@ export default function StandaloneTokenAccountsSelect({
     }
     const newSelectedTokenAccounts = {...selectedTokenAccounts};
     newSelectedTokenAccounts[mint] = value;
-    setSelectedTokenAccounts(newSelectedTokenAccounts)
+    setSelectedTokenAccounts(newSelectedTokenAccounts);
   }
 
   return (

@@ -37,33 +37,83 @@ export function getDecimalCount(value): number {
   return 0;
 }
 
-export function useLocalStorageState<T = any>(key: string, defaultState: T | null = null): [T, (newState: T) => void] {
-  const [state, setState] = useState<T>(() => {
-    // NOTE: Not sure if this is ok
-    const storedState = localStorage.getItem(key);
-    if (storedState) {
-      return JSON.parse(storedState);
-    }
-    return defaultState;
-  });
+// export function useLocalStorageState<T = any>(key: string, defaultState: T | null = null): [T, (newState: T) => void] {
+//   const [state, setState] = useState<T>(() => {
+//     // NOTE: Not sure if this is ok
+//     const storedState = localStorage.getItem(key);
+//     if (storedState) {
+//       return JSON.parse(storedState);
+//     }
+//     return defaultState;
+//   });
+//
+//   const setLocalStorageState = useCallback<(newState: T) => void>(
+//     (newState) => {
+//       const changed = state !== newState;
+//       if (!changed) {
+//         return;
+//       }
+//       setState(newState);
+//       if (newState === null) {
+//         localStorage.removeItem(key);
+//       } else {
+//         localStorage.setItem(key, JSON.stringify(newState));
+//       }
+//     },
+//     [state, key],
+//   );
+//
+//   return [state, setLocalStorageState];
+// }
 
-  const setLocalStorageState = useCallback<(newState: T) => void>(
-    (newState) => {
-      const changed = state !== newState;
+const localStorageListeners = {};
+
+export function useLocalStorageStringState(
+  key: string,
+  defaultState: string | null = null,
+): [string | null, (newState: string | null) => void] {
+  const state = localStorage.getItem(key) || defaultState;
+
+  const [, notify] = useState(key + '\n' + state);
+
+  useEffect(() => {
+    if (!localStorageListeners[key]) {
+      localStorageListeners[key] = [];
+    }
+    localStorageListeners[key].push(notify);
+    return () => {
+      localStorageListeners[key] = localStorageListeners[key].filter(
+        listener => listener !== notify,
+      );
+      if (localStorageListeners[key].length === 0) {
+        delete localStorageListeners[key];
+      }
+    };
+  }, [key]);
+
+  const setState = useCallback<(newState: string | null) => void>(
+    newState => {
+      let changed = state !== newState;
       if (!changed) {
         return;
       }
-      setState(newState);
+
       if (newState === null) {
         localStorage.removeItem(key);
       } else {
-        localStorage.setItem(key, JSON.stringify(newState));
+        localStorage.setItem(key, newState);
       }
+      localStorageListeners[key].forEach(listener => listener(key + '\n' + newState));
     },
     [state, key],
   );
 
-  return [state, setLocalStorageState];
+  return [state, setState];
+}
+
+export function useLocalStorageState<T = any>(key: string, defaultState: T | null = null): [T, (newState: T) => void] {
+  let [stringState, setStringState] = useLocalStorageStringState(key, JSON.stringify(defaultState));
+  return [stringState && JSON.parse(stringState), newState => setStringState(JSON.stringify(newState))];
 }
 
 export function useEffectAfterTimeout(effect, timeout) {
