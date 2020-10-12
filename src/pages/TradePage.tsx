@@ -55,7 +55,7 @@ export default function TradePage() {
     document.title = marketName ? `${marketName} — Serum` : 'Serum';
   }, [marketName]);
 
-  const changeOrderRef = useRef();
+  const changeOrderRef = useRef<({ size, price }: {size?: number; price?: number;}) => void>();
 
   useEffect(() => {
     const handleResize = () => {
@@ -215,7 +215,7 @@ function MarketSelector({
       listHeight={400}
       value={selectedMarket}
       filterOption={(input, option) =>
-        option.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     >
       {customMarkets && customMarkets.length > 0 && (
@@ -227,6 +227,7 @@ function MarketSelector({
               name={name}
               style={{
                 padding: '10px',
+                // @ts-ignore
                 backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
               }}
             >
@@ -272,6 +273,7 @@ function MarketSelector({
               name={name}
               style={{
                 padding: '10px',
+                // @ts-ignore
                 backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
               }}
             >

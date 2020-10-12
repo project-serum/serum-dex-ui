@@ -15,6 +15,7 @@ import Link from './Link';
 import { settleFunds } from '../utils/send';
 import { useSendConnection } from '../utils/connection';
 import { notify } from '../utils/notifications';
+import {Balances} from "../utils/types";
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -46,6 +47,39 @@ export default function StandaloneBalancesDisplay() {
     balances && balances.find((b) => b.coin === quoteCurrency);
 
   async function onSettleFunds() {
+    if (!market) {
+      notify({
+        message: 'Error settling funds',
+        description: 'market is undefined',
+        type: 'error',
+      });
+      return;
+    }
+    if (!openOrdersAccount) {
+      notify({
+        message: 'Error settling funds',
+        description: 'Open orders account is undefined',
+        type: 'error',
+      });
+      return;
+    }
+    if (!baseCurrencyAccount) {
+      notify({
+        message: 'Error settling funds',
+        description: 'Open orders account is undefined',
+        type: 'error',
+      });
+      return;
+    }
+    if (!quoteCurrencyAccount) {
+      notify({
+        message: 'Error settling funds',
+        description: 'Open orders account is undefined',
+        type: 'error',
+      });
+      return;
+    }
+
     try {
       await settleFunds({
         market,
@@ -64,12 +98,14 @@ export default function StandaloneBalancesDisplay() {
     }
   }
 
+  const formattedBalances: [string | undefined, Balances | undefined, string][] = [
+    [baseCurrency, baseCurrencyBalances, 'base'],
+    [quoteCurrency, quoteCurrencyBalances, 'quote'],
+  ]
+
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
-      {[
-        [baseCurrency, baseCurrencyBalances, 'base'],
-        [quoteCurrency, quoteCurrencyBalances, 'quote'],
-      ].map(([currency, balances, baseOrQuote], index) => (
+      {formattedBalances.map(([currency, balances, baseOrQuote], index) => (
         <React.Fragment key={index}>
           <Divider style={{ borderColor: 'white' }}>{currency}</Divider>
           <RowBox

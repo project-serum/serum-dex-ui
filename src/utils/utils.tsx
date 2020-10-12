@@ -23,11 +23,11 @@ export const percentFormat = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 2,
 });
 
-export function floorToDecimal(value, decimals) {
+export function floorToDecimal(value: number, decimals: number | undefined | null) {
   return decimals ? Math.floor(value * 10 ** decimals) / 10 ** decimals : value;
 }
 
-export function roundToDecimal(value, decimals) {
+export function roundToDecimal(value: number, decimals: number | undefined | null) {
   return decimals ? Math.round(value * 10 ** decimals) / 10 ** decimals : value;
 }
 

@@ -42,7 +42,10 @@ const sliderMarks = {
   100: '100%',
 };
 
-export default function TradeForm({ style, setChangeOrderRef }) {
+export default function TradeForm({ style, setChangeOrderRef }: {
+  style?: any;
+  setChangeOrderRef?: (ref: ({ size, price }: {size?: number; price?: number;}) => void) => void;
+}) {
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const baseCurrencyBalances = useBaseCurrencyBalances();
@@ -120,7 +123,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     setBaseSize(baseSize);
   };
 
-  const doChangeOrder = ({ size, price }) => {
+  const doChangeOrder = ({ size, price }: {size?: number; price?: number;}) => {
     const formattedSize = size && roundToDecimal(size, sizeDecimalCount);
     const formattedPrice = price && roundToDecimal(price, priceDecimalCount);
     formattedSize && onSetBaseSize(formattedSize);
