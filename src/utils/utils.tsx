@@ -82,9 +82,9 @@ export function useListener(emitter, eventName) {
   }, [emitter, eventName]);
 }
 
-export function abbreviateAddress(address) {
+export function abbreviateAddress(address, size = 4) {
   const base58 = address.toBase58();
-  return base58.slice(0, 4) + '…' + base58.slice(-4);
+  return base58.slice(0, size) + '…' + base58.slice(-size);
 }
 
 export function isEqual(obj1, obj2, keys) {

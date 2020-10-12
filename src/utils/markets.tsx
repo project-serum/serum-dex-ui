@@ -25,7 +25,7 @@ import {
   MarketContextValues,
   MarketInfo,
   OrderWithMarket,
-  OrderWithMarketAndMarketName,
+  OrderWithMarketAndMarketName, SelectedTokenAccounts,
   TokenAccount,
   Trade,
 } from "./types";
@@ -263,6 +263,13 @@ export function MarketProvider({ children }) {
   );
 }
 
+export function useSelectedTokenAccounts(): [SelectedTokenAccounts, (newSelectedTokenAccounts: SelectedTokenAccounts) => void] {
+  const [selectedTokenAccounts, setSelectedTokenAccounts] = useLocalStorageState<SelectedTokenAccounts>(
+    'selectedTokenAccounts', {}
+    );
+  return [selectedTokenAccounts, setSelectedTokenAccounts]
+}
+
 export function useMarket() {
   const context = useContext(MarketContext);
   if (!context) {
@@ -398,12 +405,17 @@ export function useTokenAccounts(): [TokenAccount[] | null | undefined, boolean]
   );
 }
 
-export function getSelectedTokenAccountForMint(accounts: TokenAccount[] | undefined | null, mint: PublicKey | undefined) {
+export function getSelectedTokenAccountForMint(
+  accounts: TokenAccount[] | undefined | null,
+  mint: PublicKey | undefined,
+  selectedPubKey?: string | PublicKey,
+) {
   if (!accounts || !mint) {
     return null;
   }
-  const filtered = accounts.filter(({ effectiveMint }) =>
-    mint.equals(effectiveMint),
+  const filtered = accounts.filter(({ effectiveMint, pubkey }) =>
+    mint.equals(effectiveMint) && (!selectedPubKey ||
+    (typeof selectedPubKey === 'string' ? selectedPubKey : selectedPubKey.toBase58()) === pubkey.toBase58())
   );
   return filtered && filtered[0];
 }
@@ -421,7 +433,7 @@ export function useSelectedBaseCurrencyAccount() {
 }
 
 // TODO: Update to use websocket
-export function useQuoteCurrencyBalances() {
+export function useSelectedQuoteCurrencyBalances() {
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const { market } = useMarket();
   const [accountInfo, loaded] = useAccountInfo(quoteCurrencyAccount?.pubkey);
@@ -437,7 +449,7 @@ export function useQuoteCurrencyBalances() {
 }
 
 // TODO: Update to use websocket
-export function useBaseCurrencyBalances() {
+export function useSelectedBaseCurrencyBalances() {
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const { market } = useMarket();
   const [accountInfo, loaded] = useAccountInfo(baseCurrencyAccount?.pubkey);
@@ -639,8 +651,8 @@ export function useOpenOrdersForAllMarkets() {
 }
 
 export function useBalances(): Balances[] {
-  const baseCurrencyBalances = useBaseCurrencyBalances();
-  const quoteCurrencyBalances = useQuoteCurrencyBalances();
+  const baseCurrencyBalances = useSelectedBaseCurrencyBalances();
+  const quoteCurrencyBalances = useSelectedQuoteCurrencyBalances();
   const openOrders = useSelectedOpenOrdersAccount(true);
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const baseExists =

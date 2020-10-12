@@ -2,8 +2,8 @@ import { Button, Input, Radio, Switch, Slider } from 'antd';
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
-  useBaseCurrencyBalances,
-  useQuoteCurrencyBalances,
+  useSelectedBaseCurrencyBalances,
+  useSelectedQuoteCurrencyBalances,
   useMarket,
   useMarkPrice,
   useSelectedOpenOrdersAccount,
@@ -48,8 +48,8 @@ export default function TradeForm({ style, setChangeOrderRef }: {
 }) {
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const { baseCurrency, quoteCurrency, market } = useMarket();
-  const baseCurrencyBalances = useBaseCurrencyBalances();
-  const quoteCurrencyBalances = useQuoteCurrencyBalances();
+  const baseCurrencyBalances = useSelectedBaseCurrencyBalances();
+  const quoteCurrencyBalances = useSelectedQuoteCurrencyBalances();
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);

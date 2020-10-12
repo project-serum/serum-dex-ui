@@ -303,7 +303,7 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <Row
       style={{
-        minHeight: '800px',
+        minHeight: '900px',
         flexWrap: 'nowrap',
       }}
     >
@@ -330,7 +330,7 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
     <>
       <Row
         style={{
-          height: '800px',
+          height: '900px',
         }}
       >
         <Col flex="auto" style={{ height: '100%', display: 'flex' }}>

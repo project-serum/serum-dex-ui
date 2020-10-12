@@ -114,3 +114,10 @@ export interface EndpointInfo {
     endpoint: string;
     custom: boolean;
 }
+
+/**
+ * {tokenMint: preferred token account's base58 encoded public key}
+ */
+export interface SelectedTokenAccounts {
+    [tokenMint: string]: string;
+}
