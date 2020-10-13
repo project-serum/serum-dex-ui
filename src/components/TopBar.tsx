@@ -33,6 +33,10 @@ const LogoWrapper = styled.div`
   }
 `;
 
+const EXTERNAL_LINKS = {
+  '/learn': 'https://serum-academy.com/en/serum-dex/',
+}
+
 export default function TopBar() {
   const { connected, wallet, providerUrl, setProvider } = useWallet();
   const { endpoint, endpointInfo, setEndpoint, availableEndpoints, setCustomEndpoints } = useConnectionConfig();
@@ -45,7 +49,9 @@ export default function TopBar() {
 
   const handleClick = useCallback(
     (e) => {
-      history.push(e.key);
+      if (!(e.key in EXTERNAL_LINKS)) {
+        history.push(e.key);
+      }
     },
     [history],
   );
@@ -123,6 +129,11 @@ export default function TopBar() {
           }}
         >
           <Menu.Item key="/">TRADE</Menu.Item>
+          <Menu.Item key="/learn">
+            <a href={EXTERNAL_LINKS['/learn']} target="_blank" rel="noopener noreferrer">
+              LEARN
+            </a>
+          </Menu.Item>
         </Menu>
         <div>
           <Row
