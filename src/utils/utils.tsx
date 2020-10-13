@@ -64,7 +64,7 @@ export function useLocalStorageStringState(
 
   const setState = useCallback<(newState: string | null) => void>(
     newState => {
-      let changed = state !== newState;
+      const changed = state !== newState;
       if (!changed) {
         return;
       }
