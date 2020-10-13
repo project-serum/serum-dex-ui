@@ -7,7 +7,7 @@ import {
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
-import {AccountInfo, PublicKey, RpcResponseAndContext, TokenAmount} from '@solana/web3.js';
+import {PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
 import {useLocalStorageState} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
@@ -30,7 +30,6 @@ import {
   TokenAccount,
   Trade,
 } from "./types";
-import {Buffer} from "buffer";
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -409,7 +408,7 @@ export function useTokenAccounts(): [TokenAccount[] | null | undefined, boolean]
 export function getSelectedTokenAccountForMint(
   accounts: TokenAccount[] | undefined | null,
   mint: PublicKey | undefined,
-  selectedPubKey?: string | PublicKey,
+  selectedPubKey?: string | PublicKey | null,
 ) {
   if (!accounts || !mint) {
     return null;
@@ -424,13 +423,25 @@ export function getSelectedTokenAccountForMint(
 export function useSelectedQuoteCurrencyAccount() {
   const [accounts] = useTokenAccounts();
   const { market } = useMarket();
-  return getSelectedTokenAccountForMint(accounts, market?.quoteMintAddress);
+  const [selectedTokenAccounts] = useSelectedTokenAccounts();
+  const mintAddress =  market?.quoteMintAddress;
+  return getSelectedTokenAccountForMint(
+    accounts,
+    mintAddress,
+    mintAddress && selectedTokenAccounts[mintAddress.toBase58()]
+  );
 }
 
 export function useSelectedBaseCurrencyAccount() {
   const [accounts] = useTokenAccounts();
   const { market } = useMarket();
-  return getSelectedTokenAccountForMint(accounts, market?.baseMintAddress);
+  const [selectedTokenAccounts] = useSelectedTokenAccounts();
+  const mintAddress =  market?.baseMintAddress;
+  return getSelectedTokenAccountForMint(
+    accounts,
+    mintAddress,
+    mintAddress && selectedTokenAccounts[mintAddress.toBase58()]
+  );
 }
 
 // TODO: Update to use websocket
@@ -774,16 +785,16 @@ export function useWalletBalancesForAllMarkets() {
   // );
 }
 
-async function getCurrencyBalance(market: Market, connection, wallet, base = true) {
-  const currencyAccounts: { pubkey: PublicKey; account: AccountInfo<Buffer> }[] = base
-    ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
-    : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
-  const currencyAccount = currencyAccounts && currencyAccounts[0];
-  const tokenAccountBalances: RpcResponseAndContext<TokenAmount> = await connection.getTokenAccountBalance(
-    currencyAccount.pubkey,
-  );
-  return tokenAccountBalances?.value?.uiAmount;
-}
+// async function getCurrencyBalance(market: Market, connection, wallet, base = true) {
+//   const currencyAccounts: { pubkey: PublicKey; account: AccountInfo<Buffer> }[] = base
+//     ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
+//     : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
+//   const currencyAccount = currencyAccounts && currencyAccounts[0];
+//   const tokenAccountBalances: RpcResponseAndContext<TokenAmount> = await connection.getTokenAccountBalance(
+//     currencyAccount.pubkey,
+//   );
+//   return tokenAccountBalances?.value?.uiAmount;
+// }
 
 export function useOpenOrderAccountBalancesForAllMarkets() {
   return [[], true]

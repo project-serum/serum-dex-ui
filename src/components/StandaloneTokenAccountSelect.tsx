@@ -8,7 +8,7 @@ import {abbreviateAddress} from "../utils/utils";
 import {notify} from "../utils/notifications";
 
 const RowBox = styled(Row)`
-  padding-bottom: 20px;
+  padding-bottom: 10px;
 `;
 
 export default function StandaloneTokenAccountsSelect({

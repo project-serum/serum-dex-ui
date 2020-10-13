@@ -3,32 +3,31 @@ import { useLocalStorageState } from './utils';
 import { useInterval } from './useInterval';
 import { useConnection } from './connection';
 import { useWallet } from './wallet';
-import { useAllMarkets, useTokenAccounts, useMarket } from './markets';
+import {useAllMarkets, useTokenAccounts, useMarket, useSelectedTokenAccounts} from './markets';
 import { settleAllFunds } from './send';
 import {PreferencesContextValues} from "./types";
 
 const PreferencesContext = React.createContext<PreferencesContextValues | null>(null);
 
 export function PreferencesProvider({ children }) {
-  const [autoSettleEnabledString, setAutoSettleEnabledString] = useLocalStorageState(
+  const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
     'autoSettleEnabled',
-    'false',
+    false,
   );
-  const autoSettleEnabled = autoSettleEnabledString === 'true';
-  const setAutoSettleEnabled = (bool) => setAutoSettleEnabledString(bool.toString());
 
   const [tokenAccounts] = useTokenAccounts();
   const { connected, wallet } = useWallet();
   const { customMarkets } = useMarket();
   const marketList = useAllMarkets(customMarkets);
   const connection = useConnection();
+  const [selectedTokenAccounts] = useSelectedTokenAccounts();
 
   useInterval(() => {
     const autoSettle = async () => {
       const markets = marketList.map((m) => m.market);
       try {
         console.log('Auto settling');
-        await settleAllFunds({ connection, wallet, tokenAccounts, markets });
+        await settleAllFunds({ connection, wallet, tokenAccounts: (tokenAccounts || []), markets, selectedTokenAccounts });
       } catch (e) {
         console.log('Error auto settling funds: ' + e.message);
       }

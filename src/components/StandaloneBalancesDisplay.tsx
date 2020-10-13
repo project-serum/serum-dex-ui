@@ -1,5 +1,5 @@
-import {Button, Col, Divider, Row, Select} from 'antd';
-import React, { useState } from 'react';
+import {Button, Col, Divider, Row} from 'antd';
+import React, {useState} from 'react';
 import FloatingElement from './layout/FloatingElement';
 import styled from 'styled-components';
 import {
@@ -7,14 +7,15 @@ import {
   useMarket,
   useSelectedBaseCurrencyAccount,
   useSelectedOpenOrdersAccount,
-  useSelectedQuoteCurrencyAccount, useTokenAccounts,
+  useSelectedQuoteCurrencyAccount,
+  useTokenAccounts,
 } from '../utils/markets';
 import DepositDialog from './DepositDialog';
-import { useWallet } from '../utils/wallet';
+import {useWallet} from '../utils/wallet';
 import Link from './Link';
-import { settleFunds } from '../utils/send';
-import { useSendConnection } from '../utils/connection';
-import { notify } from '../utils/notifications';
+import {settleFunds} from '../utils/send';
+import {useSendConnection} from '../utils/connection';
+import {notify} from '../utils/notifications';
 import {Balances} from "../utils/types";
 import StandaloneTokenAccountsSelect from "./StandaloneTokenAccountSelect";
 
