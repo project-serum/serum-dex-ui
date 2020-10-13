@@ -2,8 +2,8 @@ import { Button, Input, Radio, Switch, Slider } from 'antd';
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
-  useBaseCurrencyBalances,
-  useQuoteCurrencyBalances,
+  useSelectedBaseCurrencyBalances,
+  useSelectedQuoteCurrencyBalances,
   useMarket,
   useMarkPrice,
   useSelectedOpenOrdersAccount,
@@ -20,6 +20,7 @@ import {
 import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { placeOrder } from '../utils/send';
+import {SwitchChangeEventHandler} from "antd/es/switch";
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
@@ -41,11 +42,14 @@ const sliderMarks = {
   100: '100%',
 };
 
-export default function TradeForm({ style, setChangeOrderRef }) {
-  const [side, setSide] = useState('buy');
+export default function TradeForm({ style, setChangeOrderRef }: {
+  style?: any;
+  setChangeOrderRef?: (ref: ({ size, price }: {size?: number; price?: number;}) => void) => void;
+}) {
+  const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const { baseCurrency, quoteCurrency, market } = useMarket();
-  const baseCurrencyBalances = useBaseCurrencyBalances();
-  const quoteCurrencyBalances = useQuoteCurrencyBalances();
+  const baseCurrencyBalances = useSelectedBaseCurrencyBalances();
+  const quoteCurrencyBalances = useSelectedQuoteCurrencyBalances();
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
@@ -55,13 +59,13 @@ export default function TradeForm({ style, setChangeOrderRef }) {
 
   const [postOnly, setPostOnly] = useState(false);
   const [ioc, setIoc] = useState(false);
-  const [baseSize, setBaseSize] = useState(null);
-  const [quoteSize, setQuoteSize] = useState(null);
-  const [price, setPrice] = useState(null);
+  const [baseSize, setBaseSize] = useState<number | undefined>(undefined);
+  const [quoteSize, setQuoteSize] = useState<number | undefined>(undefined);
+  const [price, setPrice] = useState<number | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
   const [sizeFraction, setSizeFraction] = useState(0);
 
-  const availableQuote = openOrdersAccount
+  const availableQuote = openOrdersAccount && market
     ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
     : 0;
 
@@ -86,22 +90,40 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [price, baseSize]);
 
-  const onSetBaseSize = (baseSize) => {
+  const onSetBaseSize = (baseSize: number | undefined) => {
     setBaseSize(baseSize);
-    const rawQuoteSize = baseSize * (price || markPrice);
+    if (!baseSize) {
+      setQuoteSize(undefined);
+      return;
+    }
+    let usePrice = price || markPrice;
+    if (!usePrice) {
+      setQuoteSize(undefined);
+      return;
+    }
+    const rawQuoteSize = baseSize * usePrice;
     const quoteSize =
       baseSize && roundToDecimal(rawQuoteSize, sizeDecimalCount);
     setQuoteSize(quoteSize);
   };
 
-  const onSetQuoteSize = (quoteSize) => {
+  const onSetQuoteSize = (quoteSize: number | undefined) => {
     setQuoteSize(quoteSize);
-    const rawBaseSize = quoteSize / price;
+    if (!quoteSize) {
+      setBaseSize(undefined);
+      return;
+    }
+    let usePrice = price || markPrice;
+    if (!usePrice) {
+      setBaseSize(undefined);
+      return;
+    }
+    const rawBaseSize = quoteSize / usePrice;
     const baseSize = quoteSize && roundToDecimal(rawBaseSize, sizeDecimalCount);
     setBaseSize(baseSize);
   };
 
-  const doChangeOrder = ({ size, price }) => {
+  const doChangeOrder = ({ size, price }: {size?: number; price?: number;}) => {
     const formattedSize = size && roundToDecimal(size, sizeDecimalCount);
     const formattedPrice = price && roundToDecimal(price, priceDecimalCount);
     formattedSize && onSetBaseSize(formattedSize);
@@ -109,24 +131,24 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   };
 
   const updateSizeFraction = () => {
-    const rawMaxSize = side === 'buy' ? quoteBalance / price : baseBalance;
+    const rawMaxSize = side === 'buy' ? quoteBalance / (price || markPrice || 1.) : baseBalance;
     const maxSize = floorToDecimal(rawMaxSize, sizeDecimalCount);
-    const sizeFraction = Math.min((baseSize / maxSize) * 100, 100);
+    const sizeFraction = Math.min(((baseSize || 0.) / maxSize) * 100, 100);
     setSizeFraction(sizeFraction);
   };
 
   const onSliderChange = (value) => {
     if (!price && markPrice) {
-      let formattedMarkPrice = priceDecimalCount
+      let formattedMarkPrice: number | string = priceDecimalCount
         ? markPrice.toFixed(priceDecimalCount)
         : markPrice;
-      setPrice(formattedMarkPrice);
+      setPrice(typeof formattedMarkPrice === 'number' ? formattedMarkPrice : parseFloat(formattedMarkPrice));
     }
 
     let newSize;
     if (side === 'buy') {
       if (price || markPrice) {
-        newSize = ((quoteBalance / (price || markPrice)) * value) / 100;
+        newSize = ((quoteBalance / (price || markPrice || 1.)) * value) / 100;
       }
     } else {
       newSize = (baseBalance * value) / 100;
@@ -138,13 +160,13 @@ export default function TradeForm({ style, setChangeOrderRef }) {
     onSetBaseSize(formatted);
   };
 
-  const postOnChange = (checked) => {
+  const postOnChange: SwitchChangeEventHandler = (checked) => {
     if (checked) {
       setIoc(false);
     }
     setPostOnly(checked);
   };
-  const iocOnChange = (checked) => {
+  const iocOnChange: SwitchChangeEventHandler = (checked) => {
     if (checked) {
       setPostOnly(false);
     }
@@ -152,15 +174,28 @@ export default function TradeForm({ style, setChangeOrderRef }) {
   };
 
   async function onSubmit() {
-    const parsedPrice = parseFloat(price);
-    const parsedSize = parseFloat(baseSize);
+    if (!price) {
+      console.warn('Missing price');
+      notify({
+        message: 'Missing price',
+        type: 'error',
+      });
+      return;
+    } else if (!baseSize) {
+      console.warn('Missing size');
+      notify({
+        message: 'Missing size',
+        type: 'error',
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
       await placeOrder({
         side,
-        price: parsedPrice,
-        size: parsedSize,
+        price,
+        size: baseSize,
         orderType: ioc ? 'ioc' : postOnly ? 'postOnly' : 'limit',
         market,
         connection: sendConnection,
@@ -168,8 +203,8 @@ export default function TradeForm({ style, setChangeOrderRef }) {
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
       });
-      setPrice(null);
-      onSetBaseSize(null);
+      setPrice(undefined);
+      onSetBaseSize(undefined);
     } catch (e) {
       console.warn(e);
       notify({
@@ -228,7 +263,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
           value={price}
           type="number"
           step={market?.tickSize || 1}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={(e) => setPrice(parseFloat(e.target.value))}
         />
         <Input.Group compact style={{ paddingBottom: 8 }}>
           <Input
@@ -240,7 +275,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
             value={baseSize}
             type="number"
             step={market?.minOrderSize || 1}
-            onChange={(e) => onSetBaseSize(e.target.value)}
+            onChange={(e) => onSetBaseSize(parseFloat(e.target.value))}
           />
           <Input
             style={{ width: 'calc(50% - 30px)', textAlign: 'right' }}
@@ -252,7 +287,7 @@ export default function TradeForm({ style, setChangeOrderRef }) {
             value={quoteSize}
             type="number"
             step={market?.minOrderSize || 1}
-            onChange={(e) => onSetQuoteSize(e.target.value)}
+            onChange={(e) => onSetQuoteSize(parseFloat(e.target.value))}
           />
         </Input.Group>
         <Slider

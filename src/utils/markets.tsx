@@ -7,7 +7,7 @@ import {
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
-import {AccountInfo, PublicKey, RpcResponseAndContext, TokenAmount} from '@solana/web3.js';
+import {PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
 import {useLocalStorageState} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
@@ -26,10 +26,10 @@ import {
   MarketInfo,
   OrderWithMarket,
   OrderWithMarketAndMarketName,
+  SelectedTokenAccounts,
   TokenAccount,
   Trade,
 } from "./types";
-import {Buffer} from "buffer";
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -199,10 +199,10 @@ export function MarketProvider({ children }) {
     [],
   );
 
-  const address = new PublicKey(marketAddress);
+  const address = marketAddress && new PublicKey(marketAddress);
   const connection = useConnection();
   const marketInfos = getMarketInfos(customMarkets);
-  const marketInfo = marketInfos.find((market) =>
+  const marketInfo = address && marketInfos.find((market) =>
     market.address.equals(address),
   );
 
@@ -261,6 +261,13 @@ export function MarketProvider({ children }) {
       {children}
     </MarketContext.Provider>
   );
+}
+
+export function useSelectedTokenAccounts(): [SelectedTokenAccounts, (newSelectedTokenAccounts: SelectedTokenAccounts) => void] {
+  const [selectedTokenAccounts, setSelectedTokenAccounts] = useLocalStorageState<SelectedTokenAccounts>(
+    'selectedTokenAccounts', {}
+    );
+  return [selectedTokenAccounts, setSelectedTokenAccounts]
 }
 
 export function useMarket() {
@@ -398,12 +405,17 @@ export function useTokenAccounts(): [TokenAccount[] | null | undefined, boolean]
   );
 }
 
-export function getSelectedTokenAccountForMint(accounts: TokenAccount[] | undefined | null, mint: PublicKey | undefined) {
+export function getSelectedTokenAccountForMint(
+  accounts: TokenAccount[] | undefined | null,
+  mint: PublicKey | undefined,
+  selectedPubKey?: string | PublicKey | null,
+) {
   if (!accounts || !mint) {
     return null;
   }
-  const filtered = accounts.filter(({ effectiveMint }) =>
-    mint.equals(effectiveMint),
+  const filtered = accounts.filter(({ effectiveMint, pubkey }) =>
+    mint.equals(effectiveMint) && (!selectedPubKey ||
+    (typeof selectedPubKey === 'string' ? selectedPubKey : selectedPubKey.toBase58()) === pubkey.toBase58())
   );
   return filtered && filtered[0];
 }
@@ -411,17 +423,29 @@ export function getSelectedTokenAccountForMint(accounts: TokenAccount[] | undefi
 export function useSelectedQuoteCurrencyAccount() {
   const [accounts] = useTokenAccounts();
   const { market } = useMarket();
-  return getSelectedTokenAccountForMint(accounts, market?.quoteMintAddress);
+  const [selectedTokenAccounts] = useSelectedTokenAccounts();
+  const mintAddress =  market?.quoteMintAddress;
+  return getSelectedTokenAccountForMint(
+    accounts,
+    mintAddress,
+    mintAddress && selectedTokenAccounts[mintAddress.toBase58()]
+  );
 }
 
 export function useSelectedBaseCurrencyAccount() {
   const [accounts] = useTokenAccounts();
   const { market } = useMarket();
-  return getSelectedTokenAccountForMint(accounts, market?.baseMintAddress);
+  const [selectedTokenAccounts] = useSelectedTokenAccounts();
+  const mintAddress =  market?.baseMintAddress;
+  return getSelectedTokenAccountForMint(
+    accounts,
+    mintAddress,
+    mintAddress && selectedTokenAccounts[mintAddress.toBase58()]
+  );
 }
 
 // TODO: Update to use websocket
-export function useQuoteCurrencyBalances() {
+export function useSelectedQuoteCurrencyBalances() {
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const { market } = useMarket();
   const [accountInfo, loaded] = useAccountInfo(quoteCurrencyAccount?.pubkey);
@@ -437,7 +461,7 @@ export function useQuoteCurrencyBalances() {
 }
 
 // TODO: Update to use websocket
-export function useBaseCurrencyBalances() {
+export function useSelectedBaseCurrencyBalances() {
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const { market } = useMarket();
   const [accountInfo, loaded] = useAccountInfo(baseCurrencyAccount?.pubkey);
@@ -639,8 +663,8 @@ export function useOpenOrdersForAllMarkets() {
 }
 
 export function useBalances(): Balances[] {
-  const baseCurrencyBalances = useBaseCurrencyBalances();
-  const quoteCurrencyBalances = useQuoteCurrencyBalances();
+  const baseCurrencyBalances = useSelectedBaseCurrencyBalances();
+  const quoteCurrencyBalances = useSelectedQuoteCurrencyBalances();
   const openOrders = useSelectedOpenOrdersAccount(true);
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const baseExists =
@@ -761,16 +785,16 @@ export function useWalletBalancesForAllMarkets() {
   // );
 }
 
-async function getCurrencyBalance(market: Market, connection, wallet, base = true) {
-  const currencyAccounts: { pubkey: PublicKey; account: AccountInfo<Buffer> }[] = base
-    ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
-    : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
-  const currencyAccount = currencyAccounts && currencyAccounts[0];
-  const tokenAccountBalances: RpcResponseAndContext<TokenAmount> = await connection.getTokenAccountBalance(
-    currencyAccount.pubkey,
-  );
-  return tokenAccountBalances?.value?.uiAmount;
-}
+// async function getCurrencyBalance(market: Market, connection, wallet, base = true) {
+//   const currencyAccounts: { pubkey: PublicKey; account: AccountInfo<Buffer> }[] = base
+//     ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
+//     : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
+//   const currencyAccount = currencyAccounts && currencyAccounts[0];
+//   const tokenAccountBalances: RpcResponseAndContext<TokenAmount> = await connection.getTokenAccountBalance(
+//     currencyAccount.pubkey,
+//   );
+//   return tokenAccountBalances?.value?.uiAmount;
+// }
 
 export function useOpenOrderAccountBalancesForAllMarkets() {
   return [[], true]

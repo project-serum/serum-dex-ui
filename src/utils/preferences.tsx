@@ -3,7 +3,7 @@ import { useLocalStorageState } from './utils';
 import { useInterval } from './useInterval';
 import { useConnection } from './connection';
 import { useWallet } from './wallet';
-import { useAllMarkets, useTokenAccounts, useMarket } from './markets';
+import {useAllMarkets, useTokenAccounts, useMarket, useSelectedTokenAccounts} from './markets';
 import { settleAllFunds } from './send';
 import {PreferencesContextValues} from "./types";
 
@@ -20,13 +20,14 @@ export function PreferencesProvider({ children }) {
   const { customMarkets } = useMarket();
   const marketList = useAllMarkets(customMarkets);
   const connection = useConnection();
+  const [selectedTokenAccounts] = useSelectedTokenAccounts();
 
   useInterval(() => {
     const autoSettle = async () => {
       const markets = marketList.map((m) => m.market);
       try {
         console.log('Auto settling');
-        await settleAllFunds({ connection, wallet, tokenAccounts, markets });
+        await settleAllFunds({ connection, wallet, tokenAccounts: (tokenAccounts || []), markets, selectedTokenAccounts });
       } catch (e) {
         console.log('Error auto settling funds: ' + e.message);
       }

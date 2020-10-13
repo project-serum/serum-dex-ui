@@ -16,7 +16,7 @@ import {
   OpenOrders,
 } from '@project-serum/serum';
 import Wallet from "@project-serum/sol-wallet-adapter";
-import {TokenAccount} from "./types";
+import {SelectedTokenAccounts, TokenAccount} from "./types";
 import {Order} from "@project-serum/serum/lib/market";
 
 export async function createTokenAccountTransaction({
@@ -160,6 +160,13 @@ export async function settleAllFunds({
   wallet,
   tokenAccounts,
   markets,
+  selectedTokenAccounts,
+} : {
+  connection: Connection;
+  wallet: Wallet;
+  tokenAccounts: TokenAccount[];
+  markets: Market[];
+  selectedTokenAccounts?: SelectedTokenAccounts;
 }) {
   if (!markets || !wallet || !connection || !tokenAccounts) {
     return;
@@ -168,6 +175,7 @@ export async function settleAllFunds({
   const programIds: PublicKey[] = [];
   markets
     .reduce((cumulative, m) => {
+      // @ts-ignore
       cumulative.push(m._programId);
       return cumulative;
     }, [])
@@ -201,29 +209,42 @@ export async function settleAllFunds({
   const settleTransactions = (await Promise.all(
     openOrdersAccounts.map((openOrdersAccount) => {
       const market = markets.find((m) =>
+        // @ts-ignore
         m._decoded?.ownAddress?.equals(openOrdersAccount.market),
       );
+      const baseMint = market?.baseMintAddress;
+      const quoteMint = market?.quoteMintAddress;
+
+      const selectedBaseTokenAccount = getSelectedTokenAccountForMint(
+        tokenAccounts,
+        baseMint,
+        baseMint && selectedTokenAccounts && selectedTokenAccounts[baseMint.toBase58()]
+      )?.pubkey;
+      const selectedQuoteTokenAccount = getSelectedTokenAccountForMint(
+        tokenAccounts,
+        quoteMint,
+        quoteMint && selectedTokenAccounts && selectedTokenAccounts[quoteMint.toBase58()]
+      )?.pubkey;
+      if (!selectedBaseTokenAccount || !selectedQuoteTokenAccount) {
+        return null;
+      }
       return (
         market &&
         market.makeSettleFundsTransaction(
           connection,
           openOrdersAccount,
-          getSelectedTokenAccountForMint(tokenAccounts, market?.baseMintAddress)
-            ?.pubkey,
-          getSelectedTokenAccountForMint(
-            tokenAccounts,
-            market?.quoteMintAddress,
-          )?.pubkey,
+          selectedBaseTokenAccount,
+          selectedQuoteTokenAccount,
         )
       );
     }),
-  )).filter((x) => x);
+  )).filter((x): x is {signers: [PublicKey | Account]; transaction: Transaction} => !!x);
   if (!settleTransactions || settleTransactions.length === 0) return;
 
   const transactions = settleTransactions.slice(0, 4).map((t) => t.transaction);
-  const signers: (Account | PublicKey)[] = [];
+  const signers: Array<Account | PublicKey> = [];
   settleTransactions
-    .reduce((cumulative, t) => cumulative.concat(t.signers), [])
+    .reduce((cumulative: Array<Account | PublicKey>, t) => cumulative.concat(t.signers), [])
     .forEach((signer) => {
       if (!signers.find((s) => {
         if (s.constructor.name !== signer.constructor.name) {
