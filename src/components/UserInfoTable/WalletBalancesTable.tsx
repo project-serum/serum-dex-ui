@@ -16,12 +16,12 @@ export default function WalletBalancesTable({
       key: 'walletBalance',
     },
     {
-      title: 'Open orders total',
+      title: 'Open orders total balances',
       dataIndex: 'openOrdersTotal',
       key: 'openOrdersTotal',
     },
     {
-      title: 'Unsettled',
+      title: 'Unsettled balances',
       dataIndex: 'openOrdersFree',
       key: 'openOrdersFree',
     },

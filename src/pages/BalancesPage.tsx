@@ -1,9 +1,15 @@
 import React from 'react';
 import {Tabs} from 'antd';
-import {useAllOpenOrdersBalances, useWalletBalancesForAllMarkets,} from '../utils/markets';
+import {
+  useAllOpenOrdersBalances,
+  useSelectedTokenAccounts,
+  useTokenAccounts,
+  useWalletBalancesForAllMarkets,
+} from '../utils/markets';
 import FloatingElement from '../components/layout/FloatingElement';
 import WalletBalancesTable from '../components/UserInfoTable/WalletBalancesTable';
 import {useMintToTickers} from "../utils/tokens";
+import AccountsTable from "../components/UserInfoTable/AccountsTable";
 
 const { TabPane } = Tabs;
 
@@ -11,6 +17,8 @@ export default function BalancesPage() {
   const walletBalances = useWalletBalancesForAllMarkets();
   const mintToTickers = useMintToTickers();
   const openOrdersBalances = useAllOpenOrdersBalances();
+  const [selectedTokenAccounts, setSelectedTokenAccounts] = useSelectedTokenAccounts();
+  const [tokenAccounts] = useTokenAccounts();
 
   const data = (walletBalances || []).map(balance => {
     const balances = {
@@ -38,12 +46,12 @@ export default function BalancesPage() {
             walletBalances={data}
           />
         </TabPane>
-        {/*<TabPane tab="Market balances" key="marketBalances">*/}
-        {/*  <AccountsTable*/}
-        {/*    loaded={accountBalancesLoaded}*/}
-        {/*    accountBalances={accountBalances}*/}
-        {/*  />*/}
-        {/*</TabPane>*/}
+        <TabPane tab="Market balances" key="marketBalances">
+          {/*<AccountsTable*/}
+          {/*  loaded={accountBalancesLoaded}*/}
+          {/*  accountBalances={accountBalances}*/}
+          {/*/>*/}
+        </TabPane>
       </Tabs>
     </FloatingElement>
   );

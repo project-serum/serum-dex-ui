@@ -70,9 +70,10 @@ export default function AccountsTable({ accountBalances, loaded }) {
     <DataTable
       emptyLabel="No balances"
       dataSource={accountBalances}
-      columns={columns.map((data) => ({
+      columns={columns.map((data, i) => ({
         ...data,
-        key: `${data.market}${data.coin}`,
+        // key: `${data.market}${data.coin}`,
+        key: i
       }))}
       pagination={false}
     />

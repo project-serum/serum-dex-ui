@@ -755,6 +755,52 @@ export function useAllOpenOrdersBalances() {
   return openOrdersBalances
 }
 
+export function useAllOpenOrders() {
+  const connection = useConnection();
+  const { connected } = useWallet();
+  const [openOrdersAccounts, openOrdersAccountsConnected] = useAllOpenOrdersAccounts();
+  const { customMarkets } = useMarket();
+  const [marketInfos, marketInfosConnected] = useAllMarkets(customMarkets);
+  const openOrdersAccountsByAddress: {[marketAddress: string]: OpenOrders[]} = {}
+  for (let account of (openOrdersAccounts || [])) {
+    const marketsAddr = account.market.toBase58()
+    if (!(marketsAddr in openOrdersAccountsByAddress)) {
+      openOrdersAccountsByAddress[marketsAddr] = [];
+    }
+    openOrdersAccountsByAddress[marketsAddr].push(account);
+  }
+  const marketsByAddress = Object.fromEntries((marketInfos || []).map(info => [info.market.publicKey.toBase58(), info]))
+  const getAllOpenOrders = async () => {
+    return await Promise.all(Object.keys(openOrdersAccountsByAddress).map(async (marketAddr) => {
+      const market = marketsByAddress[marketAddr].market;
+      const [bids, asks] = await Promise.all([
+        market.loadBids(connection),
+        market.loadAsks(connection),
+      ]);
+      return {
+        orders: market.filterForOpenOrders(bids, asks, openOrdersAccountsByAddress[marketAddr]),
+        marketAddress: marketAddr,
+      };
+    }));
+  }
+  const cacheKey = tuple(
+    'getAllOpenOrders',
+    openOrdersAccountsConnected,
+    (openOrdersAccounts || []).length,
+    connection,
+    connected,
+    marketInfosConnected
+  );
+  const [openOrders, loaded] = useAsyncData(
+    getAllOpenOrders,
+    cacheKey,
+    {refreshInterval: _VERY_SLOW_REFRESH_INTERVAL}
+  );
+  return {
+    openOrders, loaded, refreshOpenOrders: () => refreshCache(cacheKey)
+  };
+}
+
 export function useBalances(): Balances[] {
   const baseCurrencyBalances = useSelectedBaseCurrencyBalances();
   const quoteCurrencyBalances = useSelectedQuoteCurrencyBalances();
