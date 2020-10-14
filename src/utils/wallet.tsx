@@ -3,25 +3,35 @@ import Wallet from '@project-serum/sol-wallet-adapter';
 import { notify } from './notifications';
 import { useConnectionConfig } from './connection';
 import { useLocalStorageState } from './utils';
+import {WalletContextValues} from "./types";
 
 export const WALLET_PROVIDERS = [
   { name: 'sollet.io', url: 'https://www.sollet.io' },
 ];
 
-const WalletContext = React.createContext(null);
+const WalletContext = React.createContext<null | WalletContextValues>(null);
 
 export function WalletProvider({ children }) {
   const { endpoint } = useConnectionConfig();
-  const [providerUrl, setProviderUrl] = useLocalStorageState(
+
+  const [savedProviderUrl, setProviderUrl] = useLocalStorageState(
     'walletProvider',
     'https://www.sollet.io',
   );
+  let providerUrl;
+  if (!savedProviderUrl) {
+    providerUrl = 'https://www.sollet.io';
+  } else {
+    providerUrl = savedProviderUrl;
+  }
+
   const wallet = useMemo(() => new Wallet(providerUrl, endpoint), [
     providerUrl,
     endpoint,
   ]);
 
   const [connected, setConnected] = useState(false);
+
   useEffect(() => {
     console.log('trying to connect');
     wallet.on('connect', () => {
@@ -52,6 +62,7 @@ export function WalletProvider({ children }) {
       setConnected(false);
     };
   }, [wallet]);
+
   return (
     <WalletContext.Provider
       value={{
@@ -71,6 +82,9 @@ export function WalletProvider({ children }) {
 
 export function useWallet() {
   const context = useContext(WalletContext);
+  if (!context) {
+    throw new Error('Missing wallet context')
+  }
   return {
     connected: context.connected,
     wallet: context.wallet,

@@ -1,28 +1,35 @@
-import { useLocalStorageState } from './utils';
-import { Account, clusterApiUrl, Connection } from '@solana/web3.js';
-import React, { useContext, useEffect, useMemo } from 'react';
-import { setCache, useAsyncData } from './fetch-loop';
+import {useLocalStorageState} from './utils';
+import {Account, AccountInfo, clusterApiUrl, Connection, PublicKey} from '@solana/web3.js';
+import React, {useContext, useEffect, useMemo} from 'react';
+import {setCache, useAsyncData} from './fetch-loop';
 import tuple from 'immutable-tuple';
+import {ConnectionContextValues, EndpointInfo} from "./types";
 
-export const ENDPOINTS = [
+export const ENDPOINTS: EndpointInfo[] = [
   {
     name: 'mainnet-beta',
     endpoint: 'https://solana-api.projectserum.com',
+    custom: false
   },
-  { name: 'testnet', endpoint: clusterApiUrl('testnet') },
-  { name: 'devnet', endpoint: clusterApiUrl('devnet') },
-  { name: 'localnet', endpoint: 'http://127.0.0.1:8899' },
+  { name: 'testnet', endpoint: clusterApiUrl('testnet'), custom: false },
+  { name: 'devnet', endpoint: clusterApiUrl('devnet'), custom: false },
+  { name: 'localnet', endpoint: 'http://127.0.0.1:8899', custom: false },
 ];
 
 const accountListenerCount = new Map();
 
-const ConnectionContext = React.createContext(null);
+const ConnectionContext: React.Context<null | ConnectionContextValues> = React.createContext<null | ConnectionContextValues>(null);
 
 export function ConnectionProvider({ children }) {
-  const [endpoint, setEndpoint] = useLocalStorageState(
+  const [endpoint, setEndpoint] = useLocalStorageState<string>(
     'connectionEndpts',
     ENDPOINTS[0].endpoint,
   );
+  const [customEndpoints, setCustomEndpoints] = useLocalStorageState<EndpointInfo[]>(
+    'customConnectionEndpoints',
+    []
+  )
+  const availableEndpoints = ENDPOINTS.concat(customEndpoints);
 
   const connection = useMemo(() => new Connection(endpoint, 'recent'), [
     endpoint,
@@ -36,12 +43,12 @@ export function ConnectionProvider({ children }) {
   // This is a hack to prevent the list from every getting empty
   useEffect(() => {
     const id = connection.onAccountChange(new Account().publicKey, () => {});
-    return () => connection.removeAccountChangeListener(id);
+    return () => {connection.removeAccountChangeListener(id)};
   }, [connection]);
 
   useEffect(() => {
     const id = connection.onSlotChange(() => null);
-    return () => connection.removeSlotChangeListener(id);
+    return () => {connection.removeSlotChangeListener(id)};
   }, [connection]);
 
   useEffect(() => {
@@ -49,17 +56,17 @@ export function ConnectionProvider({ children }) {
       new Account().publicKey,
       () => {},
     );
-    return () => sendConnection.removeAccountChangeListener(id);
+    return () => {sendConnection.removeAccountChangeListener(id)};
   }, [sendConnection]);
 
   useEffect(() => {
     const id = sendConnection.onSlotChange(() => null);
-    return () => sendConnection.removeSlotChangeListener(id);
+    return () => {sendConnection.removeSlotChangeListener(id)};
   }, [sendConnection]);
 
   return (
     <ConnectionContext.Provider
-      value={{ endpoint, setEndpoint, connection, sendConnection }}
+      value={{ endpoint, setEndpoint, connection, sendConnection, availableEndpoints, setCustomEndpoints }}
     >
       {children}
     </ConnectionContext.Provider>
@@ -67,22 +74,39 @@ export function ConnectionProvider({ children }) {
 }
 
 export function useConnection() {
-  return useContext(ConnectionContext).connection;
+  const context = useContext(ConnectionContext);
+  if (!context) {
+    throw new Error('Missing connection context')
+  }
+  return context.connection;
 }
 
 export function useSendConnection() {
-  return useContext(ConnectionContext).sendConnection;
+  const context = useContext(ConnectionContext);
+  if (!context) {
+    throw new Error('Missing connection context')
+  }
+  return context.sendConnection;
 }
 
 export function useConnectionConfig() {
   const context = useContext(ConnectionContext);
-  return { endpoint: context.endpoint, setEndpoint: context.setEndpoint };
+  if (!context) {
+    throw new Error('Missing connection context')
+  }
+  return {
+    endpoint: context.endpoint,
+    endpointInfo: context.availableEndpoints.find(info => info.endpoint === context.endpoint),
+    setEndpoint: context.setEndpoint,
+    availableEndpoints: context.availableEndpoints,
+    setCustomEndpoints: context.setCustomEndpoints,
+  };
 }
 
-export function useAccountInfo(publicKey) {
+export function useAccountInfo(publicKey: PublicKey | undefined | null): [AccountInfo<Buffer> | null | undefined, boolean] {
   const connection = useConnection();
   const cacheKey = tuple(connection, publicKey?.toBase58());
-  const [accountInfo, loaded] = useAsyncData(
+  const [accountInfo, loaded] = useAsyncData<AccountInfo<Buffer> | null>(
     async () => (publicKey ? connection.getAccountInfo(publicKey) : null),
     cacheKey,
     { refreshInterval: 60_000 },
@@ -95,7 +119,7 @@ export function useAccountInfo(publicKey) {
       let currentItem = accountListenerCount.get(cacheKey);
       ++currentItem.count;
     } else {
-      let previousData = null;
+      let previousData: Buffer | null = null;
       const subscriptionId = connection.onAccountChange(publicKey, (e) => {
         if (e.data) {
           if (!previousData || !previousData.equals(e.data)) {

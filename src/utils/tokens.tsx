@@ -1,13 +1,21 @@
 import * as BufferLayout from 'buffer-layout';
 import bs58 from 'bs58';
-import { PublicKey } from '@solana/web3.js';
+import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
 import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import {TokenAccount} from "./types";
 
 export const ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(32, 'mint'),
   BufferLayout.blob(32, 'owner'),
   BufferLayout.nu64('amount'),
   BufferLayout.blob(93),
+]);
+
+export const MINT_LAYOUT = BufferLayout.struct([
+  BufferLayout.blob(44),
+  BufferLayout.u8('decimals'),
+  BufferLayout.u8('initialized'),
+  BufferLayout.blob(36),
 ]);
 
 export function parseTokenAccountData(data) {
@@ -19,7 +27,12 @@ export function parseTokenAccountData(data) {
   };
 }
 
-export function getOwnedAccountsFilters(publicKey) {
+export function parseTokenMintData(data) {
+  let { decimals, initialized } = MINT_LAYOUT.decode(data);
+  return { decimals, initialized };
+}
+
+export function getOwnedAccountsFilters(publicKey: PublicKey) {
   return [
     {
       memcmp: {
@@ -37,8 +50,11 @@ export const TOKEN_PROGRAM_ID = new PublicKey(
   'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
 );
 
-export async function getOwnedTokenAccounts(connection, publicKey) {
+export async function getOwnedTokenAccounts(
+    connection: Connection, publicKey: PublicKey
+): Promise<Array<{publicKey: PublicKey, accountInfo: AccountInfo<Buffer>}>> {
   let filters = getOwnedAccountsFilters(publicKey);
+  // @ts-ignore
   let resp = await connection._rpcRequest('getProgramAccounts', [
     TOKEN_PROGRAM_ID.toBase58(),
     {
@@ -83,12 +99,12 @@ export async function getOwnedTokenAccounts(connection, publicKey) {
     });
 }
 
-export async function getTokenAccountInfo(connection, ownerAddress) {
+export async function getTokenAccountInfo(connection: Connection, ownerAddress: PublicKey) {
   let [splAccounts, account] = await Promise.all([
     getOwnedTokenAccounts(connection, ownerAddress),
     connection.getAccountInfo(ownerAddress),
   ]);
-  const parsedSplAccounts = splAccounts.map(({ publicKey, accountInfo }) => {
+  const parsedSplAccounts: TokenAccount[] = splAccounts.map(({ publicKey, accountInfo }) => {
     return {
       pubkey: publicKey,
       account: accountInfo,
