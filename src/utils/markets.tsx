@@ -9,14 +9,14 @@ import {
 } from '@project-serum/serum';
 import {PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
-import {useLocalStorageState} from './utils';
+import {divideBnToNumber, getTokenMultiplierFromDecimals, useLocalStorageState} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
 import {useAccountData, useAccountInfo, useConnection} from './connection';
 import {useWallet} from './wallet';
 import tuple from 'immutable-tuple';
 import {notify} from './notifications';
 import {BN} from 'bn.js';
-import {getTokenAccountInfo} from './tokens';
+import {getTokenAccountInfo, parseTokenAccountData, useMintInfos} from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -44,39 +44,42 @@ export function useMarketsList() {
 
 export function useAllMarkets(customMarkets) {
   const connection = useConnection();
-  const [markets, setMarkets] = useState<{market: Market; marketName: string; programId: PublicKey;}[]>([]);
 
-  useEffect(() => {
-    const getAllMarkets = async () => {
-      const markets: {market: Market; marketName: string; programId: PublicKey;}[] = [];
-      for (let marketInfo of getMarketInfos(customMarkets)) {
+  const getAllMarkets = async () => {
+    const markets: Array<{
+      market: Market;
+      marketName: string;
+      programId: PublicKey;
+    } | null> = await Promise.all(getMarketInfos(customMarkets).map(
+      async marketInfo => {
         try {
-          const market = await Market.load(
-            connection,
-            marketInfo.address,
-            {},
-            marketInfo.programId,
-          );
-          markets.push({
+          const market = await Market.load(connection, marketInfo.address, {}, marketInfo.programId)
+          return {
             market,
             marketName: marketInfo.name,
             programId: marketInfo.programId,
-          });
+          }
         } catch (e) {
           notify({
             message: 'Error loading all market',
             description: e.message,
             type: 'error',
           });
+          return null;
         }
       }
-      setMarkets(markets);
-    };
-
-    getAllMarkets();
-  }, [connection, customMarkets]);
-
-  return markets;
+    ))
+    return markets.filter((m): m is {market: Market; marketName: string; programId: PublicKey;} => !!m);
+  };
+  return useAsyncData(
+    getAllMarkets,
+    tuple(
+      'getAllMarkets',
+      customMarkets.length,
+      connection,
+    ),
+    {refreshInterval: _VERY_SLOW_REFRESH_INTERVAL}
+  )
 }
 
 export function useUnmigratedOpenOrdersAccounts() {
@@ -606,60 +609,61 @@ export function useFillsForAllMarkets(limit = 100) {
 
 // TODO: Update to use websocket
 export function useOpenOrdersForAllMarkets() {
-  const { connected, wallet } = useWallet();
-
-  const connection = useConnection();
-  // todo: use custom markets
-  const allMarkets: {market: Market; marketName: string; programId: PublicKey;}[] = useAllMarkets([]);
-
-  async function getOpenOrdersForAllMarkets() {
-    let orders: OrderWithMarket[] = [];
-    if (!connected) {
-      return orders;
-    }
-
-    let marketData: {market: Market; marketName: string; programId: PublicKey;};
-    for (marketData of allMarkets) {
-      const { market, marketName } = marketData;
-      if (!market) {
-        return orders;
-      }
-      const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
-        connection,
-        wallet.publicKey,
-      );
-      const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
-      if (!openOrdersAccount) {
-        return orders;
-      }
-      const [bids, asks] = await Promise.all([
-        market.loadBids(connection),
-        market.loadAsks(connection),
-      ]);
-      const ordersForMarket = [...bids, ...asks]
-        .filter((order) => {
-          return order.openOrdersAddress.equals(openOrdersAccount.publicKey);
-        })
-        .map((order) => {
-          return { ...order, marketName };
-        });
-      orders = orders.concat(ordersForMarket);
-    }
-
-    return orders;
-  }
-
-  return useAsyncData(
-    getOpenOrdersForAllMarkets,
-    tuple(
-      'getOpenOrdersForAllMarkets',
-      connected,
-      connection,
-      wallet,
-      allMarkets,
-    ),
-    { refreshInterval: _SLOW_REFRESH_INTERVAL },
-  );
+  return [[], true]
+  // const { connected, wallet } = useWallet();
+  //
+  // const connection = useConnection();
+  // // todo: use custom markets
+  // const allMarkets: {market: Market; marketName: string; programId: PublicKey;}[] = useAllMarkets([]);
+  //
+  // async function getOpenOrdersForAllMarkets() {
+  //   let orders: OrderWithMarket[] = [];
+  //   if (!connected) {
+  //     return orders;
+  //   }
+  //
+  //   let marketData: {market: Market; marketName: string; programId: PublicKey;};
+  //   for (marketData of allMarkets) {
+  //     const { market, marketName } = marketData;
+  //     if (!market) {
+  //       return orders;
+  //     }
+  //     const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
+  //       connection,
+  //       wallet.publicKey,
+  //     );
+  //     const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
+  //     if (!openOrdersAccount) {
+  //       return orders;
+  //     }
+  //     const [bids, asks] = await Promise.all([
+  //       market.loadBids(connection),
+  //       market.loadAsks(connection),
+  //     ]);
+  //     const ordersForMarket = [...bids, ...asks]
+  //       .filter((order) => {
+  //         return order.openOrdersAddress.equals(openOrdersAccount.publicKey);
+  //       })
+  //       .map((order) => {
+  //         return { ...order, marketName };
+  //       });
+  //     orders = orders.concat(ordersForMarket);
+  //   }
+  //
+  //   return orders;
+  // }
+  //
+  // return useAsyncData(
+  //   getOpenOrdersForAllMarkets,
+  //   tuple(
+  //     'getOpenOrdersForAllMarkets',
+  //     connected,
+  //     connection,
+  //     wallet,
+  //     allMarkets,
+  //   ),
+  //   { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  // );
 }
 
 export function useBalances(): Balances[] {
@@ -718,83 +722,54 @@ export function useBalances(): Balances[] {
 }
 
 export function useWalletBalancesForAllMarkets() {
-  return [[], true]
-  // Note: This is too expensive on validators to poll. Switch over to websockets or cache accounts
-  // const { connected, wallet } = useWallet();
-  //
-  // const connection = useConnection();
-  // // todo: use custom markets
-  // const allMarkets = useAllMarkets([]);
-  //
-  // async function getWalletBalancesForAllMarkets() {
-  //   let balances: Balances[] = [];
-  //   if (!connected) {
-  //     return balances;
-  //   }
-  //
-  //   let marketData: {market: Market; marketName: string; programId: PublicKey;};
-  //   for (marketData of allMarkets) {
-  //     const { market, marketName } = marketData;
-  //     if (!market) {
-  //       return balances;
-  //     }
-  //     const baseCurrency = marketName.includes('/') && marketName.split('/')[0];
-  //     if (baseCurrency && !balances.find((balance) => balance.coin === baseCurrency)) {
-  //       const baseBalance = await getCurrencyBalance(
-  //         market,
-  //         connection,
-  //         wallet,
-  //         true,
-  //       );
-  //       balances.push({
-  //         key: baseCurrency,
-  //         coin: baseCurrency,
-  //         wallet: baseBalance,
-  //       });
-  //     }
-  //     const quoteCurrency =
-  //       marketName.includes('/') && marketName.split('/')[1];
-  //     if (quoteCurrency && !balances.find((balance) => balance.coin === quoteCurrency)) {
-  //       const quoteBalance = await getCurrencyBalance(
-  //         market,
-  //         connection,
-  //         wallet,
-  //         false,
-  //       );
-  //       balances.push({
-  //         key: quoteCurrency,
-  //         coin: quoteCurrency,
-  //         wallet: quoteBalance,
-  //       });
-  //     }
-  //   }
-  //
-  //   return balances;
-  // }
-  //
-  // return useAsyncData(
-  //   getWalletBalancesForAllMarkets,
-  //   tuple(
-  //     'getWalletBalancesForAllMarkets',
-  //     connected,
-  //     connection,
-  //     wallet,
-  //     allMarkets,
-  //   ),
-  //   { refreshInterval: _SLOW_REFRESH_INTERVAL },
-  // );
-}
+  const connection = useConnection();
+  const [tokenAccounts] = useTokenAccounts();
+  const { connected, wallet } = useWallet();
+  const [mintInfos, mintInfosConnected] = useMintInfos();
 
-// async function getCurrencyBalance(market: Market, connection, wallet, base = true) {
-//   const currencyAccounts: { pubkey: PublicKey; account: AccountInfo<Buffer> }[] = base
-//     ? await market.findBaseTokenAccountsForOwner(connection, wallet.publicKey)
-//     : await market.findQuoteTokenAccountsForOwner(connection, wallet.publicKey);
-//   const currencyAccount = currencyAccounts && currencyAccounts[0];
-//   const tokenAccountBalances: RpcResponseAndContext<TokenAmount> = await connection.getTokenAccountBalance(
-//     currencyAccount.pubkey,
-//   );
-//   return tokenAccountBalances?.value?.uiAmount;
-// }
+  const getAllTokenBalances: () => Promise<{mint: string; balance: number;}[]> = async () => {
+    if (!connected) {
+      return [];
+    }
+
+    let balances: {[mint: string]: number} = {};
+    for (let account of (tokenAccounts || [])) {
+      if (!account.account) {
+        continue;
+      }
+      let parsedAccount;
+      try {
+        parsedAccount = parseTokenAccountData(account.account.data);
+      } catch (e) {
+        console.log("here");
+        continue;
+      }
+      if (!(parsedAccount.mint.toBase58() in balances)) {
+        balances[parsedAccount.mint.toBase58()] = 0.
+      }
+      const mintInfo = mintInfos && mintInfos[parsedAccount.mint.toBase58()]
+      const additionalAmount = divideBnToNumber(
+        new BN(parsedAccount.amount),
+        getTokenMultiplierFromDecimals(mintInfo?.decimals || 0.)
+      );
+      balances[parsedAccount.mint.toBase58()] += additionalAmount;
+    }
+    return Object.entries(balances).map(([mint, balance]) => { return {mint, balance} });
+  }
+
+  return useAsyncData(
+    getAllTokenBalances,
+    tuple(
+      'getAllTokenBalances',
+      connected,
+      connection,
+      wallet,
+      tokenAccounts,
+      mintInfosConnected,
+    ),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  );
+}
 
 export function useOpenOrderAccountBalancesForAllMarkets() {
   return [[], true]

@@ -6,7 +6,7 @@ import { useWallet } from '../../utils/wallet';
 import { settleFunds } from '../../utils/send';
 import { notify } from '../../utils/notifications';
 
-export default function AccountsTable({ accountBalances }) {
+export default function AccountsTable({ accountBalances, loaded }) {
   const connection = useConnection();
   const { wallet } = useWallet();
 

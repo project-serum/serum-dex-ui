@@ -7,6 +7,7 @@ import {
 import FloatingElement from '../components/layout/FloatingElement';
 import WalletBalancesTable from '../components/UserInfoTable/WalletBalancesTable';
 import AccountsTable from '../components/UserInfoTable/AccountsTable';
+import {useMintInfos, useMintToTickers} from "../utils/tokens";
 
 const { TabPane } = Tabs;
 
@@ -15,10 +16,12 @@ export default function BalancesPage() {
     walletBalances,
     loadedWalletBalances,
   ] = useWalletBalancesForAllMarkets();
-  const [
-    accountBalances,
-    accountBalancesLoaded,
-  ] = useOpenOrderAccountBalancesForAllMarkets();
+  const mintToTickers = useMintToTickers();
+  const data = (walletBalances || []).map(balance => {return {coin: mintToTickers[balance.mint], balance: balance.balance}})
+  // const [
+  //   accountBalances,
+  //   accountBalancesLoaded,
+  // ] = useOpenOrderAccountBalancesForAllMarkets();
 
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
@@ -26,15 +29,15 @@ export default function BalancesPage() {
         <TabPane tab="Wallet Balances" key="walletBalances">
           <WalletBalancesTable
             loaded={loadedWalletBalances}
-            walletBalances={walletBalances}
+            walletBalances={data}
           />
         </TabPane>
-        <TabPane tab="Market balances" key="marketBalances">
-          <AccountsTable
-            loaded={accountBalancesLoaded}
-            accountBalances={accountBalances}
-          />
-        </TabPane>
+        {/*<TabPane tab="Market balances" key="marketBalances">*/}
+        {/*  <AccountsTable*/}
+        {/*    loaded={accountBalancesLoaded}*/}
+        {/*    accountBalances={accountBalances}*/}
+        {/*  />*/}
+        {/*</TabPane>*/}
       </Tabs>
     </FloatingElement>
   );
