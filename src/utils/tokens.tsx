@@ -1,7 +1,7 @@
 import * as BufferLayout from 'buffer-layout';
 import bs58 from 'bs58';
 import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {TokenAccount} from "./types";
 import {TOKEN_MINTS} from "@project-serum/serum";
 import {useAllMarkets, useMarket, useTokenAccounts} from "./markets";
@@ -9,7 +9,6 @@ import {getMultipleSolanaAccounts} from "./send";
 import {useConnection} from "./connection";
 import {useAsyncData} from "./fetch-loop";
 import tuple from 'immutable-tuple';
-import {useWallet} from "./wallet";
 
 export const ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(32, 'mint'),

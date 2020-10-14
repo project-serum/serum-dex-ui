@@ -16,7 +16,7 @@ import {useWallet} from './wallet';
 import tuple from 'immutable-tuple';
 import {notify} from './notifications';
 import {BN} from 'bn.js';
-import {getTokenAccountInfo, parseTokenAccountData, useMintInfos, useMintToTickers} from './tokens';
+import {getTokenAccountInfo, parseTokenAccountData, useMintInfos} from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -24,12 +24,12 @@ import {
   FullMarketInfo,
   MarketContextValues,
   MarketInfo,
-  OrderWithMarket,
   OrderWithMarketAndMarketName,
   SelectedTokenAccounts,
   TokenAccount,
   Trade,
 } from "./types";
+import {WRAPPED_SOL_MINT} from "@project-serum/serum/lib/token-instructions";
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -825,11 +825,14 @@ export function useWalletBalancesForAllMarkets(): {mint:string, balance: number}
       continue;
     }
     let parsedAccount;
-    try {
+    if (account.effectiveMint.equals(WRAPPED_SOL_MINT)) {
+      parsedAccount = {
+        mint: WRAPPED_SOL_MINT,
+        owner: account.pubkey,
+        amount: account.account.lamports
+      }
+    } else {
       parsedAccount = parseTokenAccountData(account.account.data);
-    } catch (e) {
-      console.log("here");
-      continue;
     }
     if (!(parsedAccount.mint.toBase58() in balances)) {
       balances[parsedAccount.mint.toBase58()] = 0.
