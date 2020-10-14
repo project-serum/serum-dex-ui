@@ -16,7 +16,7 @@ const SizeTitle = styled(Row)`
 
 export default function PublicTrades({ smallScreen }) {
   const { baseCurrency, quoteCurrency, market } = useMarket();
-  const trades = useBonfidaTrades();
+  const [trades, loaded] = useBonfidaTrades();
 
   return (
     <FloatingElement
@@ -40,7 +40,7 @@ export default function PublicTrades({ smallScreen }) {
           Time
         </Col>
       </SizeTitle>
-      {!!trades && (
+      {!!trades && loaded && (
         <div
           style={{
             marginRight: '-20px',

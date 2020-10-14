@@ -30,6 +30,7 @@ import {
   TokenAccount,
   Trade,
 } from './types';
+import BonfidaApi from './bonfidaConnector';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -345,24 +346,21 @@ export function _useUnfilteredTrades(limit = 10000) {
 
 export function useBonfidaTrades() {
   const { market } = useMarket();
+  const marketAddress = market?.address.toBase58();
+
   async function getBonfidaTrades() {
-    if (!market) {
+    if (!marketAddress) {
       return null;
     }
-    const response = await fetch(
-      `https://serum-api.bonfida.com/trades/address/${market.address.toBase58()}`,
-    );
-    if (response.ok) {
-      const responseJson = await response.json();
-      return responseJson.success ? responseJson.data : null;
-    }
+    return await BonfidaApi.recentTrades(marketAddress);
   }
-  const [trades] = useAsyncData(
+
+  return useAsyncData(
     getBonfidaTrades,
-    tuple('getBonfidaTrades', market?.address.toBase58()),
+    tuple('getBonfidaTrades', marketAddress),
     { refreshInterval: _SLOW_REFRESH_INTERVAL },
+    false,
   );
-  return trades;
 }
 
 export function useOrderbookAccounts() {
