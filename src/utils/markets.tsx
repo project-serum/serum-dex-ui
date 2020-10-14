@@ -608,7 +608,7 @@ export function useFillsForAllMarkets(limit = 100) {
 }
 
 // TODO: Update to use websocket
-export function useOpenOrdersForAllMarkets() {
+export function useOpenOrdersForAllMarketsOld() {
   return [[], true]
   // const { connected, wallet } = useWallet();
   //
@@ -664,6 +664,37 @@ export function useOpenOrdersForAllMarkets() {
   //   ),
   //   { refreshInterval: _SLOW_REFRESH_INTERVAL },
   // );
+}
+
+export function useAllOpenOrdersAccounts() {
+  const {wallet, connected} = useWallet();
+  const connection = useConnection();
+  const {customMarkets} = useMarket();
+  const marketInfos = getMarketInfos(customMarkets);
+  const programIds = [
+    ...new Set(marketInfos.map(info => info.programId.toBase58()))
+  ].map(stringProgramId => new PublicKey(stringProgramId));
+
+  const getAllOpenOrdersAccounts = async () => {
+    if (!connected) {
+      return [];
+    }
+    return (await Promise.all(
+      programIds.map(programId => OpenOrders.findForOwner(connection, wallet.publicKey, programId)))
+    ).flat()
+  }
+  return useAsyncData(
+    getAllOpenOrdersAccounts,
+    tuple(
+      'getAllOpenOrdersAccounts',
+      connection,
+      connected,
+      wallet.publicKey.toBase58(),
+      customMarkets.length,
+      (programIds || []).length,
+    ),
+    {refreshInterval: _VERY_SLOW_REFRESH_INTERVAL}
+  )
 }
 
 export function useBalances(): Balances[] {

@@ -1,13 +1,9 @@
 import React from 'react';
-import { Tabs } from 'antd';
-import {
-  useWalletBalancesForAllMarkets,
-  useOpenOrderAccountBalancesForAllMarkets,
-} from '../utils/markets';
+import {Tabs} from 'antd';
+import {useAllOpenOrdersAccounts, useWalletBalancesForAllMarkets,} from '../utils/markets';
 import FloatingElement from '../components/layout/FloatingElement';
 import WalletBalancesTable from '../components/UserInfoTable/WalletBalancesTable';
-import AccountsTable from '../components/UserInfoTable/AccountsTable';
-import {useMintInfos, useMintToTickers} from "../utils/tokens";
+import {useMintToTickers} from "../utils/tokens";
 
 const { TabPane } = Tabs;
 
@@ -18,6 +14,10 @@ export default function BalancesPage() {
   ] = useWalletBalancesForAllMarkets();
   const mintToTickers = useMintToTickers();
   const data = (walletBalances || []).map(balance => {return {coin: mintToTickers[balance.mint], balance: balance.balance}})
+  const [
+    openOrdersAccounts,
+    loadedOpenOrdersAccounts
+  ] = useAllOpenOrdersAccounts();
   // const [
   //   accountBalances,
   //   accountBalancesLoaded,
