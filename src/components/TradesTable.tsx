@@ -13,6 +13,17 @@ const SizeTitle = styled(Row)`
   color: #434a59;
 `;
 
+interface BonfidaTrade {
+  market: string;
+  size: number;
+  price: number;
+  orderId: string;
+  time: number;
+  side: string;
+  feeCost: number;
+  marketAddress: string;
+}
+
 export default function PublicTrades({ smallScreen }) {
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const trades = useBonfidaTrades();
@@ -50,7 +61,7 @@ export default function PublicTrades({ smallScreen }) {
               : 'calc(100vh - 800px)',
           }}
         >
-          {trades.map((trade, i) => (
+          {trades.map((trade: BonfidaTrade, i: number) => (
             <Row key={i} style={{ marginBottom: 4 }}>
               <Col
                 span={8}
