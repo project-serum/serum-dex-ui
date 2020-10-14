@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { useMarket, useBonfidaTrades } from '../utils/markets';
 import { getDecimalCount } from '../utils/utils';
 import FloatingElement from './layout/FloatingElement';
+import { BonfidaTrade } from '../utils/types';
 
 const Title = styled.div`
   color: rgba(255, 255, 255, 1);
@@ -12,17 +13,6 @@ const SizeTitle = styled(Row)`
   padding: 20px 0 14px;
   color: #434a59;
 `;
-
-interface BonfidaTrade {
-  market: string;
-  size: number;
-  price: number;
-  orderId: string;
-  time: number;
-  side: string;
-  feeCost: number;
-  marketAddress: string;
-}
 
 export default function PublicTrades({ smallScreen }) {
   const { baseCurrency, quoteCurrency, market } = useMarket();
