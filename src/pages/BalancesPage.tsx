@@ -1,23 +1,37 @@
 import React from 'react';
 import {Tabs} from 'antd';
-import {useAllOpenOrdersAccounts, useWalletBalancesForAllMarkets,} from '../utils/markets';
+import {
+  useAllMarkets,
+  useAllOpenOrdersAccounts,
+  useAllOpenOrdersBalances,
+  useMarket,
+  useWalletBalancesForAllMarkets,
+} from '../utils/markets';
 import FloatingElement from '../components/layout/FloatingElement';
 import WalletBalancesTable from '../components/UserInfoTable/WalletBalancesTable';
 import {useMintToTickers} from "../utils/tokens";
+import {PublicKey} from "@solana/web3.js";
 
 const { TabPane } = Tabs;
 
 export default function BalancesPage() {
-  const [
-    walletBalances,
-    loadedWalletBalances,
-  ] = useWalletBalancesForAllMarkets();
+  const walletBalances = useWalletBalancesForAllMarkets();
   const mintToTickers = useMintToTickers();
-  const data = (walletBalances || []).map(balance => {return {coin: mintToTickers[balance.mint], balance: balance.balance}})
-  const [
-    openOrdersAccounts,
-    loadedOpenOrdersAccounts
-  ] = useAllOpenOrdersAccounts();
+  const openOrdersBalances = useAllOpenOrdersBalances();
+
+  const data = (walletBalances || []).map(balance => {
+    const balances = {
+      coin: mintToTickers[balance.mint],
+      walletBalance: balance.balance,
+      openOrdersFree: 0.,
+      openOrdersTotal: 0.,
+    }
+    for (let openOrdersAccount of (openOrdersBalances[balance.mint] || [])) {
+      balances['openOrdersFree'] += openOrdersAccount.free;
+      balances['openOrdersTotal'] += openOrdersAccount.total;
+    }
+    return balances
+  });
   // const [
   //   accountBalances,
   //   accountBalancesLoaded,
@@ -28,7 +42,6 @@ export default function BalancesPage() {
       <Tabs defaultActiveKey="walletBalances">
         <TabPane tab="Wallet Balances" key="walletBalances">
           <WalletBalancesTable
-            loaded={loadedWalletBalances}
             walletBalances={data}
           />
         </TabPane>

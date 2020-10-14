@@ -2,7 +2,6 @@ import React from 'react';
 import DataTable from '../layout/DataTable';
 
 export default function WalletBalancesTable({
-  loaded = false,
   walletBalances,
 }) {
   const columns = [
@@ -13,8 +12,18 @@ export default function WalletBalancesTable({
     },
     {
       title: 'Wallet Balance',
-      dataIndex: 'balance',
-      key: 'balance',
+      dataIndex: 'walletBalance',
+      key: 'walletBalance',
+    },
+    {
+      title: 'Open orders total',
+      dataIndex: 'openOrdersTotal',
+      key: 'openOrdersTotal',
+    },
+    {
+      title: 'Unsettled',
+      dataIndex: 'openOrdersFree',
+      key: 'openOrdersFree',
     },
   ];
   return (
@@ -23,7 +32,6 @@ export default function WalletBalancesTable({
       dataSource={walletBalances}
       columns={columns}
       pagination={false}
-      loading={!loaded}
     />
   );
 }

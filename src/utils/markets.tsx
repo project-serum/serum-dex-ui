@@ -16,7 +16,7 @@ import {useWallet} from './wallet';
 import tuple from 'immutable-tuple';
 import {notify} from './notifications';
 import {BN} from 'bn.js';
-import {getTokenAccountInfo, parseTokenAccountData, useMintInfos} from './tokens';
+import {getTokenAccountInfo, parseTokenAccountData, useMintInfos, useMintToTickers} from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -689,12 +689,70 @@ export function useAllOpenOrdersAccounts() {
       'getAllOpenOrdersAccounts',
       connection,
       connected,
-      wallet.publicKey.toBase58(),
+      wallet?.publicKey?.toBase58(),
       customMarkets.length,
       (programIds || []).length,
     ),
-    {refreshInterval: _VERY_SLOW_REFRESH_INTERVAL}
+    {refreshInterval: _SLOW_REFRESH_INTERVAL}
   )
+}
+
+export function useAllOpenOrdersBalances() {
+  const [
+    openOrdersAccounts,
+    loadedOpenOrdersAccounts
+  ] = useAllOpenOrdersAccounts();
+  const [mintInfos, mintInfosConnected] = useMintInfos();
+  const {customMarkets} = useMarket();
+  const [allMarkets] = useAllMarkets(customMarkets);
+  if (!loadedOpenOrdersAccounts || !mintInfosConnected) {
+    return {};
+  }
+
+  const marketsByAddress = Object.fromEntries((allMarkets || []).map(m => [m.market.address.toBase58(), m]))
+  const openOrdersBalances: {[mint: string]: { market: PublicKey; free: number; total: number; }[] } = {};
+  for (let account of (openOrdersAccounts || [])) {
+    const marketInfo = marketsByAddress[account.market.toBase58()];
+    const baseMint = marketInfo.market.baseMintAddress.toBase58();
+    const quoteMint = marketInfo.market.quoteMintAddress.toBase58();
+    if (!(baseMint in openOrdersBalances)) {
+      openOrdersBalances[baseMint] = [];
+    }
+    if (!(quoteMint in openOrdersBalances)) {
+      openOrdersBalances[quoteMint] = [];
+    }
+
+    const baseMintInfo = mintInfos && mintInfos[baseMint]
+    const baseFree = divideBnToNumber(
+      new BN(account.baseTokenFree),
+      getTokenMultiplierFromDecimals(baseMintInfo?.decimals || 0.)
+    );
+    const baseTotal = divideBnToNumber(
+      new BN(account.baseTokenTotal),
+      getTokenMultiplierFromDecimals(baseMintInfo?.decimals || 0.)
+    );
+    const quoteMintInfo = mintInfos && mintInfos[quoteMint]
+    const quoteFree = divideBnToNumber(
+      new BN(account.quoteTokenFree),
+      getTokenMultiplierFromDecimals(quoteMintInfo?.decimals || 0.)
+    );
+    const quoteTotal = divideBnToNumber(
+      new BN(account.quoteTokenTotal),
+      getTokenMultiplierFromDecimals(quoteMintInfo?.decimals || 0.)
+    );
+
+    openOrdersBalances[baseMint].push({
+      market: marketInfo.market.publicKey,
+      free: baseFree,
+      total: baseTotal,
+    });
+    openOrdersBalances[quoteMint].push({
+      market: marketInfo.market.publicKey,
+      free: quoteFree,
+      total: quoteTotal,
+    });
+  }
+  return openOrdersBalances
 }
 
 export function useBalances(): Balances[] {
@@ -752,161 +810,38 @@ export function useBalances(): Balances[] {
   ];
 }
 
-export function useWalletBalancesForAllMarkets() {
-  const connection = useConnection();
+export function useWalletBalancesForAllMarkets(): {mint:string, balance: number}[] {
   const [tokenAccounts] = useTokenAccounts();
-  const { connected, wallet } = useWallet();
+  const { connected } = useWallet();
   const [mintInfos, mintInfosConnected] = useMintInfos();
 
-  const getAllTokenBalances: () => Promise<{mint: string; balance: number;}[]> = async () => {
-    if (!connected) {
-      return [];
-    }
-
-    let balances: {[mint: string]: number} = {};
-    for (let account of (tokenAccounts || [])) {
-      if (!account.account) {
-        continue;
-      }
-      let parsedAccount;
-      try {
-        parsedAccount = parseTokenAccountData(account.account.data);
-      } catch (e) {
-        console.log("here");
-        continue;
-      }
-      if (!(parsedAccount.mint.toBase58() in balances)) {
-        balances[parsedAccount.mint.toBase58()] = 0.
-      }
-      const mintInfo = mintInfos && mintInfos[parsedAccount.mint.toBase58()]
-      const additionalAmount = divideBnToNumber(
-        new BN(parsedAccount.amount),
-        getTokenMultiplierFromDecimals(mintInfo?.decimals || 0.)
-      );
-      balances[parsedAccount.mint.toBase58()] += additionalAmount;
-    }
-    return Object.entries(balances).map(([mint, balance]) => { return {mint, balance} });
+  if (!connected || !mintInfosConnected) {
+    return [];
   }
 
-  return useAsyncData(
-    getAllTokenBalances,
-    tuple(
-      'getAllTokenBalances',
-      connected,
-      connection,
-      wallet,
-      tokenAccounts,
-      mintInfosConnected,
-    ),
-    { refreshInterval: _SLOW_REFRESH_INTERVAL },
-  );
-}
-
-export function useOpenOrderAccountBalancesForAllMarkets() {
-  return [[], true]
-  // Note: This is too expensive on validators to poll. Switch over to websockets or cache accounts
-  // const { connected, wallet } = useWallet();
-  //
-  // const connection = useConnection();
-  // // todo: use custom markets
-  // const allMarkets = useAllMarkets([]);
-  //
-  // async function getOpenOrderAccountsForAllMarkets() {
-  //   let accounts: OpenOrdersBalances[] = [];
-  //   if (!connected) {
-  //     return accounts;
-  //   }
-  //
-  //   let marketData: {market: Market; marketName: string; programId: PublicKey;};
-  //   for (marketData of allMarkets) {
-  //     const { market, marketName } = marketData;
-  //     if (!market) {
-  //       return accounts;
-  //     }
-  //     const openOrderAccounts = await market.findOpenOrdersAccountsForOwner(
-  //       connection,
-  //       wallet.publicKey,
-  //     );
-  //     if (!openOrderAccounts) {
-  //       continue;
-  //     }
-  //     const baseCurrencyAccounts = await market.findBaseTokenAccountsForOwner(
-  //       connection,
-  //       wallet.publicKey,
-  //     );
-  //     const quoteCurrencyAccounts = await market.findQuoteTokenAccountsForOwner(
-  //       connection,
-  //       wallet.publicKey,
-  //     );
-  //
-  //     const baseCurrency = marketName.includes('/') && marketName.split('/')[0];
-  //     const quoteCurrency =
-  //       marketName.includes('/') && marketName.split('/')[1];
-  //
-  //     const openOrderAccountBalances: OpenOrdersBalances[] = [];
-  //     openOrderAccounts.forEach((openOrdersAccount) => {
-  //       const inOrdersBase =
-  //         openOrdersAccount?.baseTokenTotal &&
-  //         openOrdersAccount?.baseTokenFree &&
-  //         market.baseSplSizeToNumber(
-  //           openOrdersAccount.baseTokenTotal.sub(
-  //             openOrdersAccount.baseTokenFree,
-  //           ),
-  //         );
-  //       const inOrdersQuote =
-  //         openOrdersAccount?.quoteTokenTotal &&
-  //         openOrdersAccount?.quoteTokenFree &&
-  //         market.baseSplSizeToNumber(
-  //           openOrdersAccount.quoteTokenTotal.sub(
-  //             openOrdersAccount.quoteTokenFree,
-  //           ),
-  //         );
-  //       const unsettledBase =
-  //         openOrdersAccount?.baseTokenFree &&
-  //         market.baseSplSizeToNumber(openOrdersAccount.baseTokenFree);
-  //       const unsettledQuote =
-  //         openOrdersAccount?.quoteTokenFree &&
-  //         market.baseSplSizeToNumber(openOrdersAccount.quoteTokenFree);
-  //       openOrderAccountBalances.push({
-  //         market: marketName,
-  //         coin: baseCurrency || '',
-  //         key: baseCurrency || '',
-  //         orders: inOrdersBase,
-  //         unsettled: unsettledBase,
-  //         openOrders: openOrdersAccount,
-  //         baseCurrencyAccount: baseCurrencyAccounts && baseCurrencyAccounts[0],
-  //         quoteCurrencyAccount:
-  //           quoteCurrencyAccounts && quoteCurrencyAccounts[0],
-  //       });
-  //       openOrderAccountBalances.push({
-  //         market: marketName,
-  //         coin: quoteCurrency || '',
-  //         key: quoteCurrency || '',
-  //         orders: inOrdersQuote,
-  //         unsettled: unsettledQuote,
-  //         openOrders: openOrdersAccount,
-  //         baseCurrencyAccount: baseCurrencyAccounts && baseCurrencyAccounts[0],
-  //         quoteCurrencyAccount:
-  //           quoteCurrencyAccounts && quoteCurrencyAccounts[0],
-  //       });
-  //     });
-  //     accounts = accounts.concat(openOrderAccountBalances);
-  //   }
-  //
-  //   return accounts;
-  // }
-  //
-  // return useAsyncData(
-  //   getOpenOrderAccountsForAllMarkets,
-  //   tuple(
-  //     'getOpenOrderAccountsForAllMarkets',
-  //     connected,
-  //     connection,
-  //     wallet,
-  //     allMarkets,
-  //   ),
-  //   { refreshInterval: _SLOW_REFRESH_INTERVAL },
-  // );
+  let balances: {[mint: string]: number} = {};
+  for (let account of (tokenAccounts || [])) {
+    if (!account.account) {
+      continue;
+    }
+    let parsedAccount;
+    try {
+      parsedAccount = parseTokenAccountData(account.account.data);
+    } catch (e) {
+      console.log("here");
+      continue;
+    }
+    if (!(parsedAccount.mint.toBase58() in balances)) {
+      balances[parsedAccount.mint.toBase58()] = 0.
+    }
+    const mintInfo = mintInfos && mintInfos[parsedAccount.mint.toBase58()]
+    const additionalAmount = divideBnToNumber(
+      new BN(parsedAccount.amount),
+      getTokenMultiplierFromDecimals(mintInfo?.decimals || 0.)
+    );
+    balances[parsedAccount.mint.toBase58()] += additionalAmount;
+  }
+  return Object.entries(balances).map(([mint, balance]) => { return {mint, balance} });
 }
 
 export function useUnmigratedDeprecatedMarkets() {
