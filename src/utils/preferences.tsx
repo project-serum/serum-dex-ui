@@ -12,7 +12,7 @@ const PreferencesContext = React.createContext<PreferencesContextValues | null>(
 export function PreferencesProvider({ children }) {
   const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
     'autoSettleEnabled',
-    false,
+    true,
   );
 
   const [tokenAccounts] = useTokenAccounts();
