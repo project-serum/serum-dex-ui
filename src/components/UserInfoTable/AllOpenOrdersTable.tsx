@@ -8,15 +8,28 @@ import { useWallet } from '../../utils/wallet';
 import { useSendConnection } from '../../utils/connection';
 import { notify } from '../../utils/notifications';
 import { DeleteOutlined } from '@ant-design/icons';
+import {Order} from "@project-serum/serum/lib/market";
+import {getMarketInfos, useMarket} from "../../utils/markets";
 
 const CancelButton = styled(Button)`
   color: #f23b69;
   border: 1px solid #f23b69;
 `;
 
-export default function OpenOrderTable({ openOrders, onCancelSuccess }) {
+export default function AllOpenOrderTable({
+  openOrders,
+  onCancelSuccess,
+  loaded,
+} : {
+  openOrders: { orders: Order[]; marketAddress: string; }[] | null | undefined;
+  onCancelSuccess?: () => void;
+  loaded: boolean;
+}) {
   let { wallet } = useWallet();
   let connection = useSendConnection();
+  let {customMarkets} = useMarket();
+  let marketInfos = getMarketInfos(customMarkets);
+  let marketAddressesToNames = Object.fromEntries(marketInfos.map(info => [info.address.toBase58(), info.name]));
 
   const [cancelId, setCancelId] = useState(null);
 
@@ -60,6 +73,15 @@ export default function OpenOrderTable({ openOrders, onCancelSuccess }) {
           {side.charAt(0).toUpperCase() + side.slice(1)}
         </Tag>
       ),
+      sorter: (a, b) => {
+        if (a.side === b.side) {
+          return 0.
+        } else if (a.side === 'buy') {
+          return 1.
+        } else {
+          return -1.
+        }
+      },
     },
     {
       title: 'Size',
@@ -86,9 +108,18 @@ export default function OpenOrderTable({ openOrders, onCancelSuccess }) {
       ),
     },
   ];
-  const dataSource = (openOrders || []).map((order) =>
-    Object.assign(order, { key: order.orderId }),
-  );
+  const dataSource = (openOrders || []).map((orderInfos) =>
+    orderInfos.orders.map(order => {
+      return {
+        marketName: marketAddressesToNames[orderInfos.marketAddress],
+        side: order.side,
+        size: order.size,
+        price: order.price,
+        orderId: order.orderId,
+        key: order.orderId,
+      };
+    })
+  ).flat();
 
   return (
     <Row>

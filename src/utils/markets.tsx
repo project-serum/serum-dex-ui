@@ -30,6 +30,7 @@ import {
   Trade,
 } from "./types";
 import {WRAPPED_SOL_MINT} from "@project-serum/serum/lib/token-instructions";
+import {Order} from "@project-serum/serum/lib/market";
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -755,7 +756,11 @@ export function useAllOpenOrdersBalances() {
   return openOrdersBalances
 }
 
-export function useAllOpenOrders() {
+export function useAllOpenOrders(): {
+  openOrders: { orders: Order[]; marketAddress: string; }[] | null | undefined;
+  loaded: boolean,
+  refreshOpenOrders: () => void,
+} {
   const connection = useConnection();
   const { connected } = useWallet();
   const [openOrdersAccounts, openOrdersAccountsConnected] = useAllOpenOrdersAccounts();
