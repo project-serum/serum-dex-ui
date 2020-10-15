@@ -12,19 +12,19 @@ const PreferencesContext = React.createContext<PreferencesContextValues | null>(
 export function PreferencesProvider({ children }) {
   const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
     'autoSettleEnabled',
-    false,
+    true,
   );
 
   const [tokenAccounts] = useTokenAccounts();
   const { connected, wallet } = useWallet();
   const { customMarkets } = useMarket();
-  const marketList = useAllMarkets(customMarkets);
+  const [marketList] = useAllMarkets(customMarkets);
   const connection = useConnection();
   const [selectedTokenAccounts] = useSelectedTokenAccounts();
 
   useInterval(() => {
     const autoSettle = async () => {
-      const markets = marketList.map((m) => m.market);
+      const markets = (marketList || []).map((m) => m.market);
       try {
         console.log('Auto settling');
         await settleAllFunds({ connection, wallet, tokenAccounts: (tokenAccounts || []), markets, selectedTokenAccounts });

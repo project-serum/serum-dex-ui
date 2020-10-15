@@ -112,10 +112,16 @@ export default function StandaloneBalancesDisplay() {
         <React.Fragment key={index}>
           <Divider style={{ borderColor: 'white' }}>{currency}</Divider>
           {connected && (
-            <StandaloneTokenAccountsSelect
-              accounts={tokenAccounts?.filter(account => account.effectiveMint.toBase58() === mint)}
-              mint={mint}
-            />
+            <RowBox
+              align="middle"
+              style={{ paddingBottom: 10 }}
+            >
+              <StandaloneTokenAccountsSelect
+                accounts={tokenAccounts?.filter(account => account.effectiveMint.toBase58() === mint)}
+                mint={mint}
+                label
+              />
+            </RowBox>
           )}
           <RowBox
             align="middle"

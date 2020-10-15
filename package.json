@@ -33,7 +33,7 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "predeploy": "git pull --ff-only && yarn build",
+    "predeploy": "git pull --ff-only && yarn && yarn build",
     "deploy": "gh-pages -d build",
     "start": "craco start",
     "build": "craco build",

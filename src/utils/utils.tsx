@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PublicKey } from '@solana/web3.js';
+import BN from "bn.js";
 
 export function isValidPublicKey(key) {
   if (!key) {
@@ -35,6 +36,17 @@ export function getDecimalCount(value): number {
   if (!isNaN(value) && Math.floor(value) !== value)
     return value.toString().split('.')[1].length || 0;
   return 0;
+}
+
+export function divideBnToNumber(numerator: BN, denominator: BN): number {
+  const quotient = numerator.div(denominator).toNumber();
+  const rem = numerator.umod(denominator);
+  const gcd = rem.gcd(denominator);
+  return quotient + rem.div(gcd).toNumber() / denominator.div(gcd).toNumber();
+}
+
+export function getTokenMultiplierFromDecimals(decimals: number): BN {
+  return new BN(10).pow(new BN(decimals));
 }
 
 const localStorageListeners = {};

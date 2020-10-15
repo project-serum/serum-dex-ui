@@ -135,6 +135,7 @@ export default function TopBar() {
           }}
         >
           <Menu.Item key="/">TRADE</Menu.Item>
+          <Menu.Item key="/balances">BALANCES</Menu.Item>
           <Menu.SubMenu title="LEARN" onTitleClick={() => window.open(EXTERNAL_LINKS['/learn'], '_blank')}>
             <Menu.Item key="/add-market">
               <a href={EXTERNAL_LINKS['/add-market']} target="_blank" rel="noopener noreferrer">

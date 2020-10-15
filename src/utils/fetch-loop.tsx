@@ -39,7 +39,7 @@ class FetchLoopInternal<T = any> {
   errors: number;
   setCacheToNull: Boolean = true;
 
-  constructor(cacheKey, fn, setCacheToNull) {
+  constructor(cacheKey: any, fn: () => Promise<T>, setCacheToNull: Boolean) {
     this.cacheKey = cacheKey;
     this.fn = fn;
     this.timeoutId = null;
