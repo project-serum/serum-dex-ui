@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import DataTable from '../layout/DataTable';
 
 import styled from 'styled-components';
-import { Button, Row, Col, Tag } from 'antd';
-import { cancelOrder } from '../../utils/send';
-import { useWallet } from '../../utils/wallet';
-import { useSendConnection } from '../../utils/connection';
-import { notify } from '../../utils/notifications';
-import { DeleteOutlined } from '@ant-design/icons';
-import {Order} from "@project-serum/serum/lib/market";
+import {Button, Col, Row, Tag} from 'antd';
+import {cancelOrder} from '../../utils/send';
+import {useWallet} from '../../utils/wallet';
+import {useSendConnection} from '../../utils/connection';
+import {notify} from '../../utils/notifications';
+import {DeleteOutlined} from '@ant-design/icons';
 import {OrderWithMarketAndMarketName} from "../../utils/types";
 
 const CancelButton = styled(Button)`
