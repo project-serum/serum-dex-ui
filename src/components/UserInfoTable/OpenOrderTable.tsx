@@ -82,18 +82,21 @@ export default function OpenOrderTable({ openOrders, onCancelSuccess, pageSize, 
           return -1.
         }
       },
+      showSorterTooltip: false,
     },
     {
       title: 'Size',
       dataIndex: 'size',
       key: 'size',
       sorter: (a, b) => b.size - a.size,
+      showSorterTooltip: false,
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
       sorter: (a, b) => b.price - a.price,
+      showSorterTooltip: false,
     },
     {
       key: 'orderId',
