@@ -1,8 +1,14 @@
 import * as BufferLayout from 'buffer-layout';
 import bs58 from 'bs58';
 import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {TokenAccount} from "./types";
+import {TOKEN_MINTS} from "@project-serum/serum";
+import {useAllMarkets, useMarket, useTokenAccounts} from "./markets";
+import {getMultipleSolanaAccounts} from "./send";
+import {useConnection} from "./connection";
+import {useAsyncData} from "./fetch-loop";
+import tuple from 'immutable-tuple';
 
 export const ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(32, 'mint'),
@@ -18,7 +24,9 @@ export const MINT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(36),
 ]);
 
-export function parseTokenAccountData(data) {
+export function parseTokenAccountData(
+  data: Buffer
+): { mint: PublicKey; owner: PublicKey; amount: number } {
   let { mint, owner, amount } = ACCOUNT_LAYOUT.decode(data);
   return {
     mint: new PublicKey(mint),
@@ -116,4 +124,66 @@ export async function getTokenAccountInfo(connection: Connection, ownerAddress: 
     account,
     effectiveMint: WRAPPED_SOL_MINT,
   });
+}
+
+export function useMintToTickers(): { [mint: string]: string; } {
+  const { customMarkets } = useMarket();
+  const [markets] = useAllMarkets(customMarkets);
+  const mintsToTickers = Object.fromEntries(TOKEN_MINTS.map(mint => [mint.address.toBase58(), mint.name]));
+  for (let market of (markets || [])) {
+    const customMarketInfo = customMarkets.find(
+      customMarket => customMarket.address === market.market.address.toBase58()
+    );
+    if (!(market.market.baseMintAddress.toBase58() in mintsToTickers)) {
+      if (customMarketInfo) {
+        mintsToTickers[market.market.baseMintAddress.toBase58()] = customMarketInfo.baseLabel || `${customMarketInfo.name}_BASE`;
+      }
+    }
+    if (!(market.market.quoteMintAddress.toBase58() in mintsToTickers)) {
+      if (customMarketInfo) {
+        mintsToTickers[market.market.quoteMintAddress.toBase58()] = customMarketInfo.quoteLabel || `${customMarketInfo.name}_QUOTE`;
+      }
+    }
+  }
+  return mintsToTickers;
+}
+
+const _VERY_SLOW_REFRESH_INTERVAL = 5000 * 1000;
+
+export function useMintInfos(): [
+  {[mintAddress: string]: {decimals: number; initialized: boolean} | null} | null | undefined,
+  boolean
+] {
+  const connection = useConnection();
+  const {customMarkets} = useMarket();
+  const [tokenAccounts] = useTokenAccounts();
+  const [allMarkets] = useAllMarkets(customMarkets);
+
+  const allMints = (tokenAccounts || []).map(account => account.effectiveMint).concat(
+    (allMarkets || []).map(marketInfo => marketInfo.market.baseMintAddress)
+  ).concat(
+    (allMarkets || []).map(marketInfo => marketInfo.market.quoteMintAddress)
+  );
+  const uniqueMints = [...new Set(allMints.map(mint => mint.toBase58()))].map(stringMint => new PublicKey(stringMint))
+
+  const getAllMintInfo = async () => {
+    const mintInfos = await getMultipleSolanaAccounts(connection, uniqueMints);
+    return Object.fromEntries(Object.entries(mintInfos.value).map(
+      ([key, accountInfo]) => [
+        key,
+        accountInfo && parseTokenMintData(accountInfo.data)
+      ]
+    ));
+  }
+
+  return useAsyncData(
+    getAllMintInfo,
+    tuple(
+      'getAllMintInfo',
+      connection,
+      (tokenAccounts || []).length,
+      (allMarkets || []).length,
+    ),
+    { refreshInterval: _VERY_SLOW_REFRESH_INTERVAL },
+  );
 }

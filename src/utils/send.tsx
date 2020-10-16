@@ -2,8 +2,8 @@ import { notify } from './notifications';
 import { getDecimalCount, sleep } from './utils';
 import { getSelectedTokenAccountForMint } from './markets';
 import {
-  Account, Connection,
-  PublicKey,
+  Account, AccountInfo, Connection,
+  PublicKey, RpcResponseAndContext,
   SystemProgram,
   Transaction, TransactionSignature,
 } from '@solana/web3.js';
@@ -16,8 +16,11 @@ import {
   OpenOrders,
 } from '@project-serum/serum';
 import Wallet from "@project-serum/sol-wallet-adapter";
-import {TokenAccount} from "./types";
+import {SelectedTokenAccounts, TokenAccount} from "./types";
 import {Order} from "@project-serum/serum/lib/market";
+import {Buffer} from "buffer";
+import assert from "assert";
+import { struct } from "superstruct";
 
 export async function createTokenAccountTransaction({
   connection,
@@ -160,6 +163,13 @@ export async function settleAllFunds({
   wallet,
   tokenAccounts,
   markets,
+  selectedTokenAccounts,
+} : {
+  connection: Connection;
+  wallet: Wallet;
+  tokenAccounts: TokenAccount[];
+  markets: Market[];
+  selectedTokenAccounts?: SelectedTokenAccounts;
 }) {
   if (!markets || !wallet || !connection || !tokenAccounts) {
     return;
@@ -168,6 +178,7 @@ export async function settleAllFunds({
   const programIds: PublicKey[] = [];
   markets
     .reduce((cumulative, m) => {
+      // @ts-ignore
       cumulative.push(m._programId);
       return cumulative;
     }, [])
@@ -201,29 +212,42 @@ export async function settleAllFunds({
   const settleTransactions = (await Promise.all(
     openOrdersAccounts.map((openOrdersAccount) => {
       const market = markets.find((m) =>
+        // @ts-ignore
         m._decoded?.ownAddress?.equals(openOrdersAccount.market),
       );
+      const baseMint = market?.baseMintAddress;
+      const quoteMint = market?.quoteMintAddress;
+
+      const selectedBaseTokenAccount = getSelectedTokenAccountForMint(
+        tokenAccounts,
+        baseMint,
+        baseMint && selectedTokenAccounts && selectedTokenAccounts[baseMint.toBase58()]
+      )?.pubkey;
+      const selectedQuoteTokenAccount = getSelectedTokenAccountForMint(
+        tokenAccounts,
+        quoteMint,
+        quoteMint && selectedTokenAccounts && selectedTokenAccounts[quoteMint.toBase58()]
+      )?.pubkey;
+      if (!selectedBaseTokenAccount || !selectedQuoteTokenAccount) {
+        return null;
+      }
       return (
         market &&
         market.makeSettleFundsTransaction(
           connection,
           openOrdersAccount,
-          getSelectedTokenAccountForMint(tokenAccounts, market?.baseMintAddress)
-            ?.pubkey,
-          getSelectedTokenAccountForMint(
-            tokenAccounts,
-            market?.quoteMintAddress,
-          )?.pubkey,
+          selectedBaseTokenAccount,
+          selectedQuoteTokenAccount,
         )
       );
     }),
-  )).filter((x) => x);
+  )).filter((x): x is {signers: [PublicKey | Account]; transaction: Transaction} => !!x);
   if (!settleTransactions || settleTransactions.length === 0) return;
 
   const transactions = settleTransactions.slice(0, 4).map((t) => t.transaction);
-  const signers: (Account | PublicKey)[] = [];
+  const signers: Array<Account | PublicKey> = [];
   settleTransactions
-    .reduce((cumulative, t) => cumulative.concat(t.signers), [])
+    .reduce((cumulative: Array<Account | PublicKey>, t) => cumulative.concat(t.signers), [])
     .forEach((signer) => {
       if (!signers.find((s) => {
         if (s.constructor.name !== signer.constructor.name) {
@@ -727,4 +751,99 @@ function mergeTransactions(transactions: (Transaction | undefined)[]) {
       transaction.add(t);
     });
   return transaction;
+}
+
+function jsonRpcResult(resultDescription: any) {
+  const jsonRpcVersion = struct.literal("2.0");
+  return struct.union([
+    struct({
+      jsonrpc: jsonRpcVersion,
+      id: "string",
+      error: "any",
+    }),
+    struct({
+      jsonrpc: jsonRpcVersion,
+      id: "string",
+      error: "null?",
+      result: resultDescription,
+    }),
+  ]);
+}
+
+function jsonRpcResultAndContext(resultDescription: any) {
+  return jsonRpcResult({
+    context: struct({
+      slot: "number",
+    }),
+    value: resultDescription,
+  });
+}
+
+const AccountInfoResult = struct({
+  executable: "boolean",
+  owner: "string",
+  lamports: "number",
+  data: "any",
+  rentEpoch: "number?",
+});
+
+export const GetMultipleAccountsAndContextRpcResult = jsonRpcResultAndContext(
+  struct.array([struct.union(["null", AccountInfoResult])])
+);
+
+export async function getMultipleSolanaAccounts(
+  connection: Connection,
+  publicKeys: PublicKey[]
+): Promise<
+  RpcResponseAndContext<{ [key: string]: AccountInfo<Buffer> | null }>
+> {
+  const args = [
+    publicKeys.map((k) => k.toBase58()),
+    { commitment: "recent" },
+  ];
+  // @ts-ignore
+  const unsafeRes = await connection._rpcRequest("getMultipleAccounts", args);
+  const res = GetMultipleAccountsAndContextRpcResult(unsafeRes);
+  if (res.error) {
+    throw new Error(
+      "failed to get info about accounts " +
+        publicKeys.map((k) => k.toBase58()).join(", ") +
+        ": " +
+        res.error.message
+    );
+  }
+  assert(typeof res.result !== "undefined");
+  const accounts: Array<{
+    executable: any;
+    owner: PublicKey;
+    lamports: any;
+    data: Buffer;
+  } | null> = [];
+  for (const account of res.result.value) {
+    let value: {
+      executable: any;
+      owner: PublicKey;
+      lamports: any;
+      data: Buffer;
+    } | null = null;
+    if (res.result.value) {
+      const { executable, owner, lamports, data } = account;
+      assert(data[1] === "base64");
+      value = {
+        executable,
+        owner: new PublicKey(owner),
+        lamports,
+        data: Buffer.from(data[0], "base64"),
+      };
+    }
+    accounts.push(value);
+  }
+  return {
+    context: {
+      slot: res.result.context.slot,
+    },
+    value: Object.fromEntries(
+      accounts.map((account, i) => [publicKeys[i].toBase58(), account])
+    ),
+  };
 }

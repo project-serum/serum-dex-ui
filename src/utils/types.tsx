@@ -9,6 +9,8 @@ export interface ConnectionContextValues {
     setEndpoint: (newEndpoint: string) => void;
     connection: Connection;
     sendConnection: Connection;
+    availableEndpoints: EndpointInfo[];
+    setCustomEndpoints: (newCustomEndpoints: EndpointInfo[]) => void;
 }
 
 export interface WalletContextValues {
@@ -105,4 +107,17 @@ export interface DeprecatedOpenOrdersBalances extends BalancesBase {
 export interface PreferencesContextValues {
     autoSettleEnabled: boolean;
     setAutoSettleEnabled: (newAutoSettleEnabled: boolean) => void;
+}
+
+export interface EndpointInfo {
+    name: string;
+    endpoint: string;
+    custom: boolean;
+}
+
+/**
+ * {tokenMint: preferred token account's base58 encoded public key}
+ */
+export interface SelectedTokenAccounts {
+    [tokenMint: string]: string;
 }

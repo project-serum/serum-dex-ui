@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PublicKey } from '@solana/web3.js';
+import BN from "bn.js";
 
 export function isValidPublicKey(key) {
   if (!key) {
@@ -23,47 +24,79 @@ export const percentFormat = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 2,
 });
 
-export function floorToDecimal(value, decimals) {
+export function floorToDecimal(value: number, decimals: number | undefined | null) {
   return decimals ? Math.floor(value * 10 ** decimals) / 10 ** decimals : value;
 }
 
-export function roundToDecimal(value, decimals) {
+export function roundToDecimal(value: number, decimals: number | undefined | null) {
   return decimals ? Math.round(value * 10 ** decimals) / 10 ** decimals : value;
 }
 
-export function getDecimalCount(value) {
+export function getDecimalCount(value): number {
   if (!isNaN(value) && Math.floor(value) !== value)
     return value.toString().split('.')[1].length || 0;
   return 0;
 }
 
-export function useLocalStorageState<T = any>(key: string, defaultState: T | null = null): [T, (newState: T) => void] {
-  const [state, setState] = useState<T>(() => {
-    // NOTE: Not sure if this is ok
-    const storedState = localStorage.getItem(key);
-    if (storedState) {
-      return JSON.parse(storedState);
-    }
-    return defaultState;
-  });
+export function divideBnToNumber(numerator: BN, denominator: BN): number {
+  const quotient = numerator.div(denominator).toNumber();
+  const rem = numerator.umod(denominator);
+  const gcd = rem.gcd(denominator);
+  return quotient + rem.div(gcd).toNumber() / denominator.div(gcd).toNumber();
+}
 
-  const setLocalStorageState = useCallback<(newState: T) => void>(
-    (newState) => {
+export function getTokenMultiplierFromDecimals(decimals: number): BN {
+  return new BN(10).pow(new BN(decimals));
+}
+
+const localStorageListeners = {};
+
+export function useLocalStorageStringState(
+  key: string,
+  defaultState: string | null = null,
+): [string | null, (newState: string | null) => void] {
+  const state = localStorage.getItem(key) || defaultState;
+
+  const [, notify] = useState(key + '\n' + state);
+
+  useEffect(() => {
+    if (!localStorageListeners[key]) {
+      localStorageListeners[key] = [];
+    }
+    localStorageListeners[key].push(notify);
+    return () => {
+      localStorageListeners[key] = localStorageListeners[key].filter(
+        listener => listener !== notify,
+      );
+      if (localStorageListeners[key].length === 0) {
+        delete localStorageListeners[key];
+      }
+    };
+  }, [key]);
+
+  const setState = useCallback<(newState: string | null) => void>(
+    newState => {
       const changed = state !== newState;
       if (!changed) {
         return;
       }
-      setState(newState);
+
       if (newState === null) {
         localStorage.removeItem(key);
       } else {
-        localStorage.setItem(key, JSON.stringify(newState));
+        localStorage.setItem(key, newState);
       }
+      localStorageListeners[key].forEach(listener => listener(key + '\n' + newState));
     },
     [state, key],
   );
 
-  return [state, setLocalStorageState];
+  return [state, setState];
+}
+
+export function useLocalStorageState<T = any>(key: string, defaultState: T | null = null): [T, (newState: T) => void] {
+  let [stringState, setStringState] = useLocalStorageStringState(key, JSON.stringify(defaultState));
+  return [stringState && JSON.parse(stringState), newState => setStringState(JSON.stringify(newState))];
 }
 
 export function useEffectAfterTimeout(effect, timeout) {
@@ -82,9 +115,9 @@ export function useListener(emitter, eventName) {
   }, [emitter, eventName]);
 }
 
-export function abbreviateAddress(address) {
+export function abbreviateAddress(address, size = 4) {
   const base58 = address.toBase58();
-  return base58.slice(0, 4) + '…' + base58.slice(-4);
+  return base58.slice(0, size) + '…' + base58.slice(-size);
 }
 
 export function isEqual(obj1, obj2, keys) {

@@ -35,7 +35,7 @@ class FetchLoopInternal<T = any> {
   listeners: Set<FetchLoopListener<T>>;
   errors: number;
 
-  constructor(cacheKey, fn) {
+  constructor(cacheKey: any, fn: () => Promise<T>) {
     this.cacheKey = cacheKey;
     this.fn = fn;
     this.timeoutId = null;

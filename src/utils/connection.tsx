@@ -1,18 +1,19 @@
-import { useLocalStorageState } from './utils';
-import { Account, AccountInfo, clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
-import React, { useContext, useEffect, useMemo } from 'react';
-import { setCache, useAsyncData } from './fetch-loop';
+import {useLocalStorageState} from './utils';
+import {Account, AccountInfo, clusterApiUrl, Connection, PublicKey} from '@solana/web3.js';
+import React, {useContext, useEffect, useMemo} from 'react';
+import {setCache, useAsyncData} from './fetch-loop';
 import tuple from 'immutable-tuple';
-import {ConnectionContextValues} from "./types";
+import {ConnectionContextValues, EndpointInfo} from "./types";
 
-export const ENDPOINTS: {name: string; endpoint: string;}[] = [
+export const ENDPOINTS: EndpointInfo[] = [
   {
     name: 'mainnet-beta',
     endpoint: 'https://solana-api.projectserum.com',
+    custom: false
   },
-  { name: 'testnet', endpoint: clusterApiUrl('testnet') },
-  { name: 'devnet', endpoint: clusterApiUrl('devnet') },
-  { name: 'localnet', endpoint: 'http://127.0.0.1:8899' },
+  { name: 'testnet', endpoint: clusterApiUrl('testnet'), custom: false },
+  { name: 'devnet', endpoint: clusterApiUrl('devnet'), custom: false },
+  { name: 'localnet', endpoint: 'http://127.0.0.1:8899', custom: false },
 ];
 
 const accountListenerCount = new Map();
@@ -24,6 +25,11 @@ export function ConnectionProvider({ children }) {
     'connectionEndpts',
     ENDPOINTS[0].endpoint,
   );
+  const [customEndpoints, setCustomEndpoints] = useLocalStorageState<EndpointInfo[]>(
+    'customConnectionEndpoints',
+    []
+  )
+  const availableEndpoints = ENDPOINTS.concat(customEndpoints);
 
   const connection = useMemo(() => new Connection(endpoint, 'recent'), [
     endpoint,
@@ -60,7 +66,7 @@ export function ConnectionProvider({ children }) {
 
   return (
     <ConnectionContext.Provider
-      value={{ endpoint, setEndpoint, connection, sendConnection }}
+      value={{ endpoint, setEndpoint, connection, sendConnection, availableEndpoints, setCustomEndpoints }}
     >
       {children}
     </ConnectionContext.Provider>
@@ -88,7 +94,13 @@ export function useConnectionConfig() {
   if (!context) {
     throw new Error('Missing connection context')
   }
-  return { endpoint: context.endpoint, setEndpoint: context.setEndpoint };
+  return {
+    endpoint: context.endpoint,
+    endpointInfo: context.availableEndpoints.find(info => info.endpoint === context.endpoint),
+    setEndpoint: context.setEndpoint,
+    availableEndpoints: context.availableEndpoints,
+    setCustomEndpoints: context.setCustomEndpoints,
+  };
 }
 
 export function useAccountInfo(publicKey: PublicKey | undefined | null): [AccountInfo<Buffer> | null | undefined, boolean] {
