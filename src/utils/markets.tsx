@@ -9,7 +9,7 @@ import {
 } from '@project-serum/serum';
 import {PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
-import {divideBnToNumber, getTokenMultiplierFromDecimals, useLocalStorageState} from './utils';
+import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, useLocalStorageState} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
 import {useAccountData, useAccountInfo, useConnection} from './connection';
 import {useWallet} from './wallet';
@@ -163,7 +163,7 @@ export const DEFAULT_MARKET = USE_MARKETS.find(
   ({ name, deprecated }) => name === 'SRM/USDT' && !deprecated,
 );
 
-function getMarketDetails(market: Market | undefined | null, customMarkets: CustomMarketInfo[]): FullMarketInfo {
+export function getMarketDetails(market: Market | undefined | null, customMarkets: CustomMarketInfo[]): FullMarketInfo {
   if (!market) {
     return {};
   }
@@ -1044,4 +1044,47 @@ export function getMarketInfos(customMarkets: CustomMarketInfo[]): MarketInfo[] 
   }));
 
   return [...customMarketsInfo, ...USE_MARKETS];
+}
+
+export function useMarketInfos() {
+  const { customMarkets } = useMarket();
+  return getMarketInfos(customMarkets);
+}
+
+/**
+ * If selling, choose min tick size. If buying choose a price
+ * s.t. given the state of the orderbook, the order will spend
+ * `cost` cost currency.
+ *
+ * @param orderbook serum Orderbook object
+ * @param cost quantity to spend. Base currency if selling,
+ *  quote currency if buying.
+ * @param tickSizeDecimals size of price increment of the market
+ */
+export function getMarketOrderPrice(
+  orderbook: Orderbook,
+  cost: number,
+  tickSizeDecimals?: number,
+) {
+  if (orderbook.isBids) {
+    return orderbook.market.tickSize;
+  }
+  let spentCost = 0.;
+  let price, sizeAtLevel, costAtLevel: number;
+  const asks = orderbook.getL2(1000);
+  for ([price, sizeAtLevel] of asks) {
+    costAtLevel = price * sizeAtLevel;
+    if (spentCost + costAtLevel > cost) {
+      break;
+    }
+    spentCost += costAtLevel;
+  }
+  const sendPrice = Math.min(price * 1.02, asks[0][0] * 1.05);
+  let formattedPrice;
+  if (tickSizeDecimals) {
+    formattedPrice = floorToDecimal(sendPrice, tickSizeDecimals);
+  } else {
+    formattedPrice = sendPrice;
+  }
+  return formattedPrice;
 }

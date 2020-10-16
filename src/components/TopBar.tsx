@@ -1,4 +1,4 @@
-import {InfoCircleOutlined, PlusCircleOutlined, SettingOutlined, UserOutlined,} from '@ant-design/icons';
+import {InfoCircleOutlined, PlusCircleOutlined, SettingOutlined,} from '@ant-design/icons';
 import {Button, Col, Menu, Popover, Row, Select} from 'antd';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useHistory, useLocation} from 'react-router-dom';
@@ -6,12 +6,12 @@ import logo from '../assets/logo.svg';
 import styled from 'styled-components';
 import {useWallet, WALLET_PROVIDERS} from '../utils/wallet';
 import {ENDPOINTS, useConnectionConfig} from '../utils/connection';
-import LinkAddress from './LinkAddress';
 import Settings from './Settings';
 import CustomClusterEndpointDialog from "./CustomClusterEndpointDialog";
 import {EndpointInfo} from "../utils/types";
 import {notify} from "../utils/notifications";
 import {Connection} from "@solana/web3.js";
+import WalletConnect from "./WalletConnect";
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -50,8 +50,6 @@ export default function TopBar() {
   const [ testingConnection, setTestingConnection] = useState(false)
   const location = useLocation();
   const history = useHistory();
-
-  const publicKey = wallet?.publicKey?.toBase58();
 
   const handleClick = useCallback(
     (e) => {
@@ -137,6 +135,7 @@ export default function TopBar() {
           <Menu.Item key="/">TRADE</Menu.Item>
           {connected && <Menu.Item key="/balances">BALANCES</Menu.Item>}
           {connected && <Menu.Item key="/orders">ORDERS</Menu.Item>}
+          {connected && <Menu.Item key="/convert">CONVERT</Menu.Item>}
           <Menu.SubMenu title="LEARN" onTitleClick={() => window.open(EXTERNAL_LINKS['/learn'], '_blank')}>
             <Menu.Item key="/add-market">
               <a href={EXTERNAL_LINKS['/add-market']} target="_blank" rel="noopener noreferrer">
@@ -232,25 +231,7 @@ export default function TopBar() {
           </Select>
         </div>
         <div>
-          <Button
-            type="text"
-            size="large"
-            onClick={connected ? wallet.disconnect : wallet.connect}
-            style={{ color: '#2abdd2' }}
-          >
-            <UserOutlined />
-            {!connected ? 'Connect wallet' : 'Disconnect'}
-          </Button>
-          {connected && (
-            <Popover
-              content={<LinkAddress address={publicKey} />}
-              placement="bottomRight"
-              title="Wallet public key"
-              trigger="click"
-            >
-              <InfoCircleOutlined style={{ color: '#2abdd2' }} />
-            </Popover>
-          )}
+          <WalletConnect/>
         </div>
       </Wrapper>
     </>
