@@ -38,6 +38,7 @@ import {
   Trade,
 } from './types';
 import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { Order } from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
 
 // Used in debugging, should be false in production
@@ -662,65 +663,6 @@ export function useFillsForAllMarkets(limit = 100) {
   );
 }
 
-// TODO: Update to use websocket
-export function useOpenOrdersForAllMarketsOld() {
-  return [[], true];
-  // const { connected, wallet } = useWallet();
-  //
-  // const connection = useConnection();
-  // // todo: use custom markets
-  // const allMarkets: {market: Market; marketName: string; programId: PublicKey;}[] = useAllMarkets([]);
-  //
-  // async function getOpenOrdersForAllMarkets() {
-  //   let orders: OrderWithMarket[] = [];
-  //   if (!connected) {
-  //     return orders;
-  //   }
-  //
-  //   let marketData: {market: Market; marketName: string; programId: PublicKey;};
-  //   for (marketData of allMarkets) {
-  //     const { market, marketName } = marketData;
-  //     if (!market) {
-  //       return orders;
-  //     }
-  //     const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
-  //       connection,
-  //       wallet.publicKey,
-  //     );
-  //     const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
-  //     if (!openOrdersAccount) {
-  //       return orders;
-  //     }
-  //     const [bids, asks] = await Promise.all([
-  //       market.loadBids(connection),
-  //       market.loadAsks(connection),
-  //     ]);
-  //     const ordersForMarket = [...bids, ...asks]
-  //       .filter((order) => {
-  //         return order.openOrdersAddress.equals(openOrdersAccount.publicKey);
-  //       })
-  //       .map((order) => {
-  //         return { ...order, marketName };
-  //       });
-  //     orders = orders.concat(ordersForMarket);
-  //   }
-  //
-  //   return orders;
-  // }
-  //
-  // return useAsyncData(
-  //   getOpenOrdersForAllMarkets,
-  //   tuple(
-  //     'getOpenOrdersForAllMarkets',
-  //     connected,
-  //     connection,
-  //     wallet,
-  //     allMarkets,
-  //   ),
-  //   { refreshInterval: _SLOW_REFRESH_INTERVAL },
-  // );
-}
-
 export function useAllOpenOrdersAccounts() {
   const { wallet, connected } = useWallet();
   const connection = useConnection();
@@ -818,7 +760,11 @@ export function useAllOpenOrdersBalances() {
   return openOrdersBalances;
 }
 
-export function useAllOpenOrders() {
+export function useAllOpenOrders(): {
+  openOrders: { orders: Order[]; marketAddress: string }[] | null | undefined;
+  loaded: boolean;
+  refreshOpenOrders: () => void;
+} {
   const connection = useConnection();
   const { connected } = useWallet();
   const [
