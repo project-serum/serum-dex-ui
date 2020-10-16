@@ -51,8 +51,6 @@ export default function TopBar() {
   const location = useLocation();
   const history = useHistory();
 
-  const publicKey = wallet?.publicKey?.toBase58();
-
   const handleClick = useCallback(
     (e) => {
       if (!(e.key in EXTERNAL_LINKS)) {

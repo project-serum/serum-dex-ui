@@ -1052,6 +1052,37 @@ export function useMarketInfos() {
   return getMarketInfos(customMarkets);
 }
 
+export async function getOpenOrdersAccountsBalance(
+  connection: Connection,
+  wallet: Wallet,
+  market: Market,
+  base = true,
+): Promise<undefined | number> {
+  const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
+    connection,
+    wallet.publicKey,
+  );
+  const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
+  return (
+    openOrdersAccount &&
+    (base
+      ? market.quoteSplSizeToNumber(openOrdersAccount.baseTokenFree)
+      : market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree))
+  );
+}
+
+export async function getCurrencyBalanceForAccount(
+  connection: Connection,
+  market: Market,
+  currencyAccount: TokenAccount,
+) {
+  const accountInfo = await connection.getAccountInfo(currencyAccount.pubkey);
+  return (
+    accountInfo &&
+    market.baseSplSizeToNumber(new BN(accountInfo.data.slice(64, 72), 10, 'le'))
+  );
+}
+
 /**
  * If selling, choose min tick size. If buying choose a price
  * s.t. given the state of the orderbook, the order will spend

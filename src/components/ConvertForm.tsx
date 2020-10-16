@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Typography, Select, Button, Input, Row, Col } from 'antd';
+import React, {useState} from 'react';
+import {Button, Col, Input, Row, Select, Typography} from 'antd';
 import styled from 'styled-components';
-import { Market, Orderbook } from '@project-serum/serum';
+import {Orderbook} from '@project-serum/serum';
 import {
-  getSelectedTokenAccountForMint,
-  getCurrencyBalanceForAccount,
-  getOpenOrdersAccountsBalance,
-  useMarket,
   getMarketDetails,
-  useTokenAccounts, useMarketInfos, getMarketOrderPrice,
+  getMarketInfos,
+  getMarketOrderPrice,
+  getSelectedTokenAccountForMint,
+  useBalances,
+  useMarket,
+  useTokenAccounts,
 } from '../utils/markets';
-import { notify } from '../utils/notifications';
-import { useWallet } from '../utils/wallet';
-import { useConnection, useSendConnection } from '../utils/connection';
-import { placeOrder } from '../utils/send';
-import { getDecimalCount, floorToDecimal } from '../utils/utils';
+import {notify} from '../utils/notifications';
+import {useWallet} from '../utils/wallet';
+import {useConnection, useSendConnection} from '../utils/connection';
+import {placeOrder} from '../utils/send';
+import {floorToDecimal, getDecimalCount} from '../utils/utils';
 import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
 
@@ -35,95 +36,121 @@ const ConvertButton = styled(Button)`
 export default function ConvertForm() {
   const { connected, wallet } = useWallet();
   const { customMarkets } = useMarket();
-  const marketInfos = useMarketInfos();
+  const marketInfos = getMarketInfos(customMarkets)
+  const {market, setMarketAddress} = useMarket();
 
+  const [fromToken, setFromToken] = useState<string | undefined>(undefined);
+  const [toToken, setToToken] = useState<string | undefined>(undefined);
+  const [size, setSize] = useState<number | undefined>(undefined);
+
+  const marketInfosbyName = Object.fromEntries(marketInfos.map(market => [market.name, market]));
+
+  const tokenConvertMap: Map<string, Set<string>> = new Map();
+  Object.keys(marketInfosbyName).forEach((market) => {
+    let [base, quote] = market.split('/');
+    !tokenConvertMap.has(base)
+      ? tokenConvertMap.set(base, new Set([quote]))
+      : tokenConvertMap.set(base, new Set([...(tokenConvertMap.get(base) || []), quote]));
+    !tokenConvertMap.has(quote)
+      ? tokenConvertMap.set(quote, new Set([base]))
+      : tokenConvertMap.set(quote, new Set([...(tokenConvertMap.get(quote) || []), base]));
+  });
+
+  const setMarket = (toToken) => {
+    const marketInfo = marketInfos.filter(marketInfo => !marketInfo.deprecated).find(marketInfo =>
+      marketInfo.name === `${fromToken}/${toToken}` || marketInfo.name === `${toToken}/${fromToken}`
+    );
+    if (!marketInfo) {
+      console.warn(`Could not find market info for market names ${fromToken}/${toToken} or ${toToken}/${fromToken}`);
+      notify({
+        message: 'Invalid market',
+        type: 'error',
+      });
+      return;
+    }
+    setMarketAddress(marketInfo.address.toBase58())
+    setToToken(toToken);
+  }
+
+  return (
+    <FloatingElement style={{ maxWidth: 500 }}>
+      <Title level={3}>Convert</Title>
+      {!connected && (
+        <Row justify="center">
+          <Col>
+            <WalletConnect />
+          </Col>
+        </Row>
+      )}
+      {tokenConvertMap && connected && (
+        <>
+          <Row style={{ marginBottom: 8 }}>
+            <Col>
+              <Select
+                style={{ minWidth: 300 }}
+                placeholder="Select a token"
+                value={fromToken}
+                onChange={(token) => {
+                  setFromToken(token);
+                  setToToken(undefined);
+                }}
+              >
+                {Array.from(tokenConvertMap.keys()).map((token) => (
+                  <Option value={token} key={token}>
+                    {token}
+                  </Option>
+                ))}
+              </Select>
+            </Col>
+          </Row>
+          {fromToken && (
+            <Row style={{ marginBottom: 8 }}>
+              <Col>
+                <Select
+                  style={{ minWidth: 300 }}
+                  value={toToken}
+                  onChange={setMarket}
+                >
+                  {[...(tokenConvertMap.get(fromToken) || [])].map((token) => (
+                    <Option value={token} key={token}>
+                      {token}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+            </Row>
+          )}
+          {fromToken && toToken && (
+            <ConvertFormSubmit
+              size={size}
+              setSize={setSize}
+              fromToken={fromToken}
+              wallet={wallet}
+              market={market}
+              customMarkets={customMarkets}
+            />
+          )}
+        </>
+      )}
+    </FloatingElement>
+  );
+}
+
+function ConvertFormSubmit({
+  size,
+  setSize,
+  fromToken,
+  wallet,
+  market,
+  customMarkets
+}) {
   const [accounts] = useTokenAccounts();
+  const balances = useBalances()
 
   const connection = useConnection();
   const sendConnection = useSendConnection();
 
   const [isConverting, setIsConverting] = useState(false);
-  const [market, setMarket] = useState<Market | null>(null);
-  const [balance, setBalance] = useState<number | undefined>(undefined);
-  const [tokenMap, setTokenMap] = useState<Map<string, Set<string>> | undefined>(undefined);
-  const [fromToken, setFromToken] = useState<string | undefined>(undefined);
-  const [toToken, setToToken] = useState<string | undefined>(undefined);
-  const [size, setSize] = useState<number | undefined>(undefined);
-
-  const marketNames = marketInfos.map(market => market.name);
-  const stringMarketNames = JSON.stringify(marketNames);
-
-  useEffect(() => {
-    const tokenMap: Map<string, Set<string>> = new Map();
-    marketNames.forEach((market) => {
-      let [base, quote] = market.split('/');
-      !tokenMap.has(base)
-        ? tokenMap.set(base, new Set([quote]))
-        : tokenMap.set(base, new Set([...(tokenMap.get(base) || []), quote]));
-      !tokenMap.has(quote)
-        ? tokenMap.set(quote, new Set([base]))
-        : tokenMap.set(quote, new Set([...(tokenMap.get(quote) || []), base]));
-    });
-    setTokenMap(tokenMap);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stringMarketNames]);
-
-  useEffect(() => {
-    if (!fromToken || !toToken) {
-      setMarket(null);
-      return;
-    }
-
-    const marketInfo = marketInfos.find(
-      ({ name }) =>
-        name === `${fromToken}/${toToken}` ||
-        name === `${toToken}/${fromToken}`,
-    );
-    marketInfo &&
-      Market.load(connection, marketInfo.address, {}, marketInfo.programId)
-        .then(setMarket)
-        .catch((e) =>
-          notify({
-            message: 'Error loading market',
-            description: e.message,
-            type: 'error',
-          }),
-        );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stringMarketNames, connection, fromToken, toToken]);
-
-  let stringAccountKeys = JSON.stringify(accounts?.map(account => account.pubkey.toBase58()))
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (!market) {
-        return;
-      }
-      const openOrdersAccountBalance = await getOpenOrdersAccountsBalance(
-        connection,
-        wallet,
-        market,
-        isFromTokenBaseOfMarket(market),
-      );
-      const currencyAccount = getSelectedTokenAccountForMint(
-        accounts,
-        isFromTokenBaseOfMarket(market)
-          ? market?.baseMintAddress
-          : market?.quoteMintAddress,
-      );
-      if (!currencyAccount) {
-        return;
-      }
-      const currencyBalance = await getCurrencyBalanceForAccount(
-        connection,
-        market,
-        currencyAccount,
-      );
-      setBalance(((openOrdersAccountBalance || 0.) + (currencyBalance || 0)) * 0.97);
-    };
-
-    market && fetchBalance();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market, stringAccountKeys, isConverting]);
 
   const isFromTokenBaseOfMarket = (market) => {
     const { marketName } = getMarketDetails(market, customMarkets);
@@ -221,96 +248,45 @@ export default function ConvertForm() {
   };
 
   const canConvert = market && size && size > 0;
+  const balance = balances.find(coinBalance => coinBalance.coin === fromToken);
 
   return (
-    <FloatingElement style={{ maxWidth: 500 }}>
-      <Title level={3}>Convert</Title>
-      {!connected && (
-        <Row justify="center">
-          <Col>
-            <WalletConnect />
-          </Col>
-        </Row>
-      )}
-      {tokenMap && connected && (
-        <>
-          <Row style={{ marginBottom: 8 }}>
-            <Col>
-              <Select
-                style={{ minWidth: 300 }}
-                placeholder="Select a token"
-                value={fromToken}
-                onChange={(token) => {
-                  setFromToken(token);
-                  setToToken(undefined);
-                }}
-              >
-                {Array.from(tokenMap.keys()).map((token) => (
-                  <Option value={token} key={token}>
-                    {token}
-                  </Option>
-                ))}
-              </Select>
-            </Col>
-          </Row>
-          {fromToken && (
-            <Row style={{ marginBottom: 8 }}>
-              <Col>
-                <Select
-                  style={{ minWidth: 300 }}
-                  value={toToken}
-                  onChange={setToToken}
-                >
-                  {[...(tokenMap.get(fromToken) || [])].map((token) => (
-                    <Option value={token} key={token}>
-                      {token}
-                    </Option>
-                  ))}
-                </Select>
-              </Col>
-            </Row>
-          )}
-          {fromToken && toToken && (
-            <>
-              <Row style={{ marginBottom: 8 }}>
-                <Col>
-                  <Input
-                    style={{ minWidth: 300 }}
-                    addonBefore={`Size (${fromToken})`}
-                    placeholder="Size"
-                    value={size}
-                    type="number"
-                    onChange={(e) => setSize(parseFloat(e.target.value))}
-                  />
-                </Col>
-              </Row>
-              <Row gutter={12} style={{ marginBottom: 8 }}>
-                <Col span={12}>
-                  <ActionButton
-                    block
-                    size="large"
-                    onClick={() => setSize(balance || 0.)}
-                  >
-                    Max: {(balance || 0.).toFixed(4)}
-                  </ActionButton>
-                </Col>
-                <Col span={12}>
-                  <ConvertButton
-                    block
-                    type="primary"
-                    size="large"
-                    loading={isConverting}
-                    onClick={onConvert}
-                    disabled={!canConvert}
-                  >
-                    Convert
-                  </ConvertButton>
-                </Col>
-              </Row>
-            </>
-          )}
-        </>
-      )}
-    </FloatingElement>
+    <React.Fragment>
+      <Row style={{ marginBottom: 8 }}>
+        <Col>
+          <Input
+            style={{ minWidth: 300 }}
+            addonBefore={`Size (${fromToken})`}
+            placeholder="Size"
+            value={size}
+            type="number"
+            onChange={(e) => setSize(parseFloat(e.target.value))}
+          />
+        </Col>
+      </Row>
+      <Row gutter={12} style={{ marginBottom: 8 }}>
+        <Col span={12}>
+          <ActionButton
+            block
+            size="large"
+            onClick={() => setSize((balance?.unsettled || 0.) + (balance?.wallet || 0.))}
+          >
+            Max: {((balance?.unsettled || 0.) + (balance?.wallet || 0.)).toFixed(4)}
+          </ActionButton>
+        </Col>
+        <Col span={12}>
+          <ConvertButton
+            block
+            type="primary"
+            size="large"
+            loading={isConverting}
+            onClick={onConvert}
+            disabled={!canConvert}
+          >
+            Convert
+          </ConvertButton>
+        </Col>
+      </Row>
+    </React.Fragment>
   );
 }
