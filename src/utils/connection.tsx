@@ -11,8 +11,6 @@ export const ENDPOINTS: EndpointInfo[] = [
     endpoint: 'https://solana-api.projectserum.com',
     custom: false
   },
-  { name: 'testnet', endpoint: clusterApiUrl('testnet'), custom: false },
-  { name: 'devnet', endpoint: clusterApiUrl('devnet'), custom: false },
   { name: 'localnet', endpoint: 'http://127.0.0.1:8899', custom: false },
 ];
 
