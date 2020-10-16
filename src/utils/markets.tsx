@@ -9,7 +9,13 @@ import {
 } from '@project-serum/serum';
 import {Connection, PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
-import {divideBnToNumber, getTokenMultiplierFromDecimals, useLocalStorageState} from './utils';
+import {
+  divideBnToNumber,
+  floorToDecimal,
+  getDecimalCount,
+  getTokenMultiplierFromDecimals,
+  useLocalStorageState
+} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
 import {useAccountData, useAccountInfo, useConnection} from './connection';
 import {useWallet} from './wallet';
@@ -1052,37 +1058,6 @@ export function useMarketInfos() {
   return getMarketInfos(customMarkets);
 }
 
-export async function getOpenOrdersAccountsBalance(
-  connection: Connection,
-  wallet: Wallet,
-  market: Market,
-  base = true,
-): Promise<undefined | number> {
-  const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
-    connection,
-    wallet.publicKey,
-  );
-  const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
-  return (
-    openOrdersAccount &&
-    (base
-      ? market.quoteSplSizeToNumber(openOrdersAccount.baseTokenFree)
-      : market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree))
-  );
-}
-
-export async function getCurrencyBalanceForAccount(
-  connection: Connection,
-  market: Market,
-  currencyAccount: TokenAccount,
-) {
-  const accountInfo = await connection.getAccountInfo(currencyAccount.pubkey);
-  return (
-    accountInfo &&
-    market.baseSplSizeToNumber(new BN(accountInfo.data.slice(64, 72), 10, 'le'))
-  );
-}
-
 /**
  * If selling, choose min tick size. If buying choose a price
  * s.t. given the state of the orderbook, the order will spend
@@ -1091,22 +1066,32 @@ export async function getCurrencyBalanceForAccount(
  * @param orderbook serum Orderbook object
  * @param cost quantity to spend. Base currency if selling,
  *  quote currency if buying.
+ * @param tickSizeDecimals size of price increment of the market
  */
 export function getMarketOrderPrice(
   orderbook: Orderbook,
   cost: number,
+  tickSizeDecimals?: number,
 ) {
   if (orderbook.isBids) {
     return orderbook.market.tickSize;
   }
   let spentCost = 0.;
   let price, sizeAtLevel, costAtLevel: number;
-  for ([price, sizeAtLevel] of orderbook.getL2(1000)) {
+  const asks = orderbook.getL2(1000);
+  for ([price, sizeAtLevel] of asks) {
     costAtLevel = price * sizeAtLevel;
     if (spentCost + costAtLevel > cost) {
-      return price;
+      break;
     }
     spentCost += costAtLevel;
   }
-  return price;
+  const sendPrice = Math.min(price * 1.02, asks[0][0] * 1.05);
+  let formattedPrice;
+  if (tickSizeDecimals) {
+    formattedPrice = floorToDecimal(sendPrice, tickSizeDecimals);
+  } else {
+    formattedPrice = sendPrice;
+  }
+  return formattedPrice;
 }

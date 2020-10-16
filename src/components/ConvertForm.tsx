@@ -215,7 +215,8 @@ function ConvertFormSubmit({
       return;
     }
 
-    const parsedPrice = getMarketOrderPrice(decodedOrderbookData, size);
+    const tickSizeDecimals =  getDecimalCount(market.tickSize);
+    const parsedPrice = getMarketOrderPrice(decodedOrderbookData, size, tickSizeDecimals);
 
     // round size
     const sizeDecimalCount = getDecimalCount(market.minOrderSize);
@@ -249,6 +250,7 @@ function ConvertFormSubmit({
 
   const canConvert = market && size && size > 0;
   const balance = balances.find(coinBalance => coinBalance.coin === fromToken);
+  const availableBalance = ((balance?.unsettled || 0.) + (balance?.wallet || 0.)) * 0.99;
 
   return (
     <React.Fragment>
@@ -260,7 +262,7 @@ function ConvertFormSubmit({
             placeholder="Size"
             value={size}
             type="number"
-            onChange={(e) => setSize(parseFloat(e.target.value))}
+            onChange={(e) => setSize(parseFloat(e.target.value) || undefined)}
           />
         </Col>
       </Row>
@@ -269,9 +271,9 @@ function ConvertFormSubmit({
           <ActionButton
             block
             size="large"
-            onClick={() => setSize((balance?.unsettled || 0.) + (balance?.wallet || 0.))}
+            onClick={() => setSize(floorToDecimal(availableBalance, 4))}
           >
-            Max: {((balance?.unsettled || 0.) + (balance?.wallet || 0.)).toFixed(4)}
+            Max: {availableBalance.toFixed(4)}
           </ActionButton>
         </Col>
         <Col span={12}>
