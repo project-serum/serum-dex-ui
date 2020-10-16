@@ -7,15 +7,9 @@ import {
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
-import {Connection, PublicKey} from '@solana/web3.js';
+import {PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
-import {
-  divideBnToNumber,
-  floorToDecimal,
-  getDecimalCount,
-  getTokenMultiplierFromDecimals,
-  useLocalStorageState
-} from './utils';
+import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, useLocalStorageState} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
 import {useAccountData, useAccountInfo, useConnection} from './connection';
 import {useWallet} from './wallet';
@@ -35,7 +29,6 @@ import {
   TokenAccount,
   Trade,
 } from "./types";
-import Wallet from "@project-serum/sol-wallet-adapter";
 import {WRAPPED_SOL_MINT} from "@project-serum/serum/lib/token-instructions";
 import {Order} from "@project-serum/serum/lib/market";
 
