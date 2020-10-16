@@ -1,5 +1,5 @@
 import {useLocalStorageState} from './utils';
-import {Account, AccountInfo, clusterApiUrl, Connection, PublicKey} from '@solana/web3.js';
+import {Account, AccountInfo, Connection, PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useMemo} from 'react';
 import {setCache, useAsyncData} from './fetch-loop';
 import tuple from 'immutable-tuple';

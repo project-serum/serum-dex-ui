@@ -1088,3 +1088,31 @@ export function getMarketOrderPrice(
   }
   return formattedPrice;
 }
+
+export function getExpectedFillPrice(
+  orderbook: Orderbook,
+  cost: number,
+  tickSizeDecimals?: number,
+) {
+  let spentCost = 0.;
+  let avgPrice = 0.;
+  let price, sizeAtLevel, costAtLevel: number;
+  for ([price, sizeAtLevel] of orderbook.getL2(1000)) {
+    costAtLevel = (orderbook.isBids ? 1 : price) * sizeAtLevel;
+    if (spentCost + costAtLevel > cost) {
+      avgPrice += (cost - spentCost) * price;
+      spentCost = cost;
+      break;
+    }
+    avgPrice += costAtLevel * price;
+    spentCost += costAtLevel;
+  }
+  const totalAvgPrice = avgPrice / Math.min(cost, spentCost);
+  let formattedPrice;
+  if (tickSizeDecimals) {
+    formattedPrice = floorToDecimal(totalAvgPrice, tickSizeDecimals);
+  } else {
+    formattedPrice = totalAvgPrice;
+  }
+  return formattedPrice;
+}

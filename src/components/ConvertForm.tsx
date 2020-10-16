@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Button, Col, Input, Row, Select, Typography} from 'antd';
 import styled from 'styled-components';
-import {Orderbook} from '@project-serum/serum';
+import {Market, Orderbook} from '@project-serum/serum';
 import {
+  getExpectedFillPrice,
   getMarketDetails,
   getMarketInfos,
   getMarketOrderPrice,
@@ -18,6 +19,9 @@ import {placeOrder} from '../utils/send';
 import {floorToDecimal, getDecimalCount} from '../utils/utils';
 import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
+import {SwapOutlined} from "@ant-design/icons";
+import {CustomMarketInfo} from "../utils/types";
+import Wallet from "@project-serum/sol-wallet-adapter";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -125,6 +129,7 @@ export default function ConvertForm() {
               size={size}
               setSize={setSize}
               fromToken={fromToken}
+              toToken={toToken}
               wallet={wallet}
               market={market}
               customMarkets={customMarkets}
@@ -140,12 +145,23 @@ function ConvertFormSubmit({
   size,
   setSize,
   fromToken,
+  toToken,
   wallet,
   market,
   customMarkets
+} : {
+  size: number | null | undefined;
+  setSize: (newSize: number | undefined) => void;
+  fromToken: string;
+  toToken: string;
+  wallet: Wallet;
+  market: Market | null | undefined;
+  customMarkets: CustomMarketInfo[];
 }) {
   const [accounts] = useTokenAccounts();
-  const balances = useBalances()
+  const balances = useBalances();
+  const [fromAmount, setFromAmount] = useState<number | undefined>();
+  const [toAmount, setToAmount] = useState<number | undefined>();
 
   const connection = useConnection();
   const sendConnection = useSendConnection();
@@ -248,6 +264,46 @@ function ConvertFormSubmit({
     }
   };
 
+  const getPrice = async () => {
+    try {
+      const side = isFromTokenBaseOfMarket(market) ? 'sell' : 'buy';
+      const sidedOrderbookAccount =
+        // @ts-ignore
+        side === 'buy' ? market._decoded.asks : market._decoded.bids;
+      const orderbookData = await connection.getAccountInfo(sidedOrderbookAccount);
+      if (!orderbookData?.data || !market) {
+        return [null, null];
+      }
+      const decodedOrderbookData = Orderbook.decode(market, orderbookData.data);
+      const [bbo] =
+      decodedOrderbookData &&
+      decodedOrderbookData.getL2(1).map(([price]) => price);
+      if (!bbo || !size) {
+        return [null, null];
+      }
+      const tickSizeDecimals =  getDecimalCount(market.tickSize);
+      const expectedPrice = getExpectedFillPrice(decodedOrderbookData, size, tickSizeDecimals)
+      if (side === 'buy') {
+        return [expectedPrice.toFixed(6), 1];
+      } else {
+        return [1, expectedPrice.toFixed(6)];
+      }
+    } catch (e) {
+      console.log(`Got error ${e}`);
+      return [null, null];
+    }
+  }
+
+  useEffect(() => {
+      getPrice().then(([fromAmount, toAmount]) => {
+        setFromAmount(fromAmount || undefined);
+        setToAmount(toAmount || undefined);
+      })
+    },
+    // eslint-disable-next-line
+    [market?.address.toBase58(), size]
+  )
+
   const canConvert = market && size && size > 0;
   const balance = balances.find(coinBalance => coinBalance.coin === fromToken);
   const availableBalance = ((balance?.unsettled || 0.) + (balance?.wallet || 0.)) * 0.99;
@@ -260,7 +316,7 @@ function ConvertFormSubmit({
             style={{ minWidth: 300 }}
             addonBefore={`Size (${fromToken})`}
             placeholder="Size"
-            value={size}
+            value={size === null ? undefined : size}
             type="number"
             onChange={(e) => setSize(parseFloat(e.target.value) || undefined)}
           />
@@ -289,6 +345,19 @@ function ConvertFormSubmit({
           </ConvertButton>
         </Col>
       </Row>
+      {canConvert && (
+        <Row align="middle"  justify="center">
+          <Col >
+            {fromAmount} {fromToken}
+          </Col>
+          <Col offset={1}>
+            <SwapOutlined/>
+          </Col>
+          <Col offset={1}>
+            {toAmount} {toToken}
+          </Col>
+        </Row>
+      )}
     </React.Fragment>
   );
 }
