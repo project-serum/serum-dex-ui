@@ -46,7 +46,6 @@ export default function TradePage() {
   const [handleDeprecated, setHandleDeprecated] = useState(false);
   const [addMarketVisible, setAddMarketVisible] = useState(false);
   const deprecatedMarkets = useUnmigratedDeprecatedMarkets();
-
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
     width: window.innerWidth,
