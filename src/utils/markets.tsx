@@ -363,7 +363,7 @@ export function useBonfidaTrades() {
     if (!marketAddress) {
       return null;
     }
-    return await BonfidaApi.recentTrades(marketAddress);
+    return await BonfidaApi.getRecentTrades(marketAddress);
   }
 
   return useAsyncData(
