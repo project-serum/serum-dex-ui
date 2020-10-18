@@ -1,5 +1,5 @@
 import {useLocalStorageState} from './utils';
-import {Account, AccountInfo, clusterApiUrl, Connection, PublicKey} from '@solana/web3.js';
+import {Account, AccountInfo, Connection, PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useMemo} from 'react';
 import {setCache, useAsyncData} from './fetch-loop';
 import tuple from 'immutable-tuple';
@@ -11,8 +11,6 @@ export const ENDPOINTS: EndpointInfo[] = [
     endpoint: 'https://solana-api.projectserum.com',
     custom: false
   },
-  { name: 'testnet', endpoint: clusterApiUrl('testnet'), custom: false },
-  { name: 'devnet', endpoint: clusterApiUrl('devnet'), custom: false },
   { name: 'localnet', endpoint: 'http://127.0.0.1:8899', custom: false },
 ];
 

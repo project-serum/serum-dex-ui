@@ -11,7 +11,7 @@ import CustomClusterEndpointDialog from "./CustomClusterEndpointDialog";
 import {EndpointInfo} from "../utils/types";
 import {notify} from "../utils/notifications";
 import {Connection} from "@solana/web3.js";
-import WalletConnect from "./WalletConnect";
+import WalletConnect from './WalletConnect';
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -136,6 +136,7 @@ export default function TopBar() {
           {connected && <Menu.Item key="/balances">BALANCES</Menu.Item>}
           {connected && <Menu.Item key="/orders">ORDERS</Menu.Item>}
           {connected && <Menu.Item key="/convert">CONVERT</Menu.Item>}
+          <Menu.Item key="/list-new-market">ADD MARKET</Menu.Item>
           <Menu.SubMenu title="LEARN" onTitleClick={() => window.open(EXTERNAL_LINKS['/learn'], '_blank')}>
             <Menu.Item key="/add-market">
               <a href={EXTERNAL_LINKS['/add-market']} target="_blank" rel="noopener noreferrer">
