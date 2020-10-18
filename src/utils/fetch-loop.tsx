@@ -12,7 +12,7 @@ class FetchLoopListener<T = any> {
   refreshInterval: number;
   refreshIntervalOnError: number | null;
   callback: () => void;
-  setCacheToNull: Boolean = true;
+  cacheNullValues: Boolean = true;
 
   constructor(
     cacheKey: any,
@@ -20,14 +20,14 @@ class FetchLoopListener<T = any> {
     refreshInterval: number,
     refreshIntervalOnError: number | null,
     callback: () => void,
-    setCacheToNull: Boolean,
+    cacheNullValues: Boolean,
   ) {
     this.cacheKey = cacheKey;
     this.fn = fn;
     this.refreshInterval = refreshInterval;
     this.refreshIntervalOnError = refreshIntervalOnError;
     this.callback = callback;
-    this.setCacheToNull = setCacheToNull;
+    this.cacheNullValues = cacheNullValues;
   }
 }
 
@@ -37,15 +37,15 @@ class FetchLoopInternal<T = any> {
   timeoutId: null | any;
   listeners: Set<FetchLoopListener<T>>;
   errors: number;
-  setCacheToNull: Boolean = true;
+  cacheNullValues: Boolean = true;
 
-  constructor(cacheKey: any, fn: () => Promise<T>, setCacheToNull: Boolean) {
+  constructor(cacheKey: any, fn: () => Promise<T>, cacheNullValues: Boolean) {
     this.cacheKey = cacheKey;
     this.fn = fn;
     this.timeoutId = null;
     this.listeners = new Set();
     this.errors = 0;
-    this.setCacheToNull = setCacheToNull;
+    this.cacheNullValues = cacheNullValues;
   }
 
   get refreshInterval(): number {
@@ -102,15 +102,17 @@ class FetchLoopInternal<T = any> {
     let errored = false;
     try {
       const data = await this.fn();
-      if (this.setCacheToNull) {
+      if (!this.cacheNullValues && data === null) {
+        console.log(`Not caching null value for ${this.cacheKey}`)
+        // cached data has not changed so no need to re-render
+        this.errors = 0;
+        return data;
+      } else {
         globalCache.set(this.cacheKey, data);
+        this.errors = 0;
+        this.notifyListeners();
+        return data;
       }
-      if (!this.setCacheToNull && !!data) {
-        globalCache.set(this.cacheKey, data);
-      }
-      this.errors = 0;
-      this.notifyListeners();
-      return data;
     } catch (error) {
       ++this.errors;
       console.warn(error);
@@ -163,7 +165,7 @@ class FetchLoops {
         new FetchLoopInternal<T>(
           listener.cacheKey,
           listener.fn,
-          listener.setCacheToNull,
+          listener.cacheNullValues,
         ),
       );
     }
@@ -194,7 +196,7 @@ export function useAsyncData<T = any>(
   asyncFn: () => Promise<T>,
   cacheKey: any,
   { refreshInterval = 60000, refreshIntervalOnError = null } = {},
-  setCacheToNull: Boolean = true,
+  cacheNullValues: Boolean = true,
 ): [null | undefined | T, boolean] {
   const [, rerender] = useReducer((i) => i + 1, 0);
 
@@ -209,7 +211,7 @@ export function useAsyncData<T = any>(
       refreshInterval,
       refreshIntervalOnError,
       rerender,
-      setCacheToNull,
+      cacheNullValues,
     );
     globalLoops.addListener(listener);
     return () => globalLoops.removeListener(listener);

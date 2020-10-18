@@ -1,23 +1,26 @@
 import { BonfidaTrade } from './types';
 
-class BonfidaApi {
+export default class BonfidaApi {
   static URL: string = 'https://serum-api.bonfida.com/';
-  static async recentTrades(
-    marketAddress: string,
-  ): Promise<BonfidaTrade[] | null> {
+
+  static async get(path: string) {
     try {
       const response = await fetch(
-        this.URL + `trades/address/${marketAddress}`,
+        this.URL + path,
       );
       if (response.ok) {
         const responseJson = await response.json();
         return responseJson.success ? responseJson.data : null;
       }
     } catch (err) {
-      console.log(`Error fetching recent trades on Bonfida API: ${err}`);
+      console.log(`Error fetching from Bonfida API ${path}: ${err}`);
     }
     return null;
   }
-}
 
-export default BonfidaApi;
+  static async getRecentTrades(
+    marketAddress: string,
+  ): Promise<BonfidaTrade[] | null> {
+    return BonfidaApi.get(`trades/address/${marketAddress}`);
+  }
+}
