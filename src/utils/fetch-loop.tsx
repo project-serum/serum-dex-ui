@@ -1,4 +1,4 @@
-import {useEffect, useReducer} from 'react';
+import { useEffect, useReducer } from 'react';
 
 import assert from 'assert';
 
@@ -12,19 +12,22 @@ class FetchLoopListener<T = any> {
   refreshInterval: number;
   refreshIntervalOnError: number | null;
   callback: () => void;
+  cacheNullValues: Boolean = true;
 
   constructor(
-      cacheKey: any,
-      fn: () => Promise<T>,
-      refreshInterval: number,
-      refreshIntervalOnError: number | null,
-      callback: () => void
+    cacheKey: any,
+    fn: () => Promise<T>,
+    refreshInterval: number,
+    refreshIntervalOnError: number | null,
+    callback: () => void,
+    cacheNullValues: Boolean,
   ) {
     this.cacheKey = cacheKey;
     this.fn = fn;
     this.refreshInterval = refreshInterval;
     this.refreshIntervalOnError = refreshIntervalOnError;
     this.callback = callback;
+    this.cacheNullValues = cacheNullValues;
   }
 }
 
@@ -34,13 +37,15 @@ class FetchLoopInternal<T = any> {
   timeoutId: null | any;
   listeners: Set<FetchLoopListener<T>>;
   errors: number;
+  cacheNullValues: Boolean = true;
 
-  constructor(cacheKey: any, fn: () => Promise<T>) {
+  constructor(cacheKey: any, fn: () => Promise<T>, cacheNullValues: Boolean) {
     this.cacheKey = cacheKey;
     this.fn = fn;
     this.timeoutId = null;
     this.listeners = new Set();
     this.errors = 0;
+    this.cacheNullValues = cacheNullValues;
   }
 
   get refreshInterval(): number {
@@ -51,14 +56,12 @@ class FetchLoopInternal<T = any> {
 
   get refreshIntervalOnError(): number | null {
     const refreshIntervalsOnError: number[] = [...this.listeners]
-        .map((listener) => listener.refreshIntervalOnError)
-        .filter((x): x is number => x !== null);
+      .map((listener) => listener.refreshIntervalOnError)
+      .filter((x): x is number => x !== null);
     if (refreshIntervalsOnError.length === 0) {
       return null;
     }
-    return Math.min(
-      ...refreshIntervalsOnError,
-    );
+    return Math.min(...refreshIntervalsOnError);
   }
 
   get stopped(): boolean {
@@ -99,10 +102,17 @@ class FetchLoopInternal<T = any> {
     let errored = false;
     try {
       const data = await this.fn();
-      globalCache.set(this.cacheKey, data);
-      this.errors = 0;
-      this.notifyListeners();
-      return data;
+      if (!this.cacheNullValues && data === null) {
+        console.log(`Not caching null value for ${this.cacheKey}`)
+        // cached data has not changed so no need to re-render
+        this.errors = 0;
+        return data;
+      } else {
+        globalCache.set(this.cacheKey, data);
+        this.errors = 0;
+        this.notifyListeners();
+        return data;
+      }
     } catch (error) {
       ++this.errors;
       console.warn(error);
@@ -152,7 +162,11 @@ class FetchLoops {
     if (!this.loops.has(listener.cacheKey)) {
       this.loops.set(
         listener.cacheKey,
-        new FetchLoopInternal<T>(listener.cacheKey, listener.fn),
+        new FetchLoopInternal<T>(
+          listener.cacheKey,
+          listener.fn,
+          listener.cacheNullValues,
+        ),
       );
     }
     this.loops.get(listener.cacheKey).addListener(listener);
@@ -182,6 +196,7 @@ export function useAsyncData<T = any>(
   asyncFn: () => Promise<T>,
   cacheKey: any,
   { refreshInterval = 60000, refreshIntervalOnError = null } = {},
+  cacheNullValues: Boolean = true,
 ): [null | undefined | T, boolean] {
   const [, rerender] = useReducer((i) => i + 1, 0);
 
@@ -196,6 +211,7 @@ export function useAsyncData<T = any>(
       refreshInterval,
       refreshIntervalOnError,
       rerender,
+      cacheNullValues,
     );
     globalLoops.addListener(listener);
     return () => globalLoops.removeListener(listener);
@@ -230,7 +246,11 @@ export function refreshAllCaches(): void {
   }
 }
 
-export function setCache(cacheKey: any, value: any, { initializeOnly = false } = {}): void {
+export function setCache(
+  cacheKey: any,
+  value: any,
+  { initializeOnly = false } = {},
+): void {
   if (initializeOnly && globalCache.has(cacheKey)) {
     return;
   }

@@ -7,16 +7,25 @@ import {
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
-import {PublicKey} from '@solana/web3.js';
-import React, {useContext, useEffect, useState} from 'react';
-import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, useLocalStorageState} from './utils';
-import {refreshCache, useAsyncData} from './fetch-loop';
-import {useAccountData, useAccountInfo, useConnection} from './connection';
-import {useWallet} from './wallet';
+import { PublicKey } from '@solana/web3.js';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  divideBnToNumber,
+  floorToDecimal,
+  getTokenMultiplierFromDecimals,
+  useLocalStorageState,
+} from './utils';
+import { refreshCache, useAsyncData } from './fetch-loop';
+import { useAccountData, useAccountInfo, useConnection } from './connection';
+import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
-import {notify} from './notifications';
-import {BN} from 'bn.js';
-import {getTokenAccountInfo, parseTokenAccountData, useMintInfos} from './tokens';
+import { notify } from './notifications';
+import { BN } from 'bn.js';
+import {
+  getTokenAccountInfo,
+  parseTokenAccountData,
+  useMintInfos,
+} from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -28,9 +37,10 @@ import {
   SelectedTokenAccounts,
   TokenAccount,
   Trade,
-} from "./types";
-import {WRAPPED_SOL_MINT} from "@project-serum/serum/lib/token-instructions";
-import {Order} from "@project-serum/serum/lib/market";
+} from './types';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { Order } from '@project-serum/serum/lib/market';
+import BonfidaApi from './bonfidaConnector';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -51,15 +61,20 @@ export function useAllMarkets(customMarkets) {
       market: Market;
       marketName: string;
       programId: PublicKey;
-    } | null> = await Promise.all(getMarketInfos(customMarkets).map(
-      async marketInfo => {
+    } | null> = await Promise.all(
+      getMarketInfos(customMarkets).map(async (marketInfo) => {
         try {
-          const market = await Market.load(connection, marketInfo.address, {}, marketInfo.programId)
+          const market = await Market.load(
+            connection,
+            marketInfo.address,
+            {},
+            marketInfo.programId,
+          );
           return {
             market,
             marketName: marketInfo.name,
             programId: marketInfo.programId,
-          }
+          };
         } catch (e) {
           notify({
             message: 'Error loading all market',
@@ -68,19 +83,18 @@ export function useAllMarkets(customMarkets) {
           });
           return null;
         }
-      }
-    ))
-    return markets.filter((m): m is {market: Market; marketName: string; programId: PublicKey;} => !!m);
+      }),
+    );
+    return markets.filter(
+      (m): m is { market: Market; marketName: string; programId: PublicKey } =>
+        !!m,
+    );
   };
   return useAsyncData(
     getAllMarkets,
-    tuple(
-      'getAllMarkets',
-      customMarkets.length,
-      connection,
-    ),
-    {refreshInterval: _VERY_SLOW_REFRESH_INTERVAL}
-  )
+    tuple('getAllMarkets', customMarkets.length, connection),
+    { refreshInterval: _VERY_SLOW_REFRESH_INTERVAL },
+  );
 }
 
 export function useUnmigratedOpenOrdersAccounts() {
@@ -149,7 +163,9 @@ export function useUnmigratedOpenOrdersAccounts() {
   };
 }
 
-const MarketContext: React.Context<null | MarketContextValues> = React.createContext<null | MarketContextValues>(null);
+const MarketContext: React.Context<null | MarketContextValues> = React.createContext<null | MarketContextValues>(
+  null,
+);
 
 const _VERY_SLOW_REFRESH_INTERVAL = 5000 * 1000;
 
@@ -163,7 +179,10 @@ export const DEFAULT_MARKET = USE_MARKETS.find(
   ({ name, deprecated }) => name === 'SRM/USDT' && !deprecated,
 );
 
-export function getMarketDetails(market: Market | undefined | null, customMarkets: CustomMarketInfo[]): FullMarketInfo {
+export function getMarketDetails(
+  market: Market | undefined | null,
+  customMarkets: CustomMarketInfo[],
+): FullMarketInfo {
   if (!market) {
     return {};
   }
@@ -198,17 +217,15 @@ export function MarketProvider({ children }) {
     'marketAddress',
     DEFAULT_MARKET?.address.toBase58(),
   );
-  const [customMarkets, setCustomMarkets] = useLocalStorageState<CustomMarketInfo[]>(
-    'customMarkets',
-    [],
-  );
+  const [customMarkets, setCustomMarkets] = useLocalStorageState<
+    CustomMarketInfo[]
+  >('customMarkets', []);
 
   const address = marketAddress && new PublicKey(marketAddress);
   const connection = useConnection();
   const marketInfos = getMarketInfos(customMarkets);
-  const marketInfo = address && marketInfos.find((market) =>
-    market.address.equals(address),
-  );
+  const marketInfo =
+    address && marketInfos.find((market) => market.address.equals(address));
 
   // Replace existing market with a non-deprecated one on first load
   useEffect(() => {
@@ -267,19 +284,23 @@ export function MarketProvider({ children }) {
   );
 }
 
-export function useSelectedTokenAccounts(): [SelectedTokenAccounts, (newSelectedTokenAccounts: SelectedTokenAccounts) => void] {
-  const [selectedTokenAccounts, setSelectedTokenAccounts] = useLocalStorageState<SelectedTokenAccounts>(
-    'selectedTokenAccounts', {}
-    );
-  return [selectedTokenAccounts, setSelectedTokenAccounts]
+export function useSelectedTokenAccounts(): [
+  SelectedTokenAccounts,
+  (newSelectedTokenAccounts: SelectedTokenAccounts) => void,
+] {
+  const [
+    selectedTokenAccounts,
+    setSelectedTokenAccounts,
+  ] = useLocalStorageState<SelectedTokenAccounts>('selectedTokenAccounts', {});
+  return [selectedTokenAccounts, setSelectedTokenAccounts];
 }
 
 export function useMarket() {
   const context = useContext(MarketContext);
   if (!context) {
-    throw new Error('Missing market context')
+    throw new Error('Missing market context');
   }
-  return context
+  return context;
 }
 
 export function useMarkPrice() {
@@ -334,6 +355,25 @@ export function _useUnfilteredTrades(limit = 10000) {
   //   .map(market.parseFillEvent.bind(market));
 }
 
+export function useBonfidaTrades() {
+  const { market } = useMarket();
+  const marketAddress = market?.address.toBase58();
+
+  async function getBonfidaTrades() {
+    if (!marketAddress) {
+      return null;
+    }
+    return await BonfidaApi.getRecentTrades(marketAddress);
+  }
+
+  return useAsyncData(
+    getBonfidaTrades,
+    tuple('getBonfidaTrades', marketAddress),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+    false,
+  );
+}
+
 export function useOrderbookAccounts() {
   const { market } = useMarket();
   // @ts-ignore
@@ -346,7 +386,9 @@ export function useOrderbookAccounts() {
   };
 }
 
-export function useOrderbook(depth = 20): [{bids: number[][]; asks: number[][];}, boolean] {
+export function useOrderbook(
+  depth = 20,
+): [{ bids: number[][]; asks: number[][] }, boolean] {
   const { bidOrderbook, askOrderbook } = useOrderbookAccounts();
   const { market } = useMarket();
   const bids =
@@ -393,7 +435,10 @@ export function useSelectedOpenOrdersAccount(fast = false) {
   return accounts[0];
 }
 
-export function useTokenAccounts(): [TokenAccount[] | null | undefined, boolean] {
+export function useTokenAccounts(): [
+  TokenAccount[] | null | undefined,
+  boolean,
+] {
   const { connected, wallet } = useWallet();
   const connection = useConnection();
   async function getTokenAccounts() {
@@ -417,9 +462,13 @@ export function getSelectedTokenAccountForMint(
   if (!accounts || !mint) {
     return null;
   }
-  const filtered = accounts.filter(({ effectiveMint, pubkey }) =>
-    mint.equals(effectiveMint) && (!selectedPubKey ||
-    (typeof selectedPubKey === 'string' ? selectedPubKey : selectedPubKey.toBase58()) === pubkey.toBase58())
+  const filtered = accounts.filter(
+    ({ effectiveMint, pubkey }) =>
+      mint.equals(effectiveMint) &&
+      (!selectedPubKey ||
+        (typeof selectedPubKey === 'string'
+          ? selectedPubKey
+          : selectedPubKey.toBase58()) === pubkey.toBase58()),
   );
   return filtered && filtered[0];
 }
@@ -428,11 +477,11 @@ export function useSelectedQuoteCurrencyAccount() {
   const [accounts] = useTokenAccounts();
   const { market } = useMarket();
   const [selectedTokenAccounts] = useSelectedTokenAccounts();
-  const mintAddress =  market?.quoteMintAddress;
+  const mintAddress = market?.quoteMintAddress;
   return getSelectedTokenAccountForMint(
     accounts,
     mintAddress,
-    mintAddress && selectedTokenAccounts[mintAddress.toBase58()]
+    mintAddress && selectedTokenAccounts[mintAddress.toBase58()],
   );
 }
 
@@ -440,11 +489,11 @@ export function useSelectedBaseCurrencyAccount() {
   const [accounts] = useTokenAccounts();
   const { market } = useMarket();
   const [selectedTokenAccounts] = useSelectedTokenAccounts();
-  const mintAddress =  market?.baseMintAddress;
+  const mintAddress = market?.baseMintAddress;
   return getSelectedTokenAccountForMint(
     accounts,
     mintAddress,
-    mintAddress && selectedTokenAccounts[mintAddress.toBase58()]
+    mintAddress && selectedTokenAccounts[mintAddress.toBase58()],
   );
 }
 
@@ -506,12 +555,19 @@ export function useTrades(limit = 100) {
     }));
 }
 
-export function useFeeDiscountKeys(): [{
-  pubkey: PublicKey;
-  feeTier: number;
-  balance: number;
-  mint: PublicKey;
-}[] | null | undefined, boolean] {
+export function useFeeDiscountKeys(): [
+  (
+    | {
+        pubkey: PublicKey;
+        feeTier: number;
+        balance: number;
+        mint: PublicKey;
+      }[]
+    | null
+    | undefined
+  ),
+  boolean,
+] {
   const { market } = useMarket();
   const { connected, wallet } = useWallet();
   const connection = useConnection();
@@ -609,22 +665,26 @@ export function useFillsForAllMarkets(limit = 100) {
 }
 
 export function useAllOpenOrdersAccounts() {
-  const {wallet, connected} = useWallet();
+  const { wallet, connected } = useWallet();
   const connection = useConnection();
-  const {customMarkets} = useMarket();
+  const { customMarkets } = useMarket();
   const marketInfos = getMarketInfos(customMarkets);
   const programIds = [
-    ...new Set(marketInfos.map(info => info.programId.toBase58()))
-  ].map(stringProgramId => new PublicKey(stringProgramId));
+    ...new Set(marketInfos.map((info) => info.programId.toBase58())),
+  ].map((stringProgramId) => new PublicKey(stringProgramId));
 
   const getAllOpenOrdersAccounts = async () => {
     if (!connected) {
       return [];
     }
-    return (await Promise.all(
-      programIds.map(programId => OpenOrders.findForOwner(connection, wallet.publicKey, programId)))
-    ).flat()
-  }
+    return (
+      await Promise.all(
+        programIds.map((programId) =>
+          OpenOrders.findForOwner(connection, wallet.publicKey, programId),
+        ),
+      )
+    ).flat();
+  };
   return useAsyncData(
     getAllOpenOrdersAccounts,
     tuple(
@@ -635,25 +695,29 @@ export function useAllOpenOrdersAccounts() {
       customMarkets.length,
       (programIds || []).length,
     ),
-    {refreshInterval: _SLOW_REFRESH_INTERVAL}
-  )
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+  );
 }
 
 export function useAllOpenOrdersBalances() {
   const [
     openOrdersAccounts,
-    loadedOpenOrdersAccounts
+    loadedOpenOrdersAccounts,
   ] = useAllOpenOrdersAccounts();
   const [mintInfos, mintInfosConnected] = useMintInfos();
-  const {customMarkets} = useMarket();
+  const { customMarkets } = useMarket();
   const [allMarkets] = useAllMarkets(customMarkets);
   if (!loadedOpenOrdersAccounts || !mintInfosConnected) {
     return {};
   }
 
-  const marketsByAddress = Object.fromEntries((allMarkets || []).map(m => [m.market.address.toBase58(), m]))
-  const openOrdersBalances: {[mint: string]: { market: PublicKey; free: number; total: number; }[] } = {};
-  for (let account of (openOrdersAccounts || [])) {
+  const marketsByAddress = Object.fromEntries(
+    (allMarkets || []).map((m) => [m.market.address.toBase58(), m]),
+  );
+  const openOrdersBalances: {
+    [mint: string]: { market: PublicKey; free: number; total: number }[];
+  } = {};
+  for (let account of openOrdersAccounts || []) {
     const marketInfo = marketsByAddress[account.market.toBase58()];
     const baseMint = marketInfo.market.baseMintAddress.toBase58();
     const quoteMint = marketInfo.market.quoteMintAddress.toBase58();
@@ -664,23 +728,23 @@ export function useAllOpenOrdersBalances() {
       openOrdersBalances[quoteMint] = [];
     }
 
-    const baseMintInfo = mintInfos && mintInfos[baseMint]
+    const baseMintInfo = mintInfos && mintInfos[baseMint];
     const baseFree = divideBnToNumber(
       new BN(account.baseTokenFree),
-      getTokenMultiplierFromDecimals(baseMintInfo?.decimals || 0.)
+      getTokenMultiplierFromDecimals(baseMintInfo?.decimals || 0),
     );
     const baseTotal = divideBnToNumber(
       new BN(account.baseTokenTotal),
-      getTokenMultiplierFromDecimals(baseMintInfo?.decimals || 0.)
+      getTokenMultiplierFromDecimals(baseMintInfo?.decimals || 0),
     );
-    const quoteMintInfo = mintInfos && mintInfos[quoteMint]
+    const quoteMintInfo = mintInfos && mintInfos[quoteMint];
     const quoteFree = divideBnToNumber(
       new BN(account.quoteTokenFree),
-      getTokenMultiplierFromDecimals(quoteMintInfo?.decimals || 0.)
+      getTokenMultiplierFromDecimals(quoteMintInfo?.decimals || 0),
     );
     const quoteTotal = divideBnToNumber(
       new BN(account.quoteTokenTotal),
-      getTokenMultiplierFromDecimals(quoteMintInfo?.decimals || 0.)
+      getTokenMultiplierFromDecimals(quoteMintInfo?.decimals || 0),
     );
 
     openOrdersBalances[baseMint].push({
@@ -694,56 +758,69 @@ export function useAllOpenOrdersBalances() {
       total: quoteTotal,
     });
   }
-  return openOrdersBalances
+  return openOrdersBalances;
 }
 
 export function useAllOpenOrders(): {
-  openOrders: { orders: Order[]; marketAddress: string; }[] | null | undefined;
-  loaded: boolean,
-  refreshOpenOrders: () => void,
+  openOrders: { orders: Order[]; marketAddress: string }[] | null | undefined;
+  loaded: boolean;
+  refreshOpenOrders: () => void;
 } {
   const connection = useConnection();
   const { connected } = useWallet();
-  const [openOrdersAccounts, openOrdersAccountsConnected] = useAllOpenOrdersAccounts();
+  const [
+    openOrdersAccounts,
+    openOrdersAccountsConnected,
+  ] = useAllOpenOrdersAccounts();
   const { customMarkets } = useMarket();
   const [marketInfos, marketInfosConnected] = useAllMarkets(customMarkets);
-  const openOrdersAccountsByAddress: {[marketAddress: string]: OpenOrders[]} = {}
-  for (let account of (openOrdersAccounts || [])) {
-    const marketsAddr = account.market.toBase58()
+  const openOrdersAccountsByAddress: {
+    [marketAddress: string]: OpenOrders[];
+  } = {};
+  for (let account of openOrdersAccounts || []) {
+    const marketsAddr = account.market.toBase58();
     if (!(marketsAddr in openOrdersAccountsByAddress)) {
       openOrdersAccountsByAddress[marketsAddr] = [];
     }
     openOrdersAccountsByAddress[marketsAddr].push(account);
   }
-  const marketsByAddress = Object.fromEntries((marketInfos || []).map(info => [info.market.publicKey.toBase58(), info]))
+  const marketsByAddress = Object.fromEntries(
+    (marketInfos || []).map((info) => [info.market.publicKey.toBase58(), info]),
+  );
   const getAllOpenOrders = async () => {
-    return await Promise.all(Object.keys(openOrdersAccountsByAddress).map(async (marketAddr) => {
-      const market = marketsByAddress[marketAddr].market;
-      const [bids, asks] = await Promise.all([
-        market.loadBids(connection),
-        market.loadAsks(connection),
-      ]);
-      return {
-        orders: market.filterForOpenOrders(bids, asks, openOrdersAccountsByAddress[marketAddr]),
-        marketAddress: marketAddr,
-      };
-    }));
-  }
+    return await Promise.all(
+      Object.keys(openOrdersAccountsByAddress).map(async (marketAddr) => {
+        const market = marketsByAddress[marketAddr].market;
+        const [bids, asks] = await Promise.all([
+          market.loadBids(connection),
+          market.loadAsks(connection),
+        ]);
+        return {
+          orders: market.filterForOpenOrders(
+            bids,
+            asks,
+            openOrdersAccountsByAddress[marketAddr],
+          ),
+          marketAddress: marketAddr,
+        };
+      }),
+    );
+  };
   const cacheKey = tuple(
     'getAllOpenOrders',
     openOrdersAccountsConnected,
     (openOrdersAccounts || []).length,
     connection,
     connected,
-    marketInfosConnected
+    marketInfosConnected,
   );
-  const [openOrders, loaded] = useAsyncData(
-    getAllOpenOrders,
-    cacheKey,
-    {refreshInterval: _VERY_SLOW_REFRESH_INTERVAL}
-  );
+  const [openOrders, loaded] = useAsyncData(getAllOpenOrders, cacheKey, {
+    refreshInterval: _VERY_SLOW_REFRESH_INTERVAL,
+  });
   return {
-    openOrders, loaded, refreshOpenOrders: () => refreshCache(cacheKey)
+    openOrders,
+    loaded,
+    refreshOpenOrders: () => refreshCache(cacheKey),
   };
 }
 
@@ -802,7 +879,10 @@ export function useBalances(): Balances[] {
   ];
 }
 
-export function useWalletBalancesForAllMarkets(): {mint:string, balance: number}[] {
+export function useWalletBalancesForAllMarkets(): {
+  mint: string;
+  balance: number;
+}[] {
   const [tokenAccounts] = useTokenAccounts();
   const { connected } = useWallet();
   const [mintInfos, mintInfosConnected] = useMintInfos();
@@ -811,8 +891,8 @@ export function useWalletBalancesForAllMarkets(): {mint:string, balance: number}
     return [];
   }
 
-  let balances: {[mint: string]: number} = {};
-  for (let account of (tokenAccounts || [])) {
+  let balances: { [mint: string]: number } = {};
+  for (let account of tokenAccounts || []) {
     if (!account.account) {
       continue;
     }
@@ -821,22 +901,24 @@ export function useWalletBalancesForAllMarkets(): {mint:string, balance: number}
       parsedAccount = {
         mint: WRAPPED_SOL_MINT,
         owner: account.pubkey,
-        amount: account.account.lamports
-      }
+        amount: account.account.lamports,
+      };
     } else {
       parsedAccount = parseTokenAccountData(account.account.data);
     }
     if (!(parsedAccount.mint.toBase58() in balances)) {
-      balances[parsedAccount.mint.toBase58()] = 0.
+      balances[parsedAccount.mint.toBase58()] = 0;
     }
-    const mintInfo = mintInfos && mintInfos[parsedAccount.mint.toBase58()]
+    const mintInfo = mintInfos && mintInfos[parsedAccount.mint.toBase58()];
     const additionalAmount = divideBnToNumber(
       new BN(parsedAccount.amount),
-      getTokenMultiplierFromDecimals(mintInfo?.decimals || 0.)
+      getTokenMultiplierFromDecimals(mintInfo?.decimals || 0),
     );
     balances[parsedAccount.mint.toBase58()] += additionalAmount;
   }
-  return Object.entries(balances).map(([mint, balance]) => { return {mint, balance} });
+  return Object.entries(balances).map(([mint, balance]) => {
+    return { mint, balance };
+  });
 }
 
 export function useUnmigratedDeprecatedMarkets() {
@@ -898,8 +980,8 @@ export function useUnmigratedDeprecatedMarkets() {
   }
   return markets.map((market) => ({
     market,
-    openOrdersList: accounts?.filter((openOrders) =>
-      market && openOrders.market.equals(market.address),
+    openOrdersList: accounts?.filter(
+      (openOrders) => market && openOrders.market.equals(market.address),
     ),
   }));
 }
@@ -910,7 +992,10 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
   refreshOpenOrders: () => void;
 } {
   const { connected, wallet } = useWallet();
-  const [customMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', []);
+  const [customMarkets] = useLocalStorageState<CustomMarketInfo[]>(
+    'customMarkets',
+    [],
+  );
   const connection = useConnection();
   const marketsAndOrders = useUnmigratedDeprecatedMarkets();
   const marketsList =
@@ -918,7 +1003,10 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
 
   // This isn't quite right: open order balances could change
   const deps =
-    marketsList && marketsList.filter((market): market is Market => !!market).map((market) => market.address.toBase58());
+    marketsList &&
+    marketsList
+      .filter((market): market is Market => !!market)
+      .map((market) => market.address.toBase58());
 
   async function getOpenOrdersForDeprecatedMarkets() {
     if (!connected) {
@@ -949,9 +1037,9 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
         return null;
       }
     };
-    return (await Promise.all(marketsList.map(getOrders))).filter(
-        (x): x is OrderWithMarketAndMarketName[] => !!x
-    ).flat();
+    return (await Promise.all(marketsList.map(getOrders)))
+      .filter((x): x is OrderWithMarketAndMarketName[] => !!x)
+      .flat();
   }
 
   const cacheKey = tuple(
@@ -978,7 +1066,10 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
 
 export function useBalancesForDeprecatedMarkets() {
   const markets = useUnmigratedDeprecatedMarkets();
-  const [customMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', []);
+  const [customMarkets] = useLocalStorageState<CustomMarketInfo[]>(
+    'customMarkets',
+    [],
+  );
   if (!markets) {
     return null;
   }
@@ -1035,7 +1126,9 @@ export function useBalancesForDeprecatedMarkets() {
   return openOrderAccountBalances;
 }
 
-export function getMarketInfos(customMarkets: CustomMarketInfo[]): MarketInfo[] {
+export function getMarketInfos(
+  customMarkets: CustomMarketInfo[],
+): MarketInfo[] {
   const customMarketsInfo = customMarkets.map((m) => ({
     ...m,
     address: new PublicKey(m.address),
@@ -1069,7 +1162,7 @@ export function getMarketOrderPrice(
   if (orderbook.isBids) {
     return orderbook.market.tickSize;
   }
-  let spentCost = 0.;
+  let spentCost = 0;
   let price, sizeAtLevel, costAtLevel: number;
   const asks = orderbook.getL2(1000);
   for ([price, sizeAtLevel] of asks) {

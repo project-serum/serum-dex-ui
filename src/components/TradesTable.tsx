@@ -1,9 +1,10 @@
 import { Col, Row } from 'antd';
 import React from 'react';
 import styled from 'styled-components';
-import { useMarket, useTrades } from '../utils/markets';
+import { useMarket, useBonfidaTrades } from '../utils/markets';
 import { getDecimalCount } from '../utils/utils';
 import FloatingElement from './layout/FloatingElement';
+import { BonfidaTrade } from '../utils/types';
 
 const Title = styled.div`
   color: rgba(255, 255, 255, 1);
@@ -13,17 +14,10 @@ const SizeTitle = styled(Row)`
   color: #434a59;
 `;
 
-// TODO: Put in some scrolling
-const TradesContainer = styled.div`
-  height: calc(100% - 75px);
-  margin-right: -20px;
-  padding-right: 5px;
-  overflow-y: scroll;
-`;
-
 export default function PublicTrades({ smallScreen }) {
   const { baseCurrency, quoteCurrency, market } = useMarket();
-  const trades = useTrades();
+  const [trades, loaded] = useBonfidaTrades();
+
   return (
     <FloatingElement
       style={
@@ -32,34 +26,36 @@ export default function PublicTrades({ smallScreen }) {
           : {
               marginTop: '10px',
               minHeight: '270px',
-              height: 'calc(100vh - 710px)',
+              maxHeight: 'calc(100vh - 700px)',
             }
       }
     >
       <Title>Recent Market trades</Title>
       <SizeTitle>
-        <Col span={12} style={{ textAlign: 'left' }}>
-          Size ({baseCurrency})
-        </Col>
-        <Col span={12} style={{ textAlign: 'right' }}>
+        <Col span={8}>Size ({baseCurrency})</Col>
+        <Col span={8} style={{ textAlign: 'right' }}>
           Price ({quoteCurrency}){' '}
         </Col>
+        <Col span={8} style={{ textAlign: 'right' }}>
+          Time
+        </Col>
       </SizeTitle>
-      {!!trades && (
-        <TradesContainer>
-          {trades.map((trade, i) => (
+      {!!trades && loaded && (
+        <div
+          style={{
+            marginRight: '-20px',
+            paddingRight: '5px',
+            overflowY: 'scroll',
+            maxHeight: smallScreen
+              ? 'calc(100% - 75px)'
+              : 'calc(100vh - 800px)',
+          }}
+        >
+          {trades.map((trade: BonfidaTrade, i: number) => (
             <Row key={i} style={{ marginBottom: 4 }}>
-              <Col span={12} style={{ textAlign: 'left' }}>
-                {market?.minOrderSize && !isNaN(trade.size)
-                  ? Number(trade.size).toFixed(
-                      getDecimalCount(market.minOrderSize),
-                    )
-                  : trade.size}
-              </Col>
               <Col
-                span={12}
+                span={8}
                 style={{
-                  textAlign: 'right',
                   color: trade.side === 'buy' ? '#41C77A' : '#F23B69',
                 }}
               >
@@ -69,9 +65,19 @@ export default function PublicTrades({ smallScreen }) {
                     )
                   : trade.price}
               </Col>
+              <Col span={8} style={{ textAlign: 'right' }}>
+                {market?.minOrderSize && !isNaN(trade.size)
+                  ? Number(trade.size).toFixed(
+                      getDecimalCount(market.minOrderSize),
+                    )
+                  : trade.size}
+              </Col>
+              <Col span={8} style={{ textAlign: 'right', color: '#434a59' }}>
+                {trade.time && new Date(trade.time).toLocaleTimeString()}
+              </Col>
             </Row>
           ))}
-        </TradesContainer>
+        </div>
       )}
     </FloatingElement>
   );
