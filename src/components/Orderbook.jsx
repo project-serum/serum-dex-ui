@@ -7,6 +7,7 @@ import { useInterval } from '../utils/useInterval';
 import FloatingElement from './layout/FloatingElement';
 import usePrevious from '../utils/usePrevious';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { useCurrencyContextState } from '../utils/currency';
 
 const Title = styled.div`
   color: rgba(255, 255, 255, 1);
@@ -86,6 +87,12 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
     };
   }, [orderbook]);
 
+  const { stableRates, currencyRates, currency } = useCurrencyContextState();
+  const conversion =
+    stableRates[quoteCurrency] &&
+    stableRates[quoteCurrency].rate *
+      (currencyRates[currency] && currencyRates[currency].rate);
+
   function getCumulativeOrderbookSide(orders, totalSize, backwards = false) {
     let cumulative = orders
       .slice(0, depth)
@@ -111,7 +118,12 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
         smallScreen ? { flex: 1 } : { height: '500px', overflow: 'hidden' }
       }
     >
-      <Title>Orderbook</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Title>Orderbook </Title>
+        <Title>
+          1 {quoteCurrency} = {conversion && conversion.toFixed(4)} {currency}
+        </Title>
+      </div>
       <SizeTitle>
         <Col span={12} style={{ textAlign: 'left' }}>
           Size ({baseCurrency})
@@ -201,7 +213,9 @@ const OrderbookRow = React.memo(
 
 const MarkPriceComponent = React.memo(
   ({ markPrice }) => {
-    const { market } = useMarket();
+    const { quoteCurrency, market } = useMarket();
+    const { stableRates, currencyRates, currency } = useCurrencyContextState();
+
     const previousMarkPrice = usePrevious(markPrice);
 
     let markPriceColor =
@@ -216,6 +230,12 @@ const MarkPriceComponent = React.memo(
       market?.tickSize &&
       markPrice.toFixed(getDecimalCount(market.tickSize));
 
+    let convertedPrice = (
+      ((currencyRates[currency] && currencyRates[currency].rate) || 0) *
+      ((stableRates[quoteCurrency] && stableRates[quoteCurrency].rate) || 0) *
+      formattedMarkPrice
+    ).toFixed(4);
+
     return (
       <MarkPriceTitle justify="center">
         <Col style={{ color: markPriceColor }}>
@@ -225,7 +245,7 @@ const MarkPriceComponent = React.memo(
           {markPrice < previousMarkPrice && (
             <ArrowDownOutlined style={{ marginRight: 5 }} />
           )}
-          {formattedMarkPrice || '----'}
+          {formattedMarkPrice || '----'} ({convertedPrice} {currency})
         </Col>
       </MarkPriceTitle>
     );

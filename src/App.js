@@ -3,6 +3,7 @@ import './App.less';
 import { ConnectionProvider } from './utils/connection';
 import { MarketProvider } from './utils/markets';
 import { WalletProvider } from './utils/wallet';
+import { CurrencyProvider } from './utils/currency';
 import { GlobalStyle } from './global_style';
 import { Spin } from 'antd';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -15,15 +16,17 @@ export default function App() {
       <GlobalStyle />
       <ErrorBoundary>
         <ConnectionProvider>
-          <MarketProvider>
-            <WalletProvider>
-              <PreferencesProvider>
-                <Suspense fallback={() => <Spin size="large" />}>
-                  <Routes />
-                </Suspense>
-              </PreferencesProvider>
-            </WalletProvider>
-          </MarketProvider>
+          <CurrencyProvider>
+            <MarketProvider>
+              <WalletProvider>
+                <PreferencesProvider>
+                  <Suspense fallback={() => <Spin size="large" />}>
+                    <Routes />
+                  </Suspense>
+                </PreferencesProvider>
+              </WalletProvider>
+            </MarketProvider>
+          </CurrencyProvider>
         </ConnectionProvider>
       </ErrorBoundary>
     </Suspense>
