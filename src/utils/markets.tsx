@@ -748,12 +748,12 @@ export function useAllOpenOrdersBalances() {
     );
 
     openOrdersBalances[baseMint].push({
-      market: marketInfo?.market.publicKey,
+      market: account.market,
       free: baseFree,
       total: baseTotal,
     });
     openOrdersBalances[quoteMint].push({
-      market: marketInfo?.market.publicKey,
+      market: account.market,
       free: quoteFree,
       total: quoteTotal,
     });
