@@ -719,8 +719,8 @@ export function useAllOpenOrdersBalances() {
   } = {};
   for (let account of openOrdersAccounts || []) {
     const marketInfo = marketsByAddress[account.market.toBase58()];
-    const baseMint = marketInfo.market.baseMintAddress.toBase58();
-    const quoteMint = marketInfo.market.quoteMintAddress.toBase58();
+    const baseMint = marketInfo?.market.baseMintAddress.toBase58();
+    const quoteMint = marketInfo?.market.quoteMintAddress.toBase58();
     if (!(baseMint in openOrdersBalances)) {
       openOrdersBalances[baseMint] = [];
     }
@@ -748,12 +748,12 @@ export function useAllOpenOrdersBalances() {
     );
 
     openOrdersBalances[baseMint].push({
-      market: marketInfo.market.publicKey,
+      market: account.market,
       free: baseFree,
       total: baseTotal,
     });
     openOrdersBalances[quoteMint].push({
-      market: marketInfo.market.publicKey,
+      market: account.market,
       free: quoteFree,
       total: quoteTotal,
     });
