@@ -1,8 +1,8 @@
 import React from 'react';
-import {Button, Popover} from 'antd';
-import {InfoCircleOutlined, UserOutlined} from '@ant-design/icons';
+import { Button, Popover } from 'antd';
+import { InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { useWallet } from '../utils/wallet';
-import LinkAddress from "./LinkAddress";
+import LinkAddress from './LinkAddress';
 
 export default function WalletConnect() {
   const { connected, wallet } = useWallet();

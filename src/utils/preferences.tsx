@@ -3,11 +3,18 @@ import { useLocalStorageState } from './utils';
 import { useInterval } from './useInterval';
 import { useConnection } from './connection';
 import { useWallet } from './wallet';
-import {useAllMarkets, useTokenAccounts, useMarket, useSelectedTokenAccounts} from './markets';
+import {
+  useAllMarkets,
+  useTokenAccounts,
+  useMarket,
+  useSelectedTokenAccounts,
+} from './markets';
 import { settleAllFunds } from './send';
-import {PreferencesContextValues} from "./types";
+import { PreferencesContextValues } from './types';
 
-const PreferencesContext = React.createContext<PreferencesContextValues | null>(null);
+const PreferencesContext = React.createContext<PreferencesContextValues | null>(
+  null,
+);
 
 export function PreferencesProvider({ children }) {
   const [autoSettleEnabled, setAutoSettleEnabled] = useLocalStorageState(
@@ -27,7 +34,13 @@ export function PreferencesProvider({ children }) {
       const markets = (marketList || []).map((m) => m.market);
       try {
         console.log('Auto settling');
-        await settleAllFunds({ connection, wallet, tokenAccounts: (tokenAccounts || []), markets, selectedTokenAccounts });
+        await settleAllFunds({
+          connection,
+          wallet,
+          tokenAccounts: tokenAccounts || [],
+          markets,
+          selectedTokenAccounts,
+        });
       } catch (e) {
         console.log('Error auto settling funds: ' + e.message);
       }
@@ -51,7 +64,7 @@ export function PreferencesProvider({ children }) {
 export function usePreferences() {
   const context = useContext(PreferencesContext);
   if (!context) {
-    throw new Error('Missing preferences context')
+    throw new Error('Missing preferences context');
   }
   return {
     autoSettleEnabled: context.autoSettleEnabled,

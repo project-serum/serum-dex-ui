@@ -1,13 +1,13 @@
 import * as BufferLayout from 'buffer-layout';
 import bs58 from 'bs58';
-import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
-import {TokenAccount} from "./types";
-import {TOKEN_MINTS} from "@project-serum/serum";
-import {useAllMarkets, useMarket, useTokenAccounts} from "./markets";
-import {getMultipleSolanaAccounts} from "./send";
-import {useConnection} from "./connection";
-import {useAsyncData} from "./fetch-loop";
+import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { TokenAccount } from './types';
+import { TOKEN_MINTS } from '@project-serum/serum';
+import { useAllMarkets, useMarket, useTokenAccounts } from './markets';
+import { getMultipleSolanaAccounts } from './send';
+import { useConnection } from './connection';
+import { useAsyncData } from './fetch-loop';
 import tuple from 'immutable-tuple';
 
 export const ACCOUNT_LAYOUT = BufferLayout.struct([
@@ -25,7 +25,7 @@ export const MINT_LAYOUT = BufferLayout.struct([
 ]);
 
 export function parseTokenAccountData(
-  data: Buffer
+  data: Buffer,
 ): { mint: PublicKey; owner: PublicKey; amount: number } {
   let { mint, owner, amount } = ACCOUNT_LAYOUT.decode(data);
   return {
@@ -59,8 +59,9 @@ export const TOKEN_PROGRAM_ID = new PublicKey(
 );
 
 export async function getOwnedTokenAccounts(
-    connection: Connection, publicKey: PublicKey
-): Promise<Array<{publicKey: PublicKey, accountInfo: AccountInfo<Buffer>}>> {
+  connection: Connection,
+  publicKey: PublicKey,
+): Promise<Array<{ publicKey: PublicKey; accountInfo: AccountInfo<Buffer> }>> {
   let filters = getOwnedAccountsFilters(publicKey);
   // @ts-ignore
   let resp = await connection._rpcRequest('getProgramAccounts', [
@@ -107,18 +108,23 @@ export async function getOwnedTokenAccounts(
     });
 }
 
-export async function getTokenAccountInfo(connection: Connection, ownerAddress: PublicKey) {
+export async function getTokenAccountInfo(
+  connection: Connection,
+  ownerAddress: PublicKey,
+) {
   let [splAccounts, account] = await Promise.all([
     getOwnedTokenAccounts(connection, ownerAddress),
     connection.getAccountInfo(ownerAddress),
   ]);
-  const parsedSplAccounts: TokenAccount[] = splAccounts.map(({ publicKey, accountInfo }) => {
-    return {
-      pubkey: publicKey,
-      account: accountInfo,
-      effectiveMint: parseTokenAccountData(accountInfo.data).mint,
-    };
-  });
+  const parsedSplAccounts: TokenAccount[] = splAccounts.map(
+    ({ publicKey, accountInfo }) => {
+      return {
+        pubkey: publicKey,
+        account: accountInfo,
+        effectiveMint: parseTokenAccountData(accountInfo.data).mint,
+      };
+    },
+  );
   return parsedSplAccounts.concat({
     pubkey: ownerAddress,
     account,
@@ -126,22 +132,27 @@ export async function getTokenAccountInfo(connection: Connection, ownerAddress: 
   });
 }
 
-export function useMintToTickers(): { [mint: string]: string; } {
+export function useMintToTickers(): { [mint: string]: string } {
   const { customMarkets } = useMarket();
   const [markets] = useAllMarkets(customMarkets);
-  const mintsToTickers = Object.fromEntries(TOKEN_MINTS.map(mint => [mint.address.toBase58(), mint.name]));
-  for (let market of (markets || [])) {
+  const mintsToTickers = Object.fromEntries(
+    TOKEN_MINTS.map((mint) => [mint.address.toBase58(), mint.name]),
+  );
+  for (let market of markets || []) {
     const customMarketInfo = customMarkets.find(
-      customMarket => customMarket.address === market.market.address.toBase58()
+      (customMarket) =>
+        customMarket.address === market.market.address.toBase58(),
     );
     if (!(market.market.baseMintAddress.toBase58() in mintsToTickers)) {
       if (customMarketInfo) {
-        mintsToTickers[market.market.baseMintAddress.toBase58()] = customMarketInfo.baseLabel || `${customMarketInfo.name}_BASE`;
+        mintsToTickers[market.market.baseMintAddress.toBase58()] =
+          customMarketInfo.baseLabel || `${customMarketInfo.name}_BASE`;
       }
     }
     if (!(market.market.quoteMintAddress.toBase58() in mintsToTickers)) {
       if (customMarketInfo) {
-        mintsToTickers[market.market.quoteMintAddress.toBase58()] = customMarketInfo.quoteLabel || `${customMarketInfo.name}_QUOTE`;
+        mintsToTickers[market.market.quoteMintAddress.toBase58()] =
+          customMarketInfo.quoteLabel || `${customMarketInfo.name}_QUOTE`;
       }
     }
   }
@@ -151,30 +162,46 @@ export function useMintToTickers(): { [mint: string]: string; } {
 const _VERY_SLOW_REFRESH_INTERVAL = 5000 * 1000;
 
 export function useMintInfos(): [
-  {[mintAddress: string]: {decimals: number; initialized: boolean} | null} | null | undefined,
-  boolean
+  (
+    | {
+        [mintAddress: string]: {
+          decimals: number;
+          initialized: boolean;
+        } | null;
+      }
+    | null
+    | undefined
+  ),
+  boolean,
 ] {
   const connection = useConnection();
-  const {customMarkets} = useMarket();
+  const { customMarkets } = useMarket();
   const [tokenAccounts] = useTokenAccounts();
   const [allMarkets] = useAllMarkets(customMarkets);
 
-  const allMints = (tokenAccounts || []).map(account => account.effectiveMint).concat(
-    (allMarkets || []).map(marketInfo => marketInfo.market.baseMintAddress)
-  ).concat(
-    (allMarkets || []).map(marketInfo => marketInfo.market.quoteMintAddress)
+  const allMints = (tokenAccounts || [])
+    .map((account) => account.effectiveMint)
+    .concat(
+      (allMarkets || []).map((marketInfo) => marketInfo.market.baseMintAddress),
+    )
+    .concat(
+      (allMarkets || []).map(
+        (marketInfo) => marketInfo.market.quoteMintAddress,
+      ),
+    );
+  const uniqueMints = [...new Set(allMints.map((mint) => mint.toBase58()))].map(
+    (stringMint) => new PublicKey(stringMint),
   );
-  const uniqueMints = [...new Set(allMints.map(mint => mint.toBase58()))].map(stringMint => new PublicKey(stringMint))
 
   const getAllMintInfo = async () => {
     const mintInfos = await getMultipleSolanaAccounts(connection, uniqueMints);
-    return Object.fromEntries(Object.entries(mintInfos.value).map(
-      ([key, accountInfo]) => [
+    return Object.fromEntries(
+      Object.entries(mintInfos.value).map(([key, accountInfo]) => [
         key,
-        accountInfo && parseTokenMintData(accountInfo.data)
-      ]
-    ));
-  }
+        accountInfo && parseTokenMintData(accountInfo.data),
+      ]),
+    );
+  };
 
   return useAsyncData(
     getAllMintInfo,
