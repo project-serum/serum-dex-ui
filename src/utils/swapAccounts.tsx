@@ -4,12 +4,12 @@ import { useWallet } from './wallet';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import {
   AccountLayout,
-  u64,
   AccountInfo as TokenAccountInfo,
   MintInfo,
   MintLayout,
+  u64,
 } from '@solana/spl-token';
-import { TokenAccount, PoolInfo } from './swapTypes';
+import { SwapTokenAccount, PoolInfo } from './swapTypes';
 import { usePools } from './swap';
 import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
 
@@ -33,8 +33,8 @@ class EventEmitter extends EventTarget {
 const accountEmitter = new EventEmitter();
 
 const mintCache = new Map<string, Promise<MintInfo>>();
-const pendingAccountCalls = new Map<string, Promise<TokenAccount>>();
-const accountsCache = new Map<string, TokenAccount>();
+const pendingAccountCalls = new Map<string, Promise<SwapTokenAccount>>();
+const accountsCache = new Map<string, SwapTokenAccount>();
 
 const getAccountInfo = async (connection: Connection, pubKey: PublicKey) => {
   const info = await connection.getAccountInfo(pubKey);
@@ -52,7 +52,7 @@ const getAccountInfo = async (connection: Connection, pubKey: PublicKey) => {
       ...info,
     },
     info: data,
-  } as TokenAccount;
+  } as SwapTokenAccount;
 
   return details;
 };
@@ -93,7 +93,7 @@ export const cache = {
       pendingAccountCalls.delete(address);
       accountsCache.set(address, data);
       return data;
-    }) as Promise<TokenAccount>;
+    }) as Promise<SwapTokenAccount>;
     pendingAccountCalls.set(address, query as any);
 
     return query;
@@ -120,11 +120,11 @@ export const cache = {
 };
 
 export const getCachedAccount = (
-  predicate: (account: TokenAccount) => boolean,
+  predicate: (account: SwapTokenAccount) => boolean,
 ) => {
   for (const account of accountsCache.values()) {
     if (predicate(account)) {
-      return account as TokenAccount;
+      return account as SwapTokenAccount;
     }
   }
 };
@@ -132,7 +132,7 @@ export const getCachedAccount = (
 function wrapNativeAccount(
   pubkey: PublicKey,
   account?: AccountInfo<Buffer>,
-): TokenAccount | undefined {
+): SwapTokenAccount | undefined {
   if (!account) {
     return undefined;
   }
@@ -158,8 +158,8 @@ function wrapNativeAccount(
 export function UserAccountsProvider({ children = null as any }) {
   const connection = useConnection();
   const { wallet, connected } = useWallet();
-  const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]);
-  const [userAccounts, setUserAccounts] = useState<TokenAccount[]>([]);
+  const [tokenAccounts, setTokenAccounts] = useState<SwapTokenAccount[]>([]);
+  const [userAccounts, setUserAccounts] = useState<SwapTokenAccount[]>([]);
   const [nativeAccount, setNativeAccount] = useState<AccountInfo<Buffer>>();
   const { pools } = usePools();
 
@@ -174,7 +174,7 @@ export function UserAccountsProvider({ children = null as any }) {
       [
         wrapNativeAccount(wallet.publicKey, nativeAccount),
         ...tokenAccounts,
-      ].filter((a) => a !== undefined) as TokenAccount[],
+      ].filter((a) => a !== undefined) as SwapTokenAccount[],
     );
   }, [nativeAccount, tokenAccounts]);
 
@@ -202,7 +202,7 @@ export function UserAccountsProvider({ children = null as any }) {
                 ...info.account,
               },
               info: data,
-            } as TokenAccount;
+            } as SwapTokenAccount;
 
             return details;
           })
@@ -242,7 +242,7 @@ export function UserAccountsProvider({ children = null as any }) {
                 ...info.accountInfo,
               },
               info: data,
-            } as TokenAccount;
+            } as SwapTokenAccount;
 
             if (
               details.info.owner.toBase58() === wallet?.publicKey?.toBase58() ||
@@ -326,13 +326,13 @@ export function useMint(id?: string) {
 export function useUserAccounts() {
   const context = useContext(AccountsContext);
   return {
-    userAccounts: context.userAccounts as TokenAccount[],
+    userAccounts: context.userAccounts as SwapTokenAccount[],
   };
 }
 
 export function useAccount(pubKey?: PublicKey) {
   const connection = useConnection();
-  const [account, setAccount] = useState<TokenAccount>();
+  const [account, setAccount] = useState<SwapTokenAccount>();
 
   useEffect(() => {
     const query = async () => {

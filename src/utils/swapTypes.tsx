@@ -1,7 +1,7 @@
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { AccountInfo as TokenAccountInfo } from '@solana/spl-token';
 
-export interface TokenAccount {
+export interface SwapTokenAccount {
   pubkey: PublicKey;
   account: AccountInfo<Buffer>;
   info: TokenAccountInfo;
@@ -19,5 +19,5 @@ export interface PoolInfo {
 
 export interface LiquidityComponent {
   amount: number;
-  account: TokenAccount;
+  account: SwapTokenAccount;
 }

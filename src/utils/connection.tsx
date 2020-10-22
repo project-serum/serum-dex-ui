@@ -5,6 +5,8 @@ import { setCache, useAsyncData } from './fetch-loop';
 import tuple from 'immutable-tuple';
 import { ConnectionContextValues, EndpointInfo } from './types';
 
+export type ENV = 'mainnet-beta' | 'localnet';
+
 export const ENDPOINTS: EndpointInfo[] = [
   {
     name: 'mainnet-beta',
@@ -70,6 +72,9 @@ export function ConnectionProvider({ children }) {
       sendConnection.removeSlotChangeListener(id);
     };
   }, [sendConnection]);
+  // note: this is not right because someone could add a custom cluster that is still in mainnet-beta env
+  // @ts-ignore
+  const env: ENV = ENDPOINTS.find(e => e.endpoint === endpoint)?.name
 
   return (
     <ConnectionContext.Provider
@@ -80,6 +85,7 @@ export function ConnectionProvider({ children }) {
         sendConnection,
         availableEndpoints,
         setCustomEndpoints,
+        env,
       }}
     >
       {children}
@@ -116,6 +122,7 @@ export function useConnectionConfig() {
     setEndpoint: context.setEndpoint,
     availableEndpoints: context.availableEndpoints,
     setCustomEndpoints: context.setCustomEndpoints,
+    env: context.env
   };
 }
 

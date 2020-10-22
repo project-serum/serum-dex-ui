@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   calculateDependentAmount,
   useOwnedPools,
-  usePoolForBasket,
+  usePoolForBasket, useSwapContext,
 } from '../../utils/swap';
 import { Card, Select } from 'antd';
 import { NumericInput } from './NumericInput';
@@ -37,6 +37,7 @@ export const useCurrencyPairState = () => {
   const mintA = useMint(mintAddressA);
   const mintB = useMint(mintAddressB);
   const pool = usePoolForBasket([mintAddressA, mintAddressB]);
+  const {tokenProgramId, swapProgramId} = useSwapContext()
 
   const calculateDependent = async () => {
     if (pool && mintAddressA && mintAddressB) {
@@ -111,7 +112,7 @@ export const CurrencyInput = (props: {
 
   const { env } = useConnectionConfig();
 
-  const tokens = PopularTokens[env] as KnownToken[];
+  const tokens = !!env ? PopularTokens[env] as KnownToken[]: [];
 
   const renderPopularTokens = tokens.map((item) => {
     return (
@@ -128,6 +129,9 @@ export const CurrencyInput = (props: {
   });
 
   const renderAdditionalTokens = userAccounts.map((account) => {
+    if (!env) {
+      return null;
+    }
     const mint = account.info.mint.toBase58();
     if (isKnownMint(env, mint)) {
       return null;

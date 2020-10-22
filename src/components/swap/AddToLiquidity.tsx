@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { addLiquidity, usePoolForBasket } from '../../utils/swap';
+import {addLiquidity, usePoolForBasket, useSwapContext} from '../../utils/swap';
 import { Button, Popover } from 'antd';
 import { useWallet } from '../../utils/wallet';
 import { useConnection } from '../../utils/connection';
@@ -19,6 +19,8 @@ export const AddToLiquidity = () => {
   const { A, B, setLastTypedAccount } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
+  const {tokenProgramId, swapProgramId} = useSwapContext()
+
 
   const provideLiquidity = async () => {
     if (A.account && B.account && A.mint && B.mint) {
@@ -34,7 +36,7 @@ export const AddToLiquidity = () => {
         },
       ];
 
-      addLiquidity(connection, wallet, components, slippage, pool)
+      addLiquidity(connection, wallet, components, slippage, swapProgramId, tokenProgramId, pool)
         .then(() => {
           setPendingTx(false);
         })

@@ -6,10 +6,10 @@ import { getPoolName } from '../../utils/swap';
 import { useMint } from '../../utils/swapAccounts';
 import { useConnectionConfig } from '../../utils/connection';
 import { PoolIcon, TokenIcon } from './TokenIcon';
-import { PoolInfo, TokenAccount } from '../../utils/swapTypes';
+import { PoolInfo, SwapTokenAccount } from '../../utils/swapTypes';
 
 const PoolItem = (props: {
-  item: { pool: PoolInfo; account: TokenAccount };
+  item: { pool: PoolInfo; account: SwapTokenAccount };
 }) => {
   const { env } = useConnectionConfig();
   const item = props.item;
@@ -33,7 +33,7 @@ const PoolItem = (props: {
           mintB={sorted[1]}
           style={{ marginLeft: '0.5rem' }}
         />
-        <div>{getPoolName(env, item.pool)}</div>
+        <div>{!!env ? getPoolName(env, item.pool) : ''}</div>
       </List.Item>
     );
   }

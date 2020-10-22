@@ -4,11 +4,11 @@ import { Button } from 'antd';
 import {removeLiquidity, useSwapContext} from '../../utils/swap';
 import { useWallet } from '../../utils/wallet';
 import { useConnection } from '../../utils/connection';
-import { PoolInfo, TokenAccount } from '../../utils/swapTypes';
+import { PoolInfo, SwapTokenAccount } from '../../utils/swapTypes';
 import { notify } from '../../utils/notifications';
 
 export const RemoveLiquidity = (props: {
-  instance: { account: TokenAccount; pool: PoolInfo };
+  instance: { account: SwapTokenAccount; pool: PoolInfo };
 }) => {
   const { account, pool } = props.instance;
   const [pendingTx, setPendingTx] = useState(false);

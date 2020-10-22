@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useWallet } from '../../utils/wallet';
 import { CurrencyInput, useCurrencyPairState } from './CurrencyInput';
 import { LoadingOutlined } from '@ant-design/icons';
-import { swap, usePoolForBasket } from '../../utils/swap';
+import {swap, usePoolForBasket, useSwapContext} from '../../utils/swap';
 import { notify } from '../../utils/notifications';
 import { useConnection } from '../../utils/connection';
 import { useSlippageConfig } from '../../utils/swap';
@@ -21,6 +21,7 @@ export const TradeEntry = () => {
   const { A, B, setLastTypedAccount } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
+  const {tokenProgramId, swapProgramId} = useSwapContext()
 
   const swapAccounts = () => {
     const tempMint = A.mintAddress;
@@ -47,7 +48,7 @@ export const TradeEntry = () => {
           },
         ];
 
-        await swap(connection, wallet, components, slippage, pool);
+        await swap(connection, wallet, components, slippage, swapProgramId, tokenProgramId, pool);
       } catch {
         notify({
           description:
