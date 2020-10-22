@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from 'antd';
-import { AddToLiquidity } from './pool/add';
 import { TradeEntry } from '../components/swap/TradeEntry';
+import { AddToLiquidity } from '../components/swap/AddToLiquidity';
 
 export const ExchangeView = (props: {}) => {
   const tabStyle: React.CSSProperties = { width: 120 };

@@ -597,7 +597,7 @@ const getUnixTs = () => {
 
 const DEFAULT_TIMEOUT = 15000;
 
-async function sendTransaction({
+export async function sendTransaction({
   transaction,
   wallet,
   signers = [wallet.publicKey],

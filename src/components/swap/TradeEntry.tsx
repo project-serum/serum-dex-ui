@@ -1,9 +1,9 @@
 import { Button, Spin } from 'antd';
 import React, { useState } from 'react';
 import { useWallet } from '../../utils/wallet';
-import { CurrencyInput, useCurrencyPairState } from './../currencyInput';
+import { CurrencyInput, useCurrencyPairState } from './CurrencyInput';
 import { LoadingOutlined } from '@ant-design/icons';
-import { swap, usePoolForBasket } from '../../utils/pools';
+import { swap, usePoolForBasket } from '../../utils/swap';
 import { notify } from '../../utils/notifications';
 import { useConnection } from '../../utils/connection';
 import { useSlippageConfig } from '../../utils/swap';

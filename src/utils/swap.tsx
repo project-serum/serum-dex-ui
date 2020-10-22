@@ -1,5 +1,5 @@
 import { SwapContextValues } from './types';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useLocalStorageState } from './utils';
 import {
   Account,
@@ -12,7 +12,7 @@ import {
 } from '@solana/web3.js';
 import { ENDPOINTS, useConnection } from './connection';
 import * as BufferLayout from 'buffer-layout';
-import { AccountLayout, MintLayout, Token } from '@solana/spl-token';
+import { AccountLayout, MintInfo, MintLayout, Token } from '@solana/spl-token';
 import { TokenSwap, TokenSwapLayout } from '@solana/spl-token-swap';
 import { notify } from './notifications';
 import {
@@ -20,9 +20,10 @@ import {
   getCachedAccount,
   useCachedPool,
   useUserAccounts,
-} from './accounts';
-import { programIds, WRAPPED_SOL_MINT } from './ids';
-import { LiquidityComponent, PoolInfo, TokenAccount } from './../models';
+} from './swapAccounts';
+import { LiquidityComponent, PoolInfo, TokenAccount } from './swapTypes';
+import PopularTokens from './swap-token-list.json';
+import { sendTransaction } from "./send"
 
 const DEFAULT_SLIPPAGE = 1.0; // TODO: set to lower value
 export const PROGRAM_IDS = [
@@ -93,6 +94,14 @@ export function SwapProvider({ children }) {
   );
 }
 
+export function useSwapContext() {
+  const context = useContext(SwapContext);
+  if (!context) {
+    throw new Error('Missing swap context');
+  }
+  return context;
+}
+
 export function useSlippageConfig() {
   const context = useContext(SwapContext);
   if (!context) {
@@ -152,33 +161,16 @@ const createInitSwapInstruction = (
   });
 };
 
-export const sendTransaction = async (
+export const sendTransactionFromInstructions = async (
   connection: any,
   wallet: any,
   instructions: TransactionInstruction[],
   signers: Account[],
+
 ) => {
   let transaction = new Transaction();
   instructions.forEach((instruction) => transaction.add(instruction));
-  transaction.recentBlockhash = (
-    await connection.getRecentBlockhash('max')
-  ).blockhash;
-  transaction.setSigners(
-    // fee payied by the wallet owner
-    wallet.publicKey,
-    ...signers.map((s) => s.publicKey),
-  );
-  if (signers.length > 0) {
-    transaction.partialSign(...signers);
-  }
-  transaction = await wallet.signTransaction(transaction);
-  const rawTransaction = transaction.serialize();
-  const txid = await sendAndConfirmRawTransaction(connection, rawTransaction, {
-    skipPreflight: true,
-    commitment: 'singleGossip',
-  });
-
-  return txid;
+  sendTransaction({transaction, wallet, signers, connection})
 };
 
 export const removeLiquidity = async (
@@ -186,7 +178,9 @@ export const removeLiquidity = async (
   wallet: any,
   liquidityAmount: number,
   account: TokenAccount,
-  pool?: PoolInfo,
+  swapProgramId: PublicKey,
+  tokenProgramId: PublicKey,
+  oolInfo,
 ) => {
   if (!pool) {
     return;
@@ -817,17 +811,16 @@ async function _addLiquidityNewPool(
 
   const liquidityTokenAccount = new Account();
   // Create account for pool liquidity token
-  instructions.push(
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: liquidityTokenAccount.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(
-        MintLayout.span,
-      ),
-      space: MintLayout.span,
-      programId: programIds().token,
-    }),
-  );
+  const createPoolTokenTransaction = SystemProgram.createAccount({
+    fromPubkey: wallet.publicKey,
+    newAccountPubkey: liquidityTokenAccount.publicKey,
+    lamports: await connection.getMinimumBalanceForRentExemption(
+      MintLayout.span,
+    ),
+    space: MintLayout.span,
+    programId: programIds().token,
+  })
+  instructions.concat(createPoolTokenTransaction.instructions);
 
   const tokenSwapAccount = new Account();
 
@@ -894,17 +887,16 @@ async function _addLiquidityNewPool(
   instructions = [];
   cleanupInstructions = [];
 
-  instructions.push(
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: tokenSwapAccount.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(
-        TokenSwapLayout.span,
-      ),
-      space: TokenSwapLayout.span,
-      programId: programIds().swap,
-    }),
-  );
+  const transaction = SystemProgram.createAccount({
+    fromPubkey: wallet.publicKey,
+    newAccountPubkey: tokenSwapAccount.publicKey,
+    lamports: await connection.getMinimumBalanceForRentExemption(
+      TokenSwapLayout.span,
+    ),
+    space: TokenSwapLayout.span,
+    programId: programIds().swap,
+  })
+  instructions.concat(transaction.instructions);
 
   components.forEach((leg, i) => {
     // create temporary account for wrapped sol to perform transfer
@@ -984,15 +976,14 @@ function getWrappedAccount(
   }
 
   const account = new Account();
-  instructions.push(
-    SystemProgram.createAccount({
-      fromPubkey: payer,
-      newAccountPubkey: account.publicKey,
-      lamports: amount,
-      space: AccountLayout.span,
-      programId: programIds().token,
-    }),
-  );
+  const transactions = SystemProgram.createAccount({
+    fromPubkey: payer,
+    newAccountPubkey: account.publicKey,
+    lamports: amount,
+    space: AccountLayout.span,
+    programId: programIds().token,
+  })
+  instructions.concat(transactions.instructions);
 
   instructions.push(
     Token.createInitAccountInstruction(
@@ -1027,15 +1018,14 @@ function createSplAccount(
   space: number,
 ) {
   const account = new Account();
-  instructions.push(
-    SystemProgram.createAccount({
-      fromPubkey: payer,
-      newAccountPubkey: account.publicKey,
-      lamports: accountRentExempt,
-      space,
-      programId: programIds().token,
-    }),
-  );
+  const transaction = SystemProgram.createAccount({
+    fromPubkey: payer,
+    newAccountPubkey: account.publicKey,
+    lamports: accountRentExempt,
+    space,
+    programId: programIds().token,
+  })
+  instructions.concat(transaction.instructions);
 
   instructions.push(
     Token.createInitAccountInstruction(
@@ -1047,4 +1037,94 @@ function createSplAccount(
   );
 
   return account;
+}
+
+export interface KnownToken {
+  tokenSymbol: string;
+  tokenName: string;
+  icon: string;
+  mintAddress: string;
+}
+
+const AddressToToken = Object.keys(PopularTokens).reduce((map, key) => {
+  const tokens = PopularTokens[key as ENV] as KnownToken[];
+  const knownMints = tokens.reduce((map, item) => {
+    map.set(item.mintAddress, item);
+    return map;
+  }, new Map<string, KnownToken>());
+
+  map.set(key as ENV, knownMints);
+
+  return map;
+}, new Map<ENV, Map<string, KnownToken>>());
+
+export function useLocalStorageState(key: string, defaultState?: string) {
+  const [state, setState] = useState(() => {
+    // NOTE: Not sure if this is ok
+    const storedState = localStorage.getItem(key);
+    if (storedState) {
+      return JSON.parse(storedState);
+    }
+    return defaultState;
+  });
+
+  const setLocalStorageState = useCallback(
+    (newState) => {
+      const changed = state !== newState;
+      if (!changed) {
+        return;
+      }
+      setState(newState);
+      if (newState === null) {
+        localStorage.removeItem(key);
+      } else {
+        localStorage.setItem(key, JSON.stringify(newState));
+      }
+    },
+    [state, key],
+  );
+
+  return [state, setLocalStorageState];
+}
+
+// shorten the checksummed version of the input address to have 0x + 4 characters at start and end
+export function shortenAddress(address: string, chars = 4): string {
+  return `0x${address.substring(0, chars)}...${address.substring(44 - chars)}`;
+}
+
+export function getTokenName(env: ENV, mintAddress: string): string {
+  const knownSymbol = AddressToToken.get(env)?.get(mintAddress)?.tokenSymbol;
+  if (knownSymbol) {
+    return knownSymbol;
+  }
+
+  return shortenAddress(mintAddress).substring(10).toUpperCase();
+}
+
+export function getTokenIcon(
+  env: ENV,
+  mintAddress: string,
+): string | undefined {
+  return AddressToToken.get(env)?.get(mintAddress)?.icon;
+}
+
+export function getPoolName(env: ENV, pool: PoolInfo) {
+  const sorted = pool.pubkeys.accountMints.map((a) => a.toBase58()).sort();
+  return sorted.map((item) => getTokenName(env, item)).join('/');
+}
+
+export function isKnownMint(env: ENV, mintAddress: string) {
+  return !!AddressToToken.get(env)?.get(mintAddress);
+}
+
+export function formatTokenAmount(
+  account?: TokenAccount,
+  mint?: MintInfo,
+): string {
+  if (!account) {
+    return '';
+  }
+
+  const precision = Math.pow(10, mint?.decimals || 0);
+  return (account.info.amount?.toNumber() / precision)?.toFixed(2);
 }
