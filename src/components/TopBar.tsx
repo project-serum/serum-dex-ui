@@ -1,16 +1,20 @@
-import {InfoCircleOutlined, PlusCircleOutlined, SettingOutlined,} from '@ant-design/icons';
-import {Button, Col, Menu, Popover, Row, Select} from 'antd';
-import React, {useCallback, useEffect, useState} from 'react';
-import {useHistory, useLocation} from 'react-router-dom';
+import {
+  InfoCircleOutlined,
+  PlusCircleOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
+import { Button, Col, Menu, Popover, Row, Select } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.svg';
 import styled from 'styled-components';
-import {useWallet, WALLET_PROVIDERS} from '../utils/wallet';
-import {ENDPOINTS, useConnectionConfig} from '../utils/connection';
+import { useWallet, WALLET_PROVIDERS } from '../utils/wallet';
+import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
 import Settings from './Settings';
-import CustomClusterEndpointDialog from "./CustomClusterEndpointDialog";
-import {EndpointInfo} from "../utils/types";
-import {notify} from "../utils/notifications";
-import {Connection} from "@solana/web3.js";
+import CustomClusterEndpointDialog from './CustomClusterEndpointDialog';
+import { EndpointInfo } from '../utils/types';
+import { notify } from '../utils/notifications';
+import { Connection } from '@solana/web3.js';
 import WalletConnect from './WalletConnect';
 
 const Wrapper = styled.div`
@@ -41,13 +45,19 @@ const EXTERNAL_LINKS = {
   '/developer-resources': 'https://serum-academy.com/en/developer-resources/',
   '/explorer': 'https://explorer.solana.com',
   '/srm-faq': 'https://projectserum.com/srm-faq',
-}
+};
 
 export default function TopBar() {
   const { connected, wallet, providerUrl, setProvider } = useWallet();
-  const { endpoint, endpointInfo, setEndpoint, availableEndpoints, setCustomEndpoints } = useConnectionConfig();
-  const [ addEndpointVisible, setAddEndpointVisible ] = useState(false)
-  const [ testingConnection, setTestingConnection] = useState(false)
+  const {
+    endpoint,
+    endpointInfo,
+    setEndpoint,
+    availableEndpoints,
+    setCustomEndpoints,
+  } = useConnectionConfig();
+  const [addEndpointVisible, setAddEndpointVisible] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
   const location = useLocation();
   const history = useHistory();
 
@@ -73,39 +83,45 @@ export default function TopBar() {
     }
 
     const handleError = (e) => {
-      console.log(`Connection to ${info.endpoint} failed: ${e}`)
+      console.log(`Connection to ${info.endpoint} failed: ${e}`);
       notify({
         message: `Failed to connect to ${info.endpoint}`,
         type: 'error',
       });
-    }
+    };
 
     try {
       const connection = new Connection(info.endpoint, 'recent');
-      connection.getEpochInfo().then(result => {
-        setTestingConnection(true);
-        console.log(`testing connection to ${info.endpoint}`);
-        const newCustomEndpoints = [...availableEndpoints.filter(e => e.custom), info];
-        setEndpoint(info.endpoint);
-        setCustomEndpoints(newCustomEndpoints);
-      }).catch(handleError);
+      connection
+        .getEpochInfo()
+        .then((result) => {
+          setTestingConnection(true);
+          console.log(`testing connection to ${info.endpoint}`);
+          const newCustomEndpoints = [
+            ...availableEndpoints.filter((e) => e.custom),
+            info,
+          ];
+          setEndpoint(info.endpoint);
+          setCustomEndpoints(newCustomEndpoints);
+        })
+        .catch(handleError);
     } catch (e) {
       handleError(e);
     } finally {
       setTestingConnection(false);
     }
-  }
+  };
 
-  const endpointInfoCustom = endpointInfo && endpointInfo.custom
+  const endpointInfoCustom = endpointInfo && endpointInfo.custom;
   useEffect(() => {
     const handler = () => {
       if (endpointInfoCustom) {
-        setEndpoint(ENDPOINTS[0].endpoint)
+        setEndpoint(ENDPOINTS[0].endpoint);
       }
-    }
-    window.addEventListener("beforeunload", handler)
-    return () => window.removeEventListener("beforeunload", handler)
-  }, [endpointInfoCustom, setEndpoint])
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [endpointInfoCustom, setEndpoint]);
 
   return (
     <>
@@ -137,34 +153,61 @@ export default function TopBar() {
           {connected && <Menu.Item key="/orders">ORDERS</Menu.Item>}
           {connected && <Menu.Item key="/convert">CONVERT</Menu.Item>}
           <Menu.Item key="/list-new-market">ADD MARKET</Menu.Item>
-          <Menu.SubMenu title="LEARN" onTitleClick={() => window.open(EXTERNAL_LINKS['/learn'], '_blank')}>
+          <Menu.SubMenu
+            title="LEARN"
+            onTitleClick={() => window.open(EXTERNAL_LINKS['/learn'], '_blank')}
+          >
             <Menu.Item key="/add-market">
-              <a href={EXTERNAL_LINKS['/add-market']} target="_blank" rel="noopener noreferrer">
+              <a
+                href={EXTERNAL_LINKS['/add-market']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Adding a market
               </a>
             </Menu.Item>
             <Menu.Item key="/wallet-support">
-              <a href={EXTERNAL_LINKS['/wallet-support']} target="_blank" rel="noopener noreferrer">
+              <a
+                href={EXTERNAL_LINKS['/wallet-support']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Supported wallets
               </a>
             </Menu.Item>
             <Menu.Item key="/dex-list">
-              <a href={EXTERNAL_LINKS['/dex-list']} target="_blank" rel="noopener noreferrer">
+              <a
+                href={EXTERNAL_LINKS['/dex-list']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 DEX list
               </a>
             </Menu.Item>
             <Menu.Item key="/developer-resources">
-              <a href={EXTERNAL_LINKS['/developer-resources']} target="_blank" rel="noopener noreferrer">
+              <a
+                href={EXTERNAL_LINKS['/developer-resources']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Developer resources
               </a>
             </Menu.Item>
             <Menu.Item key="/explorer">
-              <a href={EXTERNAL_LINKS['/explorer']} target="_blank" rel="noopener noreferrer">
+              <a
+                href={EXTERNAL_LINKS['/explorer']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Solana block explorer
               </a>
             </Menu.Item>
             <Menu.Item key="/srm-faq">
-              <a href={EXTERNAL_LINKS['/srm-faq']} target="_blank" rel="noopener noreferrer">
+              <a
+                href={EXTERNAL_LINKS['/srm-faq']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 SRM FAQ
               </a>
             </Menu.Item>
@@ -182,7 +225,7 @@ export default function TopBar() {
                 onClick={() => setAddEndpointVisible(true)}
               />
             </Col>
-             <Col>
+            <Col>
               <Popover
                 content={endpoint}
                 placement="bottomRight"
@@ -232,7 +275,7 @@ export default function TopBar() {
           </Select>
         </div>
         <div>
-          <WalletConnect/>
+          <WalletConnect />
         </div>
       </Wrapper>
     </>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PublicKey } from '@solana/web3.js';
-import BN from "bn.js";
+import BN from 'bn.js';
 
 export function isValidPublicKey(key) {
   if (!key) {
@@ -24,11 +24,17 @@ export const percentFormat = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 2,
 });
 
-export function floorToDecimal(value: number, decimals: number | undefined | null) {
+export function floorToDecimal(
+  value: number,
+  decimals: number | undefined | null,
+) {
   return decimals ? Math.floor(value * 10 ** decimals) / 10 ** decimals : value;
 }
 
-export function roundToDecimal(value: number, decimals: number | undefined | null) {
+export function roundToDecimal(
+  value: number,
+  decimals: number | undefined | null,
+) {
   return decimals ? Math.round(value * 10 ** decimals) / 10 ** decimals : value;
 }
 
@@ -66,7 +72,7 @@ export function useLocalStorageStringState(
     localStorageListeners[key].push(notify);
     return () => {
       localStorageListeners[key] = localStorageListeners[key].filter(
-        listener => listener !== notify,
+        (listener) => listener !== notify,
       );
       if (localStorageListeners[key].length === 0) {
         delete localStorageListeners[key];
@@ -75,7 +81,7 @@ export function useLocalStorageStringState(
   }, [key]);
 
   const setState = useCallback<(newState: string | null) => void>(
-    newState => {
+    (newState) => {
       const changed = state !== newState;
       if (!changed) {
         return;
@@ -86,7 +92,9 @@ export function useLocalStorageStringState(
       } else {
         localStorage.setItem(key, newState);
       }
-      localStorageListeners[key].forEach(listener => listener(key + '\n' + newState));
+      localStorageListeners[key].forEach((listener) =>
+        listener(key + '\n' + newState),
+      );
     },
     [state, key],
   );
@@ -94,9 +102,18 @@ export function useLocalStorageStringState(
   return [state, setState];
 }
 
-export function useLocalStorageState<T = any>(key: string, defaultState: T | null = null): [T, (newState: T) => void] {
-  let [stringState, setStringState] = useLocalStorageStringState(key, JSON.stringify(defaultState));
-  return [stringState && JSON.parse(stringState), newState => setStringState(JSON.stringify(newState))];
+export function useLocalStorageState<T = any>(
+  key: string,
+  defaultState: T | null = null,
+): [T, (newState: T) => void] {
+  let [stringState, setStringState] = useLocalStorageStringState(
+    key,
+    JSON.stringify(defaultState),
+  );
+  return [
+    stringState && JSON.parse(stringState),
+    (newState) => setStringState(JSON.stringify(newState)),
+  ];
 }
 
 export function useEffectAfterTimeout(effect, timeout) {

@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
-import {Button, Col, Input, Row, Select, Typography} from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Button, Col, Input, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
-import {Market, Orderbook} from '@project-serum/serum';
+import { Market, Orderbook } from '@project-serum/serum';
 import {
   getExpectedFillPrice,
   getMarketDetails,
@@ -12,16 +12,16 @@ import {
   useMarket,
   useTokenAccounts,
 } from '../utils/markets';
-import {notify} from '../utils/notifications';
-import {useWallet} from '../utils/wallet';
-import {useConnection, useSendConnection} from '../utils/connection';
-import {placeOrder} from '../utils/send';
-import {floorToDecimal, getDecimalCount} from '../utils/utils';
+import { notify } from '../utils/notifications';
+import { useWallet } from '../utils/wallet';
+import { useConnection, useSendConnection } from '../utils/connection';
+import { placeOrder } from '../utils/send';
+import { floorToDecimal, getDecimalCount } from '../utils/utils';
 import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
-import {SwapOutlined} from "@ant-design/icons";
-import {CustomMarketInfo} from "../utils/types";
-import Wallet from "@project-serum/sol-wallet-adapter";
+import { SwapOutlined } from '@ant-design/icons';
+import { CustomMarketInfo } from '../utils/types';
+import Wallet from '@project-serum/sol-wallet-adapter';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -40,41 +40,55 @@ const ConvertButton = styled(Button)`
 export default function ConvertForm() {
   const { connected, wallet } = useWallet();
   const { customMarkets } = useMarket();
-  const marketInfos = getMarketInfos(customMarkets)
-  const {market, setMarketAddress} = useMarket();
+  const marketInfos = getMarketInfos(customMarkets);
+  const { market, setMarketAddress } = useMarket();
 
   const [fromToken, setFromToken] = useState<string | undefined>(undefined);
   const [toToken, setToToken] = useState<string | undefined>(undefined);
   const [size, setSize] = useState<number | undefined>(undefined);
 
-  const marketInfosbyName = Object.fromEntries(marketInfos.map(market => [market.name, market]));
+  const marketInfosbyName = Object.fromEntries(
+    marketInfos.map((market) => [market.name, market]),
+  );
 
   const tokenConvertMap: Map<string, Set<string>> = new Map();
   Object.keys(marketInfosbyName).forEach((market) => {
     let [base, quote] = market.split('/');
     !tokenConvertMap.has(base)
       ? tokenConvertMap.set(base, new Set([quote]))
-      : tokenConvertMap.set(base, new Set([...(tokenConvertMap.get(base) || []), quote]));
+      : tokenConvertMap.set(
+          base,
+          new Set([...(tokenConvertMap.get(base) || []), quote]),
+        );
     !tokenConvertMap.has(quote)
       ? tokenConvertMap.set(quote, new Set([base]))
-      : tokenConvertMap.set(quote, new Set([...(tokenConvertMap.get(quote) || []), base]));
+      : tokenConvertMap.set(
+          quote,
+          new Set([...(tokenConvertMap.get(quote) || []), base]),
+        );
   });
 
   const setMarket = (toToken) => {
-    const marketInfo = marketInfos.filter(marketInfo => !marketInfo.deprecated).find(marketInfo =>
-      marketInfo.name === `${fromToken}/${toToken}` || marketInfo.name === `${toToken}/${fromToken}`
-    );
+    const marketInfo = marketInfos
+      .filter((marketInfo) => !marketInfo.deprecated)
+      .find(
+        (marketInfo) =>
+          marketInfo.name === `${fromToken}/${toToken}` ||
+          marketInfo.name === `${toToken}/${fromToken}`,
+      );
     if (!marketInfo) {
-      console.warn(`Could not find market info for market names ${fromToken}/${toToken} or ${toToken}/${fromToken}`);
+      console.warn(
+        `Could not find market info for market names ${fromToken}/${toToken} or ${toToken}/${fromToken}`,
+      );
       notify({
         message: 'Invalid market',
         type: 'error',
       });
       return;
     }
-    setMarketAddress(marketInfo.address.toBase58())
+    setMarketAddress(marketInfo.address.toBase58());
     setToToken(toToken);
-  }
+  };
 
   return (
     <FloatingElement style={{ maxWidth: 500 }}>
@@ -148,8 +162,8 @@ function ConvertFormSubmit({
   toToken,
   wallet,
   market,
-  customMarkets
-} : {
+  customMarkets,
+}: {
   size: number | null | undefined;
   setSize: (newSize: number | undefined) => void;
   fromToken: string;
@@ -171,7 +185,9 @@ function ConvertFormSubmit({
   const isFromTokenBaseOfMarket = (market) => {
     const { marketName } = getMarketDetails(market, customMarkets);
     if (!marketName) {
-      throw Error('Cannot determine if coin is quote or base because marketName is missing');
+      throw Error(
+        'Cannot determine if coin is quote or base because marketName is missing',
+      );
     }
     const [base] = marketName.split('/');
     return fromToken === base;
@@ -213,7 +229,9 @@ function ConvertFormSubmit({
     const sidedOrderbookAccount =
       // @ts-ignore
       side === 'buy' ? market._decoded.asks : market._decoded.bids;
-    const orderbookData = await connection.getAccountInfo(sidedOrderbookAccount);
+    const orderbookData = await connection.getAccountInfo(
+      sidedOrderbookAccount,
+    );
     if (!orderbookData?.data) {
       notify({ message: 'Invalid orderbook data', type: 'error' });
       return;
@@ -231,8 +249,12 @@ function ConvertFormSubmit({
       return;
     }
 
-    const tickSizeDecimals =  getDecimalCount(market.tickSize);
-    const parsedPrice = getMarketOrderPrice(decodedOrderbookData, size, tickSizeDecimals);
+    const tickSizeDecimals = getDecimalCount(market.tickSize);
+    const parsedPrice = getMarketOrderPrice(
+      decodedOrderbookData,
+      size,
+      tickSizeDecimals,
+    );
 
     // round size
     const sizeDecimalCount = getDecimalCount(market.minOrderSize);
@@ -270,19 +292,25 @@ function ConvertFormSubmit({
       const sidedOrderbookAccount =
         // @ts-ignore
         side === 'buy' ? market._decoded.asks : market._decoded.bids;
-      const orderbookData = await connection.getAccountInfo(sidedOrderbookAccount);
+      const orderbookData = await connection.getAccountInfo(
+        sidedOrderbookAccount,
+      );
       if (!orderbookData?.data || !market) {
         return [null, null];
       }
       const decodedOrderbookData = Orderbook.decode(market, orderbookData.data);
       const [bbo] =
-      decodedOrderbookData &&
-      decodedOrderbookData.getL2(1).map(([price]) => price);
+        decodedOrderbookData &&
+        decodedOrderbookData.getL2(1).map(([price]) => price);
       if (!bbo || !size) {
         return [null, null];
       }
-      const tickSizeDecimals =  getDecimalCount(market.tickSize);
-      const expectedPrice = getExpectedFillPrice(decodedOrderbookData, size, tickSizeDecimals)
+      const tickSizeDecimals = getDecimalCount(market.tickSize);
+      const expectedPrice = getExpectedFillPrice(
+        decodedOrderbookData,
+        size,
+        tickSizeDecimals,
+      );
       if (side === 'buy') {
         return [expectedPrice.toFixed(6), 1];
       } else {
@@ -292,21 +320,25 @@ function ConvertFormSubmit({
       console.log(`Got error ${e}`);
       return [null, null];
     }
-  }
+  };
 
-  useEffect(() => {
+  useEffect(
+    () => {
       getPrice().then(([fromAmount, toAmount]) => {
         setFromAmount(fromAmount || undefined);
         setToAmount(toAmount || undefined);
-      })
+      });
     },
     // eslint-disable-next-line
-    [market?.address.toBase58(), size]
-  )
+    [market?.address.toBase58(), size],
+  );
 
   const canConvert = market && size && size > 0;
-  const balance = balances.find(coinBalance => coinBalance.coin === fromToken);
-  const availableBalance = ((balance?.unsettled || 0.) + (balance?.wallet || 0.)) * 0.99;
+  const balance = balances.find(
+    (coinBalance) => coinBalance.coin === fromToken,
+  );
+  const availableBalance =
+    ((balance?.unsettled || 0) + (balance?.wallet || 0)) * 0.99;
 
   return (
     <React.Fragment>
@@ -346,12 +378,12 @@ function ConvertFormSubmit({
         </Col>
       </Row>
       {canConvert && (
-        <Row align="middle"  justify="center">
-          <Col >
+        <Row align="middle" justify="center">
+          <Col>
             {fromAmount} {fromToken}
           </Col>
           <Col offset={1}>
-            <SwapOutlined/>
+            <SwapOutlined />
           </Col>
           <Col offset={1}>
             {toAmount} {toToken}

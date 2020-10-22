@@ -138,3 +138,11 @@ export interface BonfidaTrade {
   feeCost: number;
   marketAddress: string;
 }
+
+export interface SwapContextValues {
+  slippage: number;
+  setSlippage: (newSlippage: number) => void;
+  tokenProgramId: PublicKey;
+  swapProgramId: PublicKey;
+  programIds: () => { token: PublicKey; swap: PublicKey };
+}

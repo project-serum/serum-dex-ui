@@ -103,7 +103,7 @@ class FetchLoopInternal<T = any> {
     try {
       const data = await this.fn();
       if (!this.cacheNullValues && data === null) {
-        console.log(`Not caching null value for ${this.cacheKey}`)
+        console.log(`Not caching null value for ${this.cacheKey}`);
         // cached data has not changed so no need to re-render
         this.errors = 0;
         return data;
