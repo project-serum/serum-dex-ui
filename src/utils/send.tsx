@@ -2,10 +2,14 @@ import { notify } from './notifications';
 import { getDecimalCount, sleep } from './utils';
 import { getSelectedTokenAccountForMint } from './markets';
 import {
-  Account, AccountInfo, Connection,
-  PublicKey, RpcResponseAndContext,
+  Account,
+  AccountInfo,
+  Connection,
+  PublicKey,
+  RpcResponseAndContext,
   SystemProgram,
-  Transaction, TransactionSignature,
+  Transaction,
+  TransactionSignature,
 } from '@solana/web3.js';
 import { BN } from 'bn.js';
 import {
@@ -15,18 +19,18 @@ import {
   TokenInstructions,
   OpenOrders,
 } from '@project-serum/serum';
-import Wallet from "@project-serum/sol-wallet-adapter";
-import {SelectedTokenAccounts, TokenAccount} from "./types";
-import {Order} from "@project-serum/serum/lib/market";
-import {Buffer} from "buffer";
-import assert from "assert";
-import { struct } from "superstruct";
+import Wallet from '@project-serum/sol-wallet-adapter';
+import { SelectedTokenAccounts, TokenAccount } from './types';
+import { Order } from '@project-serum/serum/lib/market';
+import { Buffer } from 'buffer';
+import assert from 'assert';
+import { struct } from 'superstruct';
 
 export async function createTokenAccountTransaction({
   connection,
   wallet,
   mintPublicKey,
-} : {
+}: {
   connection: Connection;
   wallet: Wallet;
   mintPublicKey: PublicKey;
@@ -64,7 +68,7 @@ export async function settleFunds({
   wallet,
   baseCurrencyAccount,
   quoteCurrencyAccount,
-} : {
+}: {
   market: Market;
   openOrders: OpenOrders;
   connection: Connection;
@@ -110,8 +114,8 @@ export async function settleFunds({
   }
   let referrerQuoteWallet: PublicKey | null = null;
   if (market.supportsReferralFees) {
-    const usdt = TOKEN_MINTS.find(({ name }) => name === 'USDT')
-    const usdc = TOKEN_MINTS.find(({ name }) => name === 'USDC')
+    const usdt = TOKEN_MINTS.find(({ name }) => name === 'USDT');
+    const usdc = TOKEN_MINTS.find(({ name }) => name === 'USDC');
     if (
       process.env.REACT_APP_USDT_REFERRAL_FEES_ADDRESS &&
       usdt &&
@@ -164,7 +168,7 @@ export async function settleAllFunds({
   tokenAccounts,
   markets,
   selectedTokenAccounts,
-} : {
+}: {
   connection: Connection;
   wallet: Wallet;
   tokenAccounts: TokenAccount[];
@@ -209,57 +213,72 @@ export async function settleAllFunds({
     [],
   );
 
-  const settleTransactions = (await Promise.all(
-    openOrdersAccounts.map((openOrdersAccount) => {
-      const market = markets.find((m) =>
-        // @ts-ignore
-        m._decoded?.ownAddress?.equals(openOrdersAccount.market),
-      );
-      const baseMint = market?.baseMintAddress;
-      const quoteMint = market?.quoteMintAddress;
+  const settleTransactions = (
+    await Promise.all(
+      openOrdersAccounts.map((openOrdersAccount) => {
+        const market = markets.find((m) =>
+          // @ts-ignore
+          m._decoded?.ownAddress?.equals(openOrdersAccount.market),
+        );
+        const baseMint = market?.baseMintAddress;
+        const quoteMint = market?.quoteMintAddress;
 
-      const selectedBaseTokenAccount = getSelectedTokenAccountForMint(
-        tokenAccounts,
-        baseMint,
-        baseMint && selectedTokenAccounts && selectedTokenAccounts[baseMint.toBase58()]
-      )?.pubkey;
-      const selectedQuoteTokenAccount = getSelectedTokenAccountForMint(
-        tokenAccounts,
-        quoteMint,
-        quoteMint && selectedTokenAccounts && selectedTokenAccounts[quoteMint.toBase58()]
-      )?.pubkey;
-      if (!selectedBaseTokenAccount || !selectedQuoteTokenAccount) {
-        return null;
-      }
-      return (
-        market &&
-        market.makeSettleFundsTransaction(
-          connection,
-          openOrdersAccount,
-          selectedBaseTokenAccount,
-          selectedQuoteTokenAccount,
-        )
-      );
-    }),
-  )).filter((x): x is {signers: [PublicKey | Account]; transaction: Transaction} => !!x);
+        const selectedBaseTokenAccount = getSelectedTokenAccountForMint(
+          tokenAccounts,
+          baseMint,
+          baseMint &&
+            selectedTokenAccounts &&
+            selectedTokenAccounts[baseMint.toBase58()],
+        )?.pubkey;
+        const selectedQuoteTokenAccount = getSelectedTokenAccountForMint(
+          tokenAccounts,
+          quoteMint,
+          quoteMint &&
+            selectedTokenAccounts &&
+            selectedTokenAccounts[quoteMint.toBase58()],
+        )?.pubkey;
+        if (!selectedBaseTokenAccount || !selectedQuoteTokenAccount) {
+          return null;
+        }
+        return (
+          market &&
+          market.makeSettleFundsTransaction(
+            connection,
+            openOrdersAccount,
+            selectedBaseTokenAccount,
+            selectedQuoteTokenAccount,
+          )
+        );
+      }),
+    )
+  ).filter(
+    (x): x is { signers: [PublicKey | Account]; transaction: Transaction } =>
+      !!x,
+  );
   if (!settleTransactions || settleTransactions.length === 0) return;
 
   const transactions = settleTransactions.slice(0, 4).map((t) => t.transaction);
   const signers: Array<Account | PublicKey> = [];
   settleTransactions
-    .reduce((cumulative: Array<Account | PublicKey>, t) => cumulative.concat(t.signers), [])
+    .reduce(
+      (cumulative: Array<Account | PublicKey>, t) =>
+        cumulative.concat(t.signers),
+      [],
+    )
     .forEach((signer) => {
-      if (!signers.find((s) => {
-        if (s.constructor.name !== signer.constructor.name) {
-          return false;
-        } else if (s.constructor.name === 'PublicKey') {
-          // @ts-ignore
-          return s.equals(signer);
-        } else {
-          // @ts-ignore
-          return s.publicKey.equals(signer.publicKey);
-        }
-      })) {
+      if (
+        !signers.find((s) => {
+          if (s.constructor.name !== signer.constructor.name) {
+            return false;
+          } else if (s.constructor.name === 'PublicKey') {
+            // @ts-ignore
+            return s.equals(signer);
+          } else {
+            // @ts-ignore
+            return s.publicKey.equals(signer.publicKey);
+          }
+        })
+      ) {
         signers.push(signer);
       }
     });
@@ -274,11 +293,21 @@ export async function settleAllFunds({
   });
 }
 
-export async function cancelOrder(params: {market: Market; connection: Connection; wallet: Wallet; order: Order;}) {
+export async function cancelOrder(params: {
+  market: Market;
+  connection: Connection;
+  wallet: Wallet;
+  order: Order;
+}) {
   return cancelOrders({ ...params, orders: [params.order] });
 }
 
-export async function cancelOrders({ market, wallet, connection, orders }: {
+export async function cancelOrders({
+  market,
+  wallet,
+  connection,
+  orders,
+}: {
   market: Market;
   wallet: Wallet;
   connection: Connection;
@@ -310,10 +339,10 @@ export async function placeOrder({
   baseCurrencyAccount,
   quoteCurrencyAccount,
 }: {
-  side: "buy" | "sell";
+  side: 'buy' | 'sell';
   price: number;
   size: number;
-  orderType: "ioc" | "postOnly" | "limit";
+  orderType: 'ioc' | 'postOnly' | 'limit';
   market: Market | undefined | null;
   connection: Connection;
   wallet: Wallet;
@@ -417,7 +446,7 @@ export async function listMarket({
   baseLotSize,
   quoteLotSize,
   dexProgramId,
-} : {
+}: {
   connection: Connection;
   wallet: Wallet;
   baseMint: PublicKey;
@@ -577,7 +606,7 @@ async function sendTransaction({
   sentMessage = 'Transaction sent',
   successMessage = 'Transaction confirmed',
   timeout = DEFAULT_TIMEOUT,
-} : {
+}: {
   transaction: Transaction;
   wallet: Wallet;
   signers?: Array<PublicKey | Account>;
@@ -608,7 +637,7 @@ async function signTransaction({
   wallet,
   signers = [wallet.publicKey],
   connection,
-} : {
+}: {
   transaction: Transaction;
   wallet: Wallet;
   signers: Array<Account | PublicKey>;
@@ -628,7 +657,7 @@ async function sendSignedTransaction({
   sentMessage = 'Transaction sent',
   successMessage = 'Transaction confirmed',
   timeout = DEFAULT_TIMEOUT,
-} : {
+}: {
   signedTransaction: Transaction;
   connection: Connection;
   sendingMessage?: string;
@@ -639,9 +668,12 @@ async function sendSignedTransaction({
   const rawTransaction = signedTransaction.serialize();
   const startTime = getUnixTs();
   notify({ message: sendingMessage });
-  const txid: TransactionSignature = await connection.sendRawTransaction(rawTransaction, {
-    skipPreflight: true,
-  });
+  const txid: TransactionSignature = await connection.sendRawTransaction(
+    rawTransaction,
+    {
+      skipPreflight: true,
+    },
+  );
   notify({ message: sentMessage, type: 'success', txid });
 
   console.log('Started awaiting confirmation for', txid);
@@ -754,17 +786,17 @@ function mergeTransactions(transactions: (Transaction | undefined)[]) {
 }
 
 function jsonRpcResult(resultDescription: any) {
-  const jsonRpcVersion = struct.literal("2.0");
+  const jsonRpcVersion = struct.literal('2.0');
   return struct.union([
     struct({
       jsonrpc: jsonRpcVersion,
-      id: "string",
-      error: "any",
+      id: 'string',
+      error: 'any',
     }),
     struct({
       jsonrpc: jsonRpcVersion,
-      id: "string",
-      error: "null?",
+      id: 'string',
+      error: 'null?',
       result: resultDescription,
     }),
   ]);
@@ -773,46 +805,43 @@ function jsonRpcResult(resultDescription: any) {
 function jsonRpcResultAndContext(resultDescription: any) {
   return jsonRpcResult({
     context: struct({
-      slot: "number",
+      slot: 'number',
     }),
     value: resultDescription,
   });
 }
 
 const AccountInfoResult = struct({
-  executable: "boolean",
-  owner: "string",
-  lamports: "number",
-  data: "any",
-  rentEpoch: "number?",
+  executable: 'boolean',
+  owner: 'string',
+  lamports: 'number',
+  data: 'any',
+  rentEpoch: 'number?',
 });
 
 export const GetMultipleAccountsAndContextRpcResult = jsonRpcResultAndContext(
-  struct.array([struct.union(["null", AccountInfoResult])])
+  struct.array([struct.union(['null', AccountInfoResult])]),
 );
 
 export async function getMultipleSolanaAccounts(
   connection: Connection,
-  publicKeys: PublicKey[]
+  publicKeys: PublicKey[],
 ): Promise<
   RpcResponseAndContext<{ [key: string]: AccountInfo<Buffer> | null }>
 > {
-  const args = [
-    publicKeys.map((k) => k.toBase58()),
-    { commitment: "recent" },
-  ];
+  const args = [publicKeys.map((k) => k.toBase58()), { commitment: 'recent' }];
   // @ts-ignore
-  const unsafeRes = await connection._rpcRequest("getMultipleAccounts", args);
+  const unsafeRes = await connection._rpcRequest('getMultipleAccounts', args);
   const res = GetMultipleAccountsAndContextRpcResult(unsafeRes);
   if (res.error) {
     throw new Error(
-      "failed to get info about accounts " +
-        publicKeys.map((k) => k.toBase58()).join(", ") +
-        ": " +
-        res.error.message
+      'failed to get info about accounts ' +
+        publicKeys.map((k) => k.toBase58()).join(', ') +
+        ': ' +
+        res.error.message,
     );
   }
-  assert(typeof res.result !== "undefined");
+  assert(typeof res.result !== 'undefined');
   const accounts: Array<{
     executable: any;
     owner: PublicKey;
@@ -828,12 +857,12 @@ export async function getMultipleSolanaAccounts(
     } | null = null;
     if (res.result.value) {
       const { executable, owner, lamports, data } = account;
-      assert(data[1] === "base64");
+      assert(data[1] === 'base64');
       value = {
         executable,
         owner: new PublicKey(owner),
         lamports,
-        data: Buffer.from(data[0], "base64"),
+        data: Buffer.from(data[0], 'base64'),
       };
     }
     accounts.push(value);
@@ -843,7 +872,7 @@ export async function getMultipleSolanaAccounts(
       slot: res.result.context.slot,
     },
     value: Object.fromEntries(
-      accounts.map((account, i) => [publicKeys[i].toBase58(), account])
+      accounts.map((account, i) => [publicKeys[i].toBase58(), account]),
     ),
   };
 }

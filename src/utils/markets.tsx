@@ -1187,8 +1187,8 @@ export function getExpectedFillPrice(
   cost: number,
   tickSizeDecimals?: number,
 ) {
-  let spentCost = 0.;
-  let avgPrice = 0.;
+  let spentCost = 0;
+  let avgPrice = 0;
   let price, sizeAtLevel, costAtLevel: number;
   for ([price, sizeAtLevel] of orderbook.getL2(1000)) {
     costAtLevel = (orderbook.isBids ? 1 : price) * sizeAtLevel;

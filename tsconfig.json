@@ -16,17 +16,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react",
-    "lib": [
-      "dom",
-      "esnext"
-    ]
+    "lib": ["dom", "esnext"]
   },
-  "include": [
-    "./src/"
-  ],
-  "exclude": [
-    "./src/**/*.test.js",
-    "node_modules",
-    "**/node_modules"
-  ]
+  "include": ["./src/"],
+  "exclude": ["./src/**/*.test.js", "node_modules", "**/node_modules"]
 }

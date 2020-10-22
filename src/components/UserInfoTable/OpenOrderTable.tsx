@@ -1,21 +1,27 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import DataTable from '../layout/DataTable';
 
 import styled from 'styled-components';
-import {Button, Col, Row, Tag} from 'antd';
-import {cancelOrder} from '../../utils/send';
-import {useWallet} from '../../utils/wallet';
-import {useSendConnection} from '../../utils/connection';
-import {notify} from '../../utils/notifications';
-import {DeleteOutlined} from '@ant-design/icons';
-import {OrderWithMarketAndMarketName} from "../../utils/types";
+import { Button, Col, Row, Tag } from 'antd';
+import { cancelOrder } from '../../utils/send';
+import { useWallet } from '../../utils/wallet';
+import { useSendConnection } from '../../utils/connection';
+import { notify } from '../../utils/notifications';
+import { DeleteOutlined } from '@ant-design/icons';
+import { OrderWithMarketAndMarketName } from '../../utils/types';
 
 const CancelButton = styled(Button)`
   color: #f23b69;
   border: 1px solid #f23b69;
 `;
 
-export default function OpenOrderTable({ openOrders, onCancelSuccess, pageSize, loading, marketFilter } : {
+export default function OpenOrderTable({
+  openOrders,
+  onCancelSuccess,
+  pageSize,
+  loading,
+  marketFilter,
+}: {
   openOrders: OrderWithMarketAndMarketName[] | null | undefined;
   onCancelSuccess?: () => void;
   pageSize?: number;
@@ -50,15 +56,17 @@ export default function OpenOrderTable({ openOrders, onCancelSuccess, pageSize, 
   }
 
   const marketFilters = [
-    ...new Set((openOrders || []).map(orderInfos => orderInfos.marketName))
-  ].map(marketName => {return {text: marketName, value: marketName}});
+    ...new Set((openOrders || []).map((orderInfos) => orderInfos.marketName)),
+  ].map((marketName) => {
+    return { text: marketName, value: marketName };
+  });
 
   const columns = [
     {
       title: 'Market',
       dataIndex: 'marketName',
       key: 'marketName',
-      filters: (marketFilter ? marketFilters : undefined),
+      filters: marketFilter ? marketFilters : undefined,
       onFilter: (value, record) => record.marketName.indexOf(value) === 0,
     },
     {
@@ -75,11 +83,11 @@ export default function OpenOrderTable({ openOrders, onCancelSuccess, pageSize, 
       ),
       sorter: (a, b) => {
         if (a.side === b.side) {
-          return 0.
+          return 0;
         } else if (a.side === 'buy') {
-          return 1.
+          return 1;
         } else {
-          return -1.
+          return -1;
         }
       },
       showSorterTooltip: false,

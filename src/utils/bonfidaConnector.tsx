@@ -5,9 +5,7 @@ export default class BonfidaApi {
 
   static async get(path: string) {
     try {
-      const response = await fetch(
-        this.URL + path,
-      );
+      const response = await fetch(this.URL + path);
       if (response.ok) {
         const responseJson = await response.json();
         return responseJson.success ? responseJson.data : null;

@@ -20,7 +20,7 @@ import {
 import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { placeOrder } from '../utils/send';
-import {SwitchChangeEventHandler} from "antd/es/switch";
+import { SwitchChangeEventHandler } from 'antd/es/switch';
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
@@ -42,9 +42,14 @@ const sliderMarks = {
   100: '100%',
 };
 
-export default function TradeForm({ style, setChangeOrderRef }: {
+export default function TradeForm({
+  style,
+  setChangeOrderRef,
+}: {
   style?: any;
-  setChangeOrderRef?: (ref: ({ size, price }: {size?: number; price?: number;}) => void) => void;
+  setChangeOrderRef?: (
+    ref: ({ size, price }: { size?: number; price?: number }) => void,
+  ) => void;
 }) {
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const { baseCurrency, quoteCurrency, market } = useMarket();
@@ -65,9 +70,10 @@ export default function TradeForm({ style, setChangeOrderRef }: {
   const [submitting, setSubmitting] = useState(false);
   const [sizeFraction, setSizeFraction] = useState(0);
 
-  const availableQuote = openOrdersAccount && market
-    ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
-    : 0;
+  const availableQuote =
+    openOrdersAccount && market
+      ? market.quoteSplSizeToNumber(openOrdersAccount.quoteTokenFree)
+      : 0;
 
   let quoteBalance = (quoteCurrencyBalances || 0) + (availableQuote || 0);
   let baseBalance = baseCurrencyBalances || 0;
@@ -123,7 +129,13 @@ export default function TradeForm({ style, setChangeOrderRef }: {
     setBaseSize(baseSize);
   };
 
-  const doChangeOrder = ({ size, price }: {size?: number; price?: number;}) => {
+  const doChangeOrder = ({
+    size,
+    price,
+  }: {
+    size?: number;
+    price?: number;
+  }) => {
     const formattedSize = size && roundToDecimal(size, sizeDecimalCount);
     const formattedPrice = price && roundToDecimal(price, priceDecimalCount);
     formattedSize && onSetBaseSize(formattedSize);
@@ -131,9 +143,10 @@ export default function TradeForm({ style, setChangeOrderRef }: {
   };
 
   const updateSizeFraction = () => {
-    const rawMaxSize = side === 'buy' ? quoteBalance / (price || markPrice || 1.) : baseBalance;
+    const rawMaxSize =
+      side === 'buy' ? quoteBalance / (price || markPrice || 1) : baseBalance;
     const maxSize = floorToDecimal(rawMaxSize, sizeDecimalCount);
-    const sizeFraction = Math.min(((baseSize || 0.) / maxSize) * 100, 100);
+    const sizeFraction = Math.min(((baseSize || 0) / maxSize) * 100, 100);
     setSizeFraction(sizeFraction);
   };
 
@@ -142,13 +155,17 @@ export default function TradeForm({ style, setChangeOrderRef }: {
       let formattedMarkPrice: number | string = priceDecimalCount
         ? markPrice.toFixed(priceDecimalCount)
         : markPrice;
-      setPrice(typeof formattedMarkPrice === 'number' ? formattedMarkPrice : parseFloat(formattedMarkPrice));
+      setPrice(
+        typeof formattedMarkPrice === 'number'
+          ? formattedMarkPrice
+          : parseFloat(formattedMarkPrice),
+      );
     }
 
     let newSize;
     if (side === 'buy') {
       if (price || markPrice) {
-        newSize = ((quoteBalance / (price || markPrice || 1.)) * value) / 100;
+        newSize = ((quoteBalance / (price || markPrice || 1)) * value) / 100;
       }
     } else {
       newSize = (baseBalance * value) / 100;
