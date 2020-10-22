@@ -12,6 +12,7 @@ import {EndpointInfo} from "../utils/types";
 import {notify} from "../utils/notifications";
 import {Connection} from "@solana/web3.js";
 import WalletConnect from './WalletConnect';
+import {useCurrencyContextState} from "../utils/currency"
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -47,9 +48,11 @@ export default function TopBar() {
   const { connected, wallet, providerUrl, setProvider } = useWallet();
   const { endpoint, endpointInfo, setEndpoint, availableEndpoints, setCustomEndpoints } = useConnectionConfig();
   const [ addEndpointVisible, setAddEndpointVisible ] = useState(false)
-  const [ testingConnection, setTestingConnection] = useState(false)
+  const [testingConnection, setTestingConnection] = useState(false)
   const location = useLocation();
   const history = useHistory();
+
+  const { currencies, currency, setCurrency } = useCurrencyContextState();
 
   const handleClick = useCallback(
     (e) => {
@@ -170,6 +173,21 @@ export default function TopBar() {
             </Menu.Item>
           </Menu.SubMenu>
         </Menu>
+        <div>
+          <Col>
+              <Select
+              value={currency}
+              onSelect={setCurrency}
+                style={{ marginRight: 8, width: '150px' }}
+              >
+                {currencies.map((cur) => (
+                  <Select.Option value={cur} key={cur}>
+                    {cur}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Col>
+        </div>
         <div>
           <Row
             align="middle"
