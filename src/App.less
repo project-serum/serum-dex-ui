@@ -31,11 +31,64 @@
   color: #61dafb;
 }
 
+.ant-tabs-nav-scroll {
+  display: flex;
+  justify-content: center;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+.wallet-wrapper {
+  background: @background-color-base;
+  padding-left: 0.7rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.wallet-key {
+  background: @background-color-base;
+  padding: 0.1rem 0.5rem 0.1rem 0.7rem;
+  margin-left: 0.3rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.exchange-card {
+  border-radius: 20px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 10px 0px;
+  width: 450px;
+  margin: 4px auto;
+  padding: 0px;
+
+  .ant-tabs-tab {
+    width: 50%;
+    margin: 0px;
+    justify-content: center;
+    border-radius: 20px 20px 0px 0px;
+  }
+
+  .ant-tabs-tab-active {
+    background-color: @background-color-light;
+  }
+
+  .ant-tabs-nav-list {
+    width: 100% !important;
+    align-items: center;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .exchange-card {
+    width: 360px;
   }
 }

@@ -1,17 +1,11 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { useConnection } from './connection';
-import { useWallet } from './wallet';
-import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
-import {
-  AccountLayout,
-  AccountInfo as TokenAccountInfo,
-  MintInfo,
-  MintLayout,
-  u64,
-} from '@solana/spl-token';
-import { SwapTokenAccount, PoolInfo } from './swapTypes';
-import { usePools } from './swap';
-import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
+import {useConnection} from './connection';
+import {useWallet} from './wallet';
+import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
+import {AccountLayout, MintInfo, MintLayout, u64,} from '@solana/spl-token';
+import {PoolInfo, SwapTokenAccount} from './swapTypes';
+import {usePools, useSwapContext} from './swap';
+import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 
 const AccountsContext = React.createContext<any>(null);
 
@@ -162,6 +156,7 @@ export function UserAccountsProvider({ children = null as any }) {
   const [userAccounts, setUserAccounts] = useState<SwapTokenAccount[]>([]);
   const [nativeAccount, setNativeAccount] = useState<AccountInfo<Buffer>>();
   const { pools } = usePools();
+  const {tokenProgramId} = useSwapContext();
 
   const selectUserAccounts = useCallback(() => {
     return [...accountsCache.values()].filter(
@@ -176,6 +171,7 @@ export function UserAccountsProvider({ children = null as any }) {
         ...tokenAccounts,
       ].filter((a) => a !== undefined) as SwapTokenAccount[],
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nativeAccount, tokenAccounts]);
 
   useEffect(() => {
@@ -187,7 +183,7 @@ export function UserAccountsProvider({ children = null as any }) {
         const accounts = await connection.getTokenAccountsByOwner(
           wallet.publicKey,
           {
-            programId: programIds().token,
+            programId: tokenProgramId,
           },
         );
         accounts.value
@@ -228,7 +224,7 @@ export function UserAccountsProvider({ children = null as any }) {
       // This can return different types of accounts: token-account, mint, multisig
       // TODO: web3.js expose ability to filter. discuss filter syntax
       const tokenSubID = connection.onProgramAccountChange(
-        programIds().token,
+        tokenProgramId,
         (info) => {
           // TODO: fix type in web3.js
           const id = (info.accountId as unknown) as string;
@@ -272,6 +268,7 @@ export function UserAccountsProvider({ children = null as any }) {
         connection.removeProgramAccountChangeListener(tokenSubID);
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, wallet?.publicKey]);
 
   return (
@@ -318,6 +315,7 @@ export function useMint(id?: string) {
         onAccountEvent,
       );
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   return mint;
@@ -366,6 +364,7 @@ export function useAccount(pubKey?: PublicKey) {
         onAccountEvent,
       );
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connection, pubKey?.toBase58()]);
 
   return account;
@@ -454,7 +453,7 @@ const deserializeMint = (data: Buffer) => {
   }
 
   mintInfo.supply = u64.fromBuffer(mintInfo.supply);
-  mintInfo.isInitialized = mintInfo.isInitialized != 0;
+  mintInfo.isInitialized = mintInfo.isInitialized !== 0;
 
   if (mintInfo.freezeAuthorityOption === 0) {
     mintInfo.freezeAuthority = null;

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Card } from 'antd';
 import { TradeEntry } from '../components/swap/TradeEntry';
 import { AddToLiquidity } from '../components/swap/AddToLiquidity';
+import {UserAccountsProvider} from "../utils/swapAccounts";
+import {SwapProvider} from "../utils/swap";
 
-export const ExchangeView = (props: {}) => {
-  const tabStyle: React.CSSProperties = { width: 120 };
+export const SwapView = (props: {}) => {
+  const tabStyle: React.CSSProperties = { width: 120, textAlign: "center"};
   const tabList = [
     {
       key: 'trade',
@@ -25,21 +27,23 @@ export const ExchangeView = (props: {}) => {
   const [activeTab, setActiveTab] = useState(tabList[0].key);
 
   return (
-    <>
-      <Card
-        className="exchange-card"
-        headStyle={{ padding: 0 }}
-        tabList={tabList}
-        tabProps={{
-          tabBarGutter: 0,
-        }}
-        activeTabKey={activeTab}
-        onTabChange={(key) => {
-          setActiveTab(key);
-        }}
-      >
-        {tabList.find((t) => t.key === activeTab)?.render()}
-      </Card>
-    </>
+    <SwapProvider>
+      <UserAccountsProvider>
+        <Card
+          className="exchange-card"
+          headStyle={{ padding: 0 }}
+          tabList={tabList}
+          tabProps={{
+            tabBarGutter: 0,
+          }}
+          activeTabKey={activeTab}
+          onTabChange={(key) => {
+            setActiveTab(key);
+          }}
+        >
+          {tabList.find((t) => t.key === activeTab)?.render()}
+        </Card>
+      </UserAccountsProvider>
+    </SwapProvider>
   );
 };

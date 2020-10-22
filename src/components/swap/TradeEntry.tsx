@@ -81,7 +81,7 @@ export const TradeEntry = () => {
             A.setMint(item);
           }}
         />
-        <Button type="text" onClick={swapAccounts}>
+        <Button type="text" onClick={swapAccounts} style={{width: '100%'}}>
           ↓
         </Button>
         <CurrencyInput

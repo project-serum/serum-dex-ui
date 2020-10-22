@@ -421,7 +421,7 @@ export const addLiquidity = async (
 export const usePools = () => {
   const connection = useConnection();
   const [pools, setPools] = useState<PoolInfo[]>([]);
-  const {tokenProgramId, swapProgramId} = useSwapContext();
+  const {swapProgramId} = useSwapContext();
 
 
   const getHoldings = (accounts: string[]) => {
@@ -535,6 +535,7 @@ export const usePools = () => {
     return () => {
       connection.removeProgramAccountChangeListener(subID);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connection]);
 
   return { pools };

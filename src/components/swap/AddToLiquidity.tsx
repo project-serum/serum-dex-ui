@@ -82,7 +82,7 @@ export const AddToLiquidity = () => {
           A.setMint(item);
         }}
       />
-      <div>+</div>
+      <div style={{width: '100%', textAlign: 'center'}}>+</div>
       <CurrencyInput
         title="Input"
         onInputChange={(val: any) => {

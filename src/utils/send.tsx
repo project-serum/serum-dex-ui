@@ -11,7 +11,7 @@ import {
   Transaction,
   TransactionSignature,
 } from '@solana/web3.js';
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 import {
   DexInstructions,
   Market,

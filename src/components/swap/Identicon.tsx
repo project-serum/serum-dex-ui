@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 import Jazzicon from 'jazzicon';
 
-import './style.less';
+import "./IdenticonStyles.less";
 
 export const Identicon = (props: {
   address?: string;

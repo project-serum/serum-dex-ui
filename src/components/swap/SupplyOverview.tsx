@@ -40,7 +40,7 @@ export const SupplyOverview = (props: { pool?: PoolInfo }) => {
   >([]);
 
   useEffect(() => {
-    if (!pool || !accountA || !accountB) {
+    if (!pool || !accountA || !accountB || !env) {
       return;
     }
 
@@ -69,7 +69,8 @@ export const SupplyOverview = (props: { pool?: PoolInfo }) => {
 
       setData(chart);
     })();
-  }, [accountA, accountB, mintA, mintB]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountA, accountB, mintA, mintB, env]);
 
   if (!pool || !accountA || !accountB || data.length < 1) {
     return null;

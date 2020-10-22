@@ -1,6 +1,5 @@
 import React from 'react';
 import { Input } from 'antd';
-import { InputProps } from 'antd/lib/input';
 
 export class NumericInput extends React.Component<any, any> {
   onChange = (e: any) => {

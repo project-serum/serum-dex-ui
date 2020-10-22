@@ -1,27 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   calculateDependentAmount,
-  useOwnedPools,
-  usePoolForBasket, useSwapContext,
-} from '../../utils/swap';
-import { Card, Select } from 'antd';
-import { NumericInput } from './NumericInput';
-import {
   getPoolName,
   getTokenName,
   isKnownMint,
   KnownToken,
+  useOwnedPools,
+  usePoolForBasket,
 } from '../../utils/swap';
-import {
-  useUserAccounts,
-  useMint,
-  useAccountByMint,
-} from '../../utils/swapAccounts';
-import './styles.less';
-import { MintInfo } from '@solana/spl-token';
-import { useConnection, useConnectionConfig } from '../../utils/connection';
-import { PoolIcon, TokenIcon } from './TokenIcon';
+import {Card, Select} from 'antd';
+import {NumericInput} from './NumericInput';
+import {useAccountByMint, useMint, useUserAccounts,} from '../../utils/swapAccounts';
+import {MintInfo} from '@solana/spl-token';
+import {useConnection, useConnectionConfig} from '../../utils/connection';
+import {PoolIcon, TokenIcon} from './TokenIcon';
 import PopularTokens from './../../utils/swap-token-list.json';
+import "./CurrencyInputStyles.less"
 
 const { Option } = Select;
 
@@ -37,7 +31,6 @@ export const useCurrencyPairState = () => {
   const mintA = useMint(mintAddressA);
   const mintB = useMint(mintAddressB);
   const pool = usePoolForBasket([mintAddressA, mintAddressB]);
-  const {tokenProgramId, swapProgramId} = useSwapContext()
 
   const calculateDependent = async () => {
     if (pool && mintAddressA && mintAddressB) {
@@ -70,6 +63,7 @@ export const useCurrencyPairState = () => {
 
   useEffect(() => {
     calculateDependent();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amountB, amountA, lastTypedAccount]);
 
   const convertAmount = (amount: string, mint?: MintInfo) => {
@@ -184,7 +178,6 @@ export const CurrencyInput = (props: {
     >
       <div className="ccy-input-header">
         <div className="ccy-input-header-left">{props.title}</div>
-
         <div className="ccy-input-header-right">
           Balance: {userUiBalance().toFixed(2)}
         </div>
@@ -205,7 +198,6 @@ export const CurrencyInput = (props: {
           }}
           placeholder="0.00"
         />
-
         <div className="ccy-input-header-right" style={{ display: 'felx' }}>
           <Select
             size="large"
