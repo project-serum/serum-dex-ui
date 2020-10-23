@@ -24,6 +24,7 @@ import { LiquidityComponent, PoolInfo, SwapTokenAccount } from './swapTypes';
 import PopularTokens from './swap-token-list.json';
 import { sendTransaction } from "./send"
 import {WRAPPED_SOL_MINT} from "@project-serum/serum/lib/token-instructions";
+import Wallet from "@project-serum/sol-wallet-adapter";
 
 const DEFAULT_SLIPPAGE = 1.0; // TODO: set to lower value
 export const PROGRAM_IDS = [
@@ -163,14 +164,13 @@ const createInitSwapInstruction = (
 
 export const sendTransactionFromInstructions = async (
   connection: any,
-  wallet: any,
+  wallet: Wallet,
   instructions: TransactionInstruction[],
   signers: Account[],
-
 ) => {
   let transaction = new Transaction();
   instructions.forEach((instruction) => transaction.add(instruction));
-  sendTransaction({transaction, wallet, signers, connection})
+  return sendTransaction({transaction, wallet, signers: [wallet.publicKey, ...signers], connection});
 };
 
 export const removeLiquidity = async (

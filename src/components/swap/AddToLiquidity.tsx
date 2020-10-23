@@ -40,7 +40,8 @@ export const AddToLiquidity = () => {
         .then(() => {
           setPendingTx(false);
         })
-        .catch(() => {
+        .catch((e) => {
+          console.log(`received error adding liquidity ${e}`);
           notify({
             description:
               'Please try again and approve transactions from your wallet',
@@ -56,6 +57,7 @@ export const AddToLiquidity = () => {
     <div>
       <Popover
         trigger="hover"
+        style={{width: '100%', textAlign: 'center'}}
         content={
           <div style={{ width: 300 }}>
             Liquidity providers earn a 0.3% fee on all trades proportional to
@@ -64,7 +66,9 @@ export const AddToLiquidity = () => {
           </div>
         }
       >
-        <Button type="text">Read more about providing liquidity.</Button>
+        <Button style={{width: '100%', textAlign: 'center'}} type="text">
+          Read more about providing liquidity.
+        </Button>
       </Popover>
 
       <CurrencyInput

@@ -9,6 +9,7 @@
     "@project-serum/serum": "0.13.6",
     "@project-serum/sol-wallet-adapter": "^0.1.1",
     "@solana/spl-token": "0.0.11",
+    "@solana/spl-token-swap": "0.0.2",
     "@solana/web3.js": "0.71.10",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
@@ -77,7 +78,6 @@
     }
   },
   "devDependencies": {
-    "@solana/spl-token-swap": "^0.0.2",
     "gh-pages": "^3.1.0",
     "git-format-staged": "^2.1.0",
     "husky": "^4.2.5",
