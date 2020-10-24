@@ -27,6 +27,8 @@ const renderCustomizedLabel = (props: any, data: any) => {
   );
 };
 
+// TODO: add imbalance overview based on serum mid-price
+
 export const SupplyOverview = (props: { pool?: PoolInfo }) => {
   const { pool } = props;
   const connection = useConnection();
@@ -69,8 +71,7 @@ export const SupplyOverview = (props: { pool?: PoolInfo }) => {
 
       setData(chart);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountA, accountB, mintA, mintB, env]);
+  }, [accountA, accountB, mintA, mintB]);
 
   if (!pool || !accountA || !accountB || data.length < 1) {
     return null;

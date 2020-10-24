@@ -106,7 +106,7 @@ export const cache = {
       return mint;
     }
 
-    let query = getMintInfo(connection, id);
+    let query = await getMintInfo(connection, id);
 
     mintCache.set(id.toBase58(), query as any);
 

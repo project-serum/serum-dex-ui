@@ -69,7 +69,6 @@ export const useCurrencyPairState = () => {
 
   useEffect(() => {
     calculateDependent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amountB, amountA, lastTypedAccount]);
 
   const convertAmount = (amount: string, mint?: MintInfo) => {
@@ -151,12 +150,9 @@ export const CurrencyInput = (props: {
   // TODO: group multple accounts of same time and select one with max amount
   const renderAdditionalTokens = [...grouppedUserAccounts.keys()].map(
     (mint) => {
-      if (!env) {
-        return null;
-      }
       const list = grouppedUserAccounts.get(mint);
 
-      if (!list || list.length <= 0) {
+      if (!list || list.length <= 0 || !env) {
         return null;
       }
 
@@ -230,7 +226,7 @@ export const CurrencyInput = (props: {
           placeholder="0.00"
         />
 
-        <div className="ccy-input-header-right" style={{ display: 'felx' }}>
+        <div className="ccy-input-header-right" style={{ display: 'flex' }}>
           <Select
             size="large"
             style={{ minWidth: 80 }}

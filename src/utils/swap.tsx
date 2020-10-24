@@ -11,7 +11,6 @@ import {
 } from '@solana/web3.js';
 import { ENDPOINTS, ENV, useConnection } from './connection';
 import { AccountLayout, MintInfo, MintLayout, Token } from '@solana/spl-token';
-import { TokenSwapLayout } from '@solana/spl-token-swap';
 import { notify } from './notifications';
 import {
   cache,
@@ -26,7 +25,7 @@ import {
   PoolConfig,
   PoolInfo,
   swapInstruction,
-  SwapTokenAccount,
+  SwapTokenAccount, TokenSwapLayout,
   TokenSwapLayoutLegacyV0,
   withdrawInstruction,
 } from './swapTypes';
@@ -39,22 +38,25 @@ const DEFAULT_SLIPPAGE = 1.0; // TODO: set to lower value
 export const PROGRAM_IDS = [
   {
     name: 'mainnet-beta',
-    id: 'HYv7pNgHkkBGxfrnCre2pMgLpWm7LJPKxiyZVytN5HrM',
-    legacy: [],
+    id: 'DnXyn8dAR5fJdqfBQciQ6gPSDNMQSTkQrPsR65ZF5qoW',
+    legacy: ['HYv7pNgHkkBGxfrnCre2pMgLpWm7LJPKxiyZVytN5HrM'],
   },
   {
     name: 'testnet',
-    id: 'CrRvVBS4Hmj47TPU3cMukurpmCUYUrdHYxTQBxncBGqw',
-    legacy: [],
+    id: '9tdctNJuFsYZ6VrKfKEuwwbPp4SFdFw3jYBZU8QUtzeX',
+    legacy: ['CrRvVBS4Hmj47TPU3cMukurpmCUYUrdHYxTQBxncBGqw'],
   },
   {
     name: 'devnet',
-    id: 'EEuPz4iZA5reBUeZj6x1VzoiHfYeHMppSCnHZasRFhYo',
-    legacy: [],
+    id: 'H1E1G7eD5Rrcy43xvDxXCsjkRggz7MWNMLGJ8YNzJ8PM',
+    legacy: [
+      'CMoteLxSPVPoc7Drcggf3QPg3ue8WPpxYyZTg77UGqHo',
+      'EEuPz4iZA5reBUeZj6x1VzoiHfYeHMppSCnHZasRFhYo'
+    ],
   },
   {
     name: 'localnet',
-    id: 'AA6zS5gndVnu2SJ7PYFJpj9UaEU7kGfE8Rhcwju27HdF',
+    id: '5rdpyt5iGfr68qt28hkefcFyF4WtyhTwqKDmHSBG8GZx',
     legacy: [],
   },
 ];
@@ -74,7 +76,7 @@ export function SwapProvider({ children }) {
   const swapProgramIdString = PROGRAM_IDS.find((env) => env.name === envName);
   const swapProgramId = swapProgramIdString
     ? new PublicKey(swapProgramIdString.id)
-    : new PublicKey('HYv7pNgHkkBGxfrnCre2pMgLpWm7LJPKxiyZVytN5HrM');
+    : new PublicKey('DnXyn8dAR5fJdqfBQciQ6gPSDNMQSTkQrPsR65ZF5qoW');
   const legacySwapProgramIds = swapProgramIdString
     ? swapProgramIdString.legacy.map(
         (legacyString) => new PublicKey(legacyString),
@@ -450,13 +452,14 @@ export const usePools = () => {
 
     const queryPools = async (swapId: PublicKey) => {
       let poolsArray: PoolInfo[] = [];
-      (await connection.getProgramAccounts(swapId))
+      const results = await connection.getProgramAccounts(swapId)
+      const swapAccounts = (results)
         .filter(
           (item) =>
             item.account.data.length === TokenSwapLayout.span ||
             item.account.data.length === TokenSwapLayoutLegacyV0.span,
         )
-        .forEach((item) => {
+        .map((item) => {
           let result = {
             data: undefined as any,
             account: item.account,
@@ -560,8 +563,7 @@ export const usePools = () => {
     return () => {
       connection.removeProgramAccountChangeListener(subID);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connection]);
+  }, [connection, swapProgramId]);
 
   return { pools };
 };

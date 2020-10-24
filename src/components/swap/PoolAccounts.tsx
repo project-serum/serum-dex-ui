@@ -17,7 +17,7 @@ const PoolItem = (props: {
   const amount =
     item.account.info.amount.toNumber() / Math.pow(10, mint?.decimals || 0);
 
-  if (!amount) {
+  if (!amount || !env) {
     return null;
   }
 
@@ -35,7 +35,7 @@ const PoolItem = (props: {
             style={{ marginLeft: '0.5rem' }}
           />
         )}
-        <div>{!!env ? getPoolName(env, item.pool) : ''}</div>
+        <div>{getPoolName(env, item.pool)}</div>
         <RemoveLiquidity instance={item} />
       </>
     );

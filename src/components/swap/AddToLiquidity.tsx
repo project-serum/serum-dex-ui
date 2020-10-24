@@ -4,7 +4,7 @@ import {
   usePoolForBasket,
   useSwapContext,
 } from '../../utils/swap';
-import { Button, Popover } from 'antd';
+import { Button, Popover, Dropdown } from 'antd';
 import { useWallet } from '../../utils/wallet';
 import { useConnection } from '../../utils/connection';
 import { Spin } from 'antd';
@@ -13,6 +13,8 @@ import { notify } from '../../utils/notifications';
 import { SupplyOverview } from './SupplyOverview';
 import { CurrencyInput, useCurrencyPairState } from './CurrencyInput';
 import { useSlippageConfig } from '../../utils/swap';
+import { PoolConfig } from '../../utils/swapTypes';
+import { DEFAULT_DENOMINATOR, PoolConfigCard } from './PoolConfig';
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -23,6 +25,15 @@ export const AddToLiquidity = () => {
   const { A, B, setLastTypedAccount } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
+  const [options, setOptions] = useState<PoolConfig>({
+    curveType: 0,
+    tradeFeeNumerator: 25,
+    tradeFeeDenominator: DEFAULT_DENOMINATOR,
+    ownerTradeFeeNumerator: 5,
+    ownerTradeFeeDenominator: DEFAULT_DENOMINATOR,
+    ownerWithdrawFeeNumerator: 0,
+    ownerWithdrawFeeDenominator: DEFAULT_DENOMINATOR,
+  });
   const {
     tokenProgramId,
     swapProgramId,
@@ -52,12 +63,12 @@ export const AddToLiquidity = () => {
         legacySwapProgramIds,
         tokenProgramId,
         pool,
+        options,
       )
         .then(() => {
           setPendingTx(false);
         })
-        .catch((e) => {
-          console.log(`received error adding liquidity ${e}`);
+        .catch(() => {
           notify({
             description:
               'Please try again and approve transactions from your wallet',
@@ -73,7 +84,6 @@ export const AddToLiquidity = () => {
     <div>
       <Popover
         trigger="hover"
-        style={{ width: '100%', textAlign: 'center' }}
         content={
           <div style={{ width: 300 }}>
             Liquidity providers earn a 0.3% fee on all trades proportional to
@@ -82,7 +92,7 @@ export const AddToLiquidity = () => {
           </div>
         }
       >
-        <Button style={{ width: '100%', textAlign: 'center' }} type="text">
+        <Button type="text" style={{ width: '100%', textAlign: 'center' }}>
           Read more about providing liquidity.
         </Button>
       </Popover>
@@ -119,18 +129,34 @@ export const AddToLiquidity = () => {
         }}
       />
       {pool && <SupplyOverview pool={pool} />}
-      <Button
-        type="primary"
-        size="large"
-        onClick={provideLiquidity}
-        style={{ width: '100%' }}
-        disabled={
-          pendingTx || !A.account || !B.account || A.account === B.account
-        }
-      >
-        Provide Liquidity
-        {pendingTx && <Spin indicator={antIcon} />}
-      </Button>
+      {pool && (
+        <Button
+          className="add-button"
+          type="primary"
+          size="large"
+          onClick={provideLiquidity}
+          disabled={
+            pendingTx || !A.account || !B.account || A.account === B.account
+          }
+        >
+          Provide Liquidity
+          {pendingTx && <Spin indicator={antIcon} />}
+        </Button>
+      )}
+      {!pool && (
+        <Dropdown.Button
+          className="add-button"
+          onClick={provideLiquidity}
+          disabled={
+            pendingTx || !A.account || !B.account || A.account === B.account
+          }
+          type="primary"
+          size="large"
+          overlay={<PoolConfigCard options={options} setOptions={setOptions} />}
+        >
+          Create Liquidity Pool
+        </Dropdown.Button>
+      )}
     </div>
   );
 };
