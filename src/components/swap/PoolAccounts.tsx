@@ -1,15 +1,14 @@
 import React from 'react';
-import { List, ConfigProvider, Empty } from 'antd';
-import { useOwnedPools } from '../../utils/swap';
+import { ConfigProvider, Empty } from 'antd';
+import { getPoolName, useOwnedPools } from '../../utils/swap';
 import { RemoveLiquidity } from './RemoveLiquidity';
-import { getPoolName } from '../../utils/swap';
 import { useMint } from '../../utils/swapAccounts';
 import { useConnectionConfig } from '../../utils/connection';
-import { PoolIcon, TokenIcon } from './TokenIcon';
+import { PoolIcon } from './TokenIcon';
 import { PoolInfo, SwapTokenAccount } from '../../utils/swapTypes';
 
 const PoolItem = (props: {
-  item: { pool: PoolInfo; account: SwapTokenAccount };
+  item: { pool: PoolInfo; isFeeAccount: boolean; account: SwapTokenAccount };
 }) => {
   const { env } = useConnectionConfig();
   const item = props.item;
@@ -22,19 +21,23 @@ const PoolItem = (props: {
     return null;
   }
 
-  const sorted = item.pool.pubkeys.accountMints.map((a) => a.toBase58()).sort();
+  const sorted = item.pool.pubkeys.holdingMints.map((a) => a.toBase58()).sort();
 
   if (item) {
     return (
-      <List.Item actions={[<RemoveLiquidity instance={item} />]}>
-        <div>{amount.toFixed(2)}</div>
-        <PoolIcon
-          mintA={sorted[0]}
-          mintB={sorted[1]}
-          style={{ marginLeft: '0.5rem' }}
-        />
+      <>
+        <div>{amount.toFixed(4)}</div>
+        <span title="Fee account">{item.isFeeAccount ? ' (F) ' : ' '}</span>
+        {sorted.length > 1 && (
+          <PoolIcon
+            mintA={sorted[0]}
+            mintB={sorted[1]}
+            style={{ marginLeft: '0.5rem' }}
+          />
+        )}
         <div>{!!env ? getPoolName(env, item.pool) : ''}</div>
-      </List.Item>
+        <RemoveLiquidity instance={item} />
+      </>
     );
   }
 
@@ -56,11 +59,11 @@ export const PoolAccounts = () => {
           />
         )}
       >
-        <List
-          size="small"
-          dataSource={pools}
-          renderItem={(item) => <PoolItem item={item} />}
-        />
+        <div className="pools-grid">
+          {pools.map((p) => (
+            <PoolItem item={p as any} />
+          ))}
+        </div>
       </ConfigProvider>
     </>
   );

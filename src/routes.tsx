@@ -6,7 +6,7 @@ import BalancesPage from './pages/BalancesPage';
 import ConvertPage from './pages/ConvertPage';
 import BasicLayout from './components/BasicLayout';
 import ListNewMarketPage from './pages/ListNewMarketPage';
-import {SwapView} from "./pages/SwapPage";
+import { SwapView } from './pages/SwapPage';
 
 export function Routes() {
   return (

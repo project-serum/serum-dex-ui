@@ -74,7 +74,7 @@ export function ConnectionProvider({ children }) {
   }, [sendConnection]);
   // note: this is not right because someone could add a custom cluster that is still in mainnet-beta env
   // @ts-ignore
-  const env: ENV = ENDPOINTS.find(e => e.endpoint === endpoint)?.name
+  const env: ENV = ENDPOINTS.find((e) => e.endpoint === endpoint)?.name;
 
   return (
     <ConnectionContext.Provider
@@ -122,7 +122,7 @@ export function useConnectionConfig() {
     setEndpoint: context.setEndpoint,
     availableEndpoints: context.availableEndpoints,
     setCustomEndpoints: context.setCustomEndpoints,
-    env: context.env
+    env: context.env,
   };
 }
 

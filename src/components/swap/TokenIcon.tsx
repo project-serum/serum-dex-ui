@@ -30,7 +30,10 @@ export const TokenIcon = (props: {
   }
 
   return (
-    <Identicon address={props.mintAddress} style={{ marginRight: '0.5rem' }} />
+    <Identicon
+      address={props.mintAddress}
+      style={{ marginRight: '0.5rem', ...props.style }}
+    />
   );
 };
 
@@ -40,7 +43,7 @@ export const PoolIcon = (props: {
   style?: React.CSSProperties;
 }) => {
   return (
-    <div>
+    <div style={{ display: 'flex' }}>
       <TokenIcon
         mintAddress={props.mintA}
         style={{ marginRight: '-0.5rem', ...props.style }}

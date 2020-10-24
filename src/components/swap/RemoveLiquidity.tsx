@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from 'antd';
 
-import {removeLiquidity, useSwapContext} from '../../utils/swap';
+import { removeLiquidity, useSwapContext } from '../../utils/swap';
 import { useWallet } from '../../utils/wallet';
 import { useConnection } from '../../utils/connection';
 import { PoolInfo, SwapTokenAccount } from '../../utils/swapTypes';
@@ -14,14 +14,22 @@ export const RemoveLiquidity = (props: {
   const [pendingTx, setPendingTx] = useState(false);
   const { wallet } = useWallet();
   const connection = useConnection();
-  const {tokenProgramId, swapProgramId} = useSwapContext()
+  const { tokenProgramId, swapProgramId } = useSwapContext();
 
   const onRemove = async () => {
     try {
       setPendingTx(true);
       // TODO: calculate percentage based on user input
       let liquidityAmount = account.info.amount.toNumber();
-      await removeLiquidity(connection, wallet, liquidityAmount, account, swapProgramId, tokenProgramId, pool);
+      await removeLiquidity(
+        connection,
+        wallet,
+        liquidityAmount,
+        account,
+        swapProgramId,
+        tokenProgramId,
+        pool,
+      );
     } catch {
       notify({
         description:

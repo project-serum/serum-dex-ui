@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Card } from 'antd';
 import { TradeEntry } from '../components/swap/TradeEntry';
 import { AddToLiquidity } from '../components/swap/AddToLiquidity';
-import {UserAccountsProvider} from "../utils/swapAccounts";
-import {SwapProvider} from "../utils/swap";
+import { UserAccountsProvider } from '../utils/swapAccounts';
+import { SwapProvider } from '../utils/swap';
 
 export const SwapView = (props: {}) => {
-  const tabStyle: React.CSSProperties = { width: 120, textAlign: "center"};
+  const tabStyle: React.CSSProperties = { width: 120, textAlign: 'center' };
   const tabList = [
     {
       key: 'trade',

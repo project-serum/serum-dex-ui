@@ -3,7 +3,7 @@ import Wallet from '@project-serum/sol-wallet-adapter';
 import { Market, OpenOrders } from '@project-serum/serum';
 import { Event } from '@project-serum/serum/lib/queue';
 import { Order } from '@project-serum/serum/lib/market';
-import {ENV} from "./connection";
+import { ENV } from './connection';
 
 export interface ConnectionContextValues {
   endpoint: string;
@@ -146,5 +146,6 @@ export interface SwapContextValues {
   setSlippage: (newSlippage: number) => void;
   tokenProgramId: PublicKey;
   swapProgramId: PublicKey;
+  legacySwapProgramIds: PublicKey[];
   programIds: () => { token: PublicKey; swap: PublicKey };
 }

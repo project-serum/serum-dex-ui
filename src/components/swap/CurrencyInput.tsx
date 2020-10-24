@@ -1,21 +1,27 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   calculateDependentAmount,
   getPoolName,
   getTokenName,
   isKnownMint,
   KnownToken,
-  useOwnedPools,
   usePoolForBasket,
 } from '../../utils/swap';
-import {Card, Select} from 'antd';
-import {NumericInput} from './NumericInput';
-import {useAccountByMint, useMint, useUserAccounts,} from '../../utils/swapAccounts';
-import {MintInfo} from '@solana/spl-token';
-import {useConnection, useConnectionConfig} from '../../utils/connection';
-import {PoolIcon, TokenIcon} from './TokenIcon';
+import { Card, Select } from 'antd';
+import { NumericInput } from './NumericInput';
+import {
+  useAccountByMint,
+  useCachedPool,
+  useMint,
+  useUserAccounts,
+} from '../../utils/swapAccounts';
+import { MintInfo } from '@solana/spl-token';
+import { useConnection, useConnectionConfig } from '../../utils/connection';
+import { PoolIcon, TokenIcon } from './TokenIcon';
 import PopularTokens from './../../utils/swap-token-list.json';
-import "./CurrencyInputStyles.less"
+import './CurrencyInputStyles.less';
+import { PublicKey } from '@solana/web3.js';
+import { PoolInfo, SwapTokenAccount } from '../../utils/swapTypes';
 
 const { Option } = Select;
 
@@ -63,7 +69,7 @@ export const useCurrencyPairState = () => {
 
   useEffect(() => {
     calculateDependent();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amountB, amountA, lastTypedAccount]);
 
   const convertAmount = (amount: string, mint?: MintInfo) => {
@@ -101,12 +107,12 @@ export const CurrencyInput = (props: {
   onMintChange?: (account: string) => void;
 }) => {
   const { userAccounts } = useUserAccounts();
-  const pools = useOwnedPools();
+  const { pools } = useCachedPool();
   const mint = useMint(props.mint);
 
   const { env } = useConnectionConfig();
 
-  const tokens = !!env ? PopularTokens[env] as KnownToken[]: [];
+  const tokens = !!env ? (PopularTokens[env] as KnownToken[]) : [];
 
   const renderPopularTokens = tokens.map((item) => {
     return (
@@ -122,40 +128,64 @@ export const CurrencyInput = (props: {
     );
   });
 
-  const renderAdditionalTokens = userAccounts.map((account) => {
-    if (!env) {
-      return null;
-    }
-    const mint = account.info.mint.toBase58();
-    if (isKnownMint(env, mint)) {
-      return null;
-    }
+  // TODO: expand nested pool names ...?
 
-    const instance = pools.find((p) => p.account === account);
+  // group accounts by mint and use one with biggest balance
+  const grouppedUserAccounts = userAccounts
+    .sort((a, b) => {
+      return b.info.amount.toNumber() - a.info.amount.toNumber();
+    })
+    .reduce((map, acc) => {
+      const mint = acc.info.mint.toBase58();
+      if (env && isKnownMint(env, mint)) {
+        return map;
+      }
 
-    let name: string;
-    let icon: JSX.Element;
-    if (instance) {
-      name = getPoolName(env, instance.pool);
+      const pool = pools.find((p) => p && p.pubkeys.mint.toBase58() === mint);
 
-      const sorted = instance.pool.pubkeys.accountMints
-        .map((a) => a.toBase58())
-        .sort();
-      icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
-    } else {
-      name = getTokenName(env, mint);
-      icon = <TokenIcon mintAddress={mint} />;
-    }
+      map.set(mint, (map.get(mint) || []).concat([{ account: acc, pool }]));
 
-    return (
-      <Option value={mint} title={mint}>
-        <div key={mint} style={{ display: 'flex', alignItems: 'center' }}>
-          {icon}
-          {name}
-        </div>
-      </Option>
-    );
-  });
+      return map;
+    }, new Map<string, { account: SwapTokenAccount; pool: PoolInfo | undefined }[]>());
+
+  // TODO: group multple accounts of same time and select one with max amount
+  const renderAdditionalTokens = [...grouppedUserAccounts.keys()].map(
+    (mint) => {
+      if (!env) {
+        return null;
+      }
+      const list = grouppedUserAccounts.get(mint);
+
+      if (!list || list.length <= 0) {
+        return null;
+      }
+
+      const account = list[0];
+
+      let name: string;
+      let icon: JSX.Element;
+      if (account.pool) {
+        name = getPoolName(env, account.pool);
+
+        const sorted = account.pool.pubkeys.holdingMints
+          .map((a: PublicKey) => a.toBase58())
+          .sort();
+        icon = <PoolIcon mintA={sorted[0]} mintB={sorted[1]} />;
+      } else {
+        name = getTokenName(env, mint);
+        icon = <TokenIcon mintAddress={mint} />;
+      }
+
+      return (
+        <Option value={mint} title={mint}>
+          <div key={mint} style={{ display: 'flex', alignItems: 'center' }}>
+            {icon}
+            {name}
+          </div>
+        </Option>
+      );
+    },
+  );
 
   const userUiBalance = () => {
     const currentAccount = userAccounts?.find(
@@ -178,6 +208,7 @@ export const CurrencyInput = (props: {
     >
       <div className="ccy-input-header">
         <div className="ccy-input-header-left">{props.title}</div>
+
         <div className="ccy-input-header-right">
           Balance: {userUiBalance().toFixed(2)}
         </div>
@@ -198,6 +229,7 @@ export const CurrencyInput = (props: {
           }}
           placeholder="0.00"
         />
+
         <div className="ccy-input-header-right" style={{ display: 'felx' }}>
           <Select
             size="large"

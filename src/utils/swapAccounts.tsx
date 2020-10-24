@@ -1,11 +1,12 @@
-import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {useConnection} from './connection';
-import {useWallet} from './wallet';
-import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import {AccountLayout, MintInfo, MintLayout, u64,} from '@solana/spl-token';
-import {PoolInfo, SwapTokenAccount} from './swapTypes';
-import {usePools, useSwapContext} from './swap';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useConnection } from './connection';
+import { useWallet } from './wallet';
+import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { AccountLayout, MintInfo, MintLayout, u64 } from '@solana/spl-token';
+import { PoolInfo, SwapTokenAccount } from './swapTypes';
+import { usePools, useSwapContext } from './swap';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { notify } from './notifications';
 
 const AccountsContext = React.createContext<any>(null);
 
@@ -152,11 +153,13 @@ function wrapNativeAccount(
 export function UserAccountsProvider({ children = null as any }) {
   const connection = useConnection();
   const { wallet, connected } = useWallet();
-  const [tokenAccounts, setTokenAccounts] = useState<SwapTokenAccount[]>([]);
+  const [tokenAccounts, setSwapTokenAccounts] = useState<SwapTokenAccount[]>(
+    [],
+  );
   const [userAccounts, setUserAccounts] = useState<SwapTokenAccount[]>([]);
   const [nativeAccount, setNativeAccount] = useState<AccountInfo<Buffer>>();
   const { pools } = usePools();
-  const {tokenProgramId} = useSwapContext();
+  const { tokenProgramId } = useSwapContext();
 
   const selectUserAccounts = useCallback(() => {
     return [...accountsCache.values()].filter(
@@ -171,14 +174,14 @@ export function UserAccountsProvider({ children = null as any }) {
         ...tokenAccounts,
       ].filter((a) => a !== undefined) as SwapTokenAccount[],
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nativeAccount, tokenAccounts]);
 
   useEffect(() => {
     if (!connection || !wallet || !wallet.publicKey) {
-      setTokenAccounts([]);
+      setSwapTokenAccounts([]);
     } else {
-      const queryTokenAccounts = async () => {
+      const querySwapTokenAccounts = async () => {
         // user accounts are update via ws subscription
         const accounts = await connection.getTokenAccountsByOwner(
           wallet.publicKey,
@@ -205,10 +208,10 @@ export function UserAccountsProvider({ children = null as any }) {
           .forEach((acc) => {
             accountsCache.set(acc.pubkey.toBase58(), acc);
           });
-        setTokenAccounts(selectUserAccounts());
+        setSwapTokenAccounts(selectUserAccounts());
       };
 
-      queryTokenAccounts();
+      querySwapTokenAccounts();
 
       connection.getAccountInfo(wallet.publicKey).then((acc) => {
         if (acc) {
@@ -245,7 +248,7 @@ export function UserAccountsProvider({ children = null as any }) {
               accountsCache.has(id)
             ) {
               accountsCache.set(id, details);
-              setTokenAccounts(selectUserAccounts());
+              setSwapTokenAccounts(selectUserAccounts());
               accountEmitter.raiseAccountUpdated(id);
             }
           } else if (info.accountInfo.data.length === MintLayout.span) {
@@ -268,7 +271,7 @@ export function UserAccountsProvider({ children = null as any }) {
         connection.removeProgramAccountChangeListener(tokenSubID);
       };
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, wallet?.publicKey]);
 
   return (
@@ -300,7 +303,15 @@ export function useMint(id?: string) {
       return;
     }
 
-    cache.getMint(connection, id).then(setMint);
+    cache
+      .getMint(connection, id)
+      .then(setMint)
+      .catch((err) =>
+        notify({
+          message: err.message,
+          type: 'error',
+        }),
+      );
     const onAccountEvent = (e: Event) => {
       const event = e as AccountUpdateEvent;
       if (event.id === id) {
@@ -315,7 +326,7 @@ export function useMint(id?: string) {
         onAccountEvent,
       );
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   return mint;
@@ -339,7 +350,12 @@ export function useAccount(pubKey?: PublicKey) {
           return;
         }
 
-        const acc = await cache.getAccount(connection, pubKey);
+        const acc = await cache.getAccount(connection, pubKey).catch((err) =>
+          notify({
+            message: err.message,
+            type: 'error',
+          }),
+        );
         if (acc) {
           setAccount(acc);
         }
@@ -364,7 +380,7 @@ export function useAccount(pubKey?: PublicKey) {
         onAccountEvent,
       );
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connection, pubKey?.toBase58()]);
 
   return account;

@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import {addLiquidity, usePoolForBasket, useSwapContext} from '../../utils/swap';
+import {
+  addLiquidity,
+  usePoolForBasket,
+  useSwapContext,
+} from '../../utils/swap';
 import { Button, Popover } from 'antd';
 import { useWallet } from '../../utils/wallet';
 import { useConnection } from '../../utils/connection';
@@ -19,8 +23,11 @@ export const AddToLiquidity = () => {
   const { A, B, setLastTypedAccount } = useCurrencyPairState();
   const pool = usePoolForBasket([A?.mintAddress, B?.mintAddress]);
   const { slippage } = useSlippageConfig();
-  const {tokenProgramId, swapProgramId} = useSwapContext()
-
+  const {
+    tokenProgramId,
+    swapProgramId,
+    legacySwapProgramIds,
+  } = useSwapContext();
 
   const provideLiquidity = async () => {
     if (A.account && B.account && A.mint && B.mint) {
@@ -36,7 +43,16 @@ export const AddToLiquidity = () => {
         },
       ];
 
-      addLiquidity(connection, wallet, components, slippage, swapProgramId, tokenProgramId, pool)
+      addLiquidity(
+        connection,
+        wallet,
+        components,
+        slippage,
+        swapProgramId,
+        legacySwapProgramIds,
+        tokenProgramId,
+        pool,
+      )
         .then(() => {
           setPendingTx(false);
         })
@@ -57,7 +73,7 @@ export const AddToLiquidity = () => {
     <div>
       <Popover
         trigger="hover"
-        style={{width: '100%', textAlign: 'center'}}
+        style={{ width: '100%', textAlign: 'center' }}
         content={
           <div style={{ width: 300 }}>
             Liquidity providers earn a 0.3% fee on all trades proportional to
@@ -66,7 +82,7 @@ export const AddToLiquidity = () => {
           </div>
         }
       >
-        <Button style={{width: '100%', textAlign: 'center'}} type="text">
+        <Button style={{ width: '100%', textAlign: 'center' }} type="text">
           Read more about providing liquidity.
         </Button>
       </Popover>
@@ -86,7 +102,7 @@ export const AddToLiquidity = () => {
           A.setMint(item);
         }}
       />
-      <div style={{width: '100%', textAlign: 'center'}}>+</div>
+      <div style={{ width: '100%', textAlign: 'center' }}>+</div>
       <CurrencyInput
         title="Input"
         onInputChange={(val: any) => {
