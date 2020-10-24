@@ -1467,12 +1467,10 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@project-serum/serum@0.13.6":
-  version "0.13.6"
-  resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.6.tgz#d45fa52a31d2820d19030964fd3a418e87b8a1f9"
-  integrity sha512-DoiqJABmGKWvrOLI0/ZctnXlzsPxIiKVHeIsFua3ODXqFWSDojUQDs8y1Rd26wFPEqB6Vsq1Xq8sqsku1leziQ==
+"@project-serum/serum@../serum-js":
+  version "0.13.7"
   dependencies:
-    "@solana/web3.js" "^0.71.10"
+    "@solana/web3.js" "0.83.1"
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
@@ -1489,10 +1487,10 @@
   resolved "https://registry.yarnpkg.com/@sheerun/mutationobserver-shim/-/mutationobserver-shim-0.3.3.tgz#5405ee8e444ed212db44e79351f0c70a582aae25"
   integrity sha512-DetpxZw1fzPD5xUBrIAoplLChO2VB8DlL5Gg+I1IR9b2wPqYIca2WSUxL5g1vLeR4MsQq1NeWriXAVffV+U1Fw==
 
-"@solana/web3.js@0.71.10", "@solana/web3.js@^0.71.10":
-  version "0.71.10"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.71.10.tgz#79e8977e54be2c521c4b148bd95502ae31d124f9"
-  integrity sha512-f2IdMySxFDHWxpAiXcSwn+CA7XKGTDSY2Ko0EOpdJJmNEW/BqnQ7BOw/R1OO8ZtDihHZn7sAyVmPo7kupmgOfA==
+"@solana/web3.js@0.83.1":
+  version "0.83.1"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.83.1.tgz#dcce7a8a3cf8f4c184c29f796fa0509a92d4a715"
+  integrity sha512-NBwghWNZpmoEPmWjuyH97PNpta6q0VIjcZrR1ma2vsqoPmdxgWgXuv4qFiNCYobHcYsHaBsf18alv++EZ7pF6Q==
   dependencies:
     "@babel/runtime" "^7.3.1"
     bn.js "^5.0.0"
@@ -1502,10 +1500,12 @@
     crypto-hash "^1.2.2"
     esdoc-inject-style-plugin "^1.0.0"
     jayson "^3.0.1"
+    keccak "^3.0.1"
     mz "^2.7.0"
     node-fetch "^2.2.0"
     npm-run-all "^4.1.5"
-    rpc-websockets "^7.1.0"
+    rpc-websockets "^7.4.2"
+    secp256k1 "^4.0.2"
     superstruct "^0.8.3"
     tweetnacl "^1.0.0"
     ws "^7.0.0"
@@ -4466,7 +4466,7 @@ electron-to-chromium@^1.3.378, electron-to-chromium@^1.3.523:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.555.tgz#a096716ff77cf8da9a608eb628fd6927869503d2"
   integrity sha512-/55x3nF2feXFZ5tdGUOr00TxnUjUgdxhrn+eCJ1FAcoAt+cKQTjQkUC5XF4frMWE1R5sjHk+JueuBalimfe5Pg==
 
-elliptic@^6.5.3:
+elliptic@^6.5.2, elliptic@^6.5.3:
   version "6.5.3"
   resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.3.tgz#cb59eb2efdaf73a0bd78ccd7015a62ad6e0f93d6"
   integrity sha512-IMqzv5wNQf+E6aHeIqATs0tOLeOTwj1QKbRcS3jBbYkl5oLAserA8yJTT7/VyHUYG91PRmPyeQDObKLPpeS4dw==
@@ -4901,7 +4901,7 @@ etag@~1.8.1:
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha1-Qa4u62XvpiJorr/qg6x9eSmbCIc=
 
-eventemitter3@^4.0.0, eventemitter3@^4.0.4, eventemitter3@^4.0.6:
+eventemitter3@^4.0.0, eventemitter3@^4.0.4, eventemitter3@^4.0.7:
   version "4.0.7"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
@@ -7209,6 +7209,14 @@ jsx-ast-utils@^2.2.1, jsx-ast-utils@^2.2.3:
     array-includes "^3.1.1"
     object.assign "^4.1.0"
 
+keccak@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/keccak/-/keccak-3.0.1.tgz#ae30a0e94dbe43414f741375cff6d64c8bea0bff"
+  integrity sha512-epq90L9jlFWCW7+pQa6JOnKn2Xgl2mtI664seYR6MHskvI9agt7AnDqmAlp9TqU4/caMYbA08Hi5DMZAl5zdkA==
+  dependencies:
+    node-addon-api "^2.0.0"
+    node-gyp-build "^4.2.0"
+
 keypather@^1.10.2:
   version "1.10.2"
   resolved "https://registry.yarnpkg.com/keypather/-/keypather-1.10.2.tgz#e0449632d4b3e516f21cc014ce7c5644fddce614"
@@ -7999,11 +8007,6 @@ neo-async@^2.5.0, neo-async@^2.6.1:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-next-tick@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.1.0.tgz#1836ee30ad56d67ef281b22bd199f709449b35eb"
-  integrity sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==
-
 next-tick@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
@@ -8022,6 +8025,11 @@ no-case@^3.0.3:
     lower-case "^2.0.1"
     tslib "^1.10.0"
 
+node-addon-api@^2.0.0:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-2.0.2.tgz#432cfa82962ce494b132e9d72a15b29f71ff5d32"
+  integrity sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA==
+
 node-fetch@^2.2.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
@@ -8031,6 +8039,11 @@ node-forge@0.9.0:
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.9.0.tgz#d624050edbb44874adca12bb9a52ec63cb782579"
   integrity sha512-7ASaDa3pD+lJ3WvXFsxekJQelBKRpne+GOVbLbtHYdd7pFspyeuJHnWfLplGf3SwKGbfs/aYl5V/JCIaHVUKKQ==
+
+node-gyp-build@^4.2.0:
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.2.3.tgz#ce6277f853835f718829efb47db20f3e4d9c4739"
+  integrity sha512-MN6ZpzmfNCRM+3t57PTJHgHyw/h4OWnZ6mR8P5j/uZtqQr46RRuDE/P+g3n0YR/AiYXeWixZZzaip77gdICfRg==
 
 node-gyp-build@~3.7.0:
   version "3.7.0"
@@ -10611,16 +10624,15 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rpc-websockets@^7.1.0:
-  version "7.3.1"
-  resolved "https://registry.yarnpkg.com/rpc-websockets/-/rpc-websockets-7.3.1.tgz#6519eca406d960f8ae1881874941d9fa05bf6728"
-  integrity sha512-7DhZirsTQv4UMS/9q9t3Urhb6kmh3iLyqIFeuhKmQtsmLP3fWrc2KyfoU5zuiBR7HP1IaNhEc3y8rL9SyCXqbw==
+rpc-websockets@^7.4.2:
+  version "7.4.6"
+  resolved "https://registry.yarnpkg.com/rpc-websockets/-/rpc-websockets-7.4.6.tgz#a0053ad36e893774cdd0edb72ac577deaf34f247"
+  integrity sha512-vDGdyJv858O5ZIc7glov8pQDdFztOqujA7iNyrfPxw87ajHT5s8WQU4MLNEG8pTR/xzqOn06dYH7kef2hijInw==
   dependencies:
     "@babel/runtime" "^7.11.2"
     assert-args "^1.2.1"
     circular-json "^0.5.9"
-    eventemitter3 "^4.0.6"
-    next-tick "^1.1.0"
+    eventemitter3 "^4.0.7"
     uuid "^8.3.0"
     ws "^7.3.1"
   optionalDependencies:
@@ -10748,6 +10760,15 @@ scroll-into-view-if-needed@^2.2.25:
   integrity sha512-C8RKJPq9lK7eubwGpLbUkw3lklcG3Ndjmea2PyauzrA0i4DPlzAmVMGxaZrBFqCrVLfvJmP80IyHnv4jxvg1OQ==
   dependencies:
     compute-scroll-into-view "^1.0.14"
+
+secp256k1@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/secp256k1/-/secp256k1-4.0.2.tgz#15dd57d0f0b9fdb54ac1fa1694f40e5e9a54f4a1"
+  integrity sha512-UDar4sKvWAksIlfX3xIaQReADn+WFnHvbVujpcbr+9Sf/69odMwy2MUsz5CKLQgX9nsIyrjuxL2imVyoNHa3fg==
+  dependencies:
+    elliptic "^6.5.2"
+    node-addon-api "^2.0.0"
+    node-gyp-build "^4.2.0"
 
 select-hose@^2.0.0:
   version "2.0.0"
