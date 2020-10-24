@@ -251,34 +251,19 @@ export async function settleAllFunds({
         );
       }),
     )
-  ).filter(
-    (x): x is { signers: [PublicKey | Account]; transaction: Transaction } =>
-      !!x,
-  );
+  ).filter((x): x is { signers: Account[]; transaction: Transaction; payer: PublicKey } => !!x);
   if (!settleTransactions || settleTransactions.length === 0) return;
 
   const transactions = settleTransactions.slice(0, 4).map((t) => t.transaction);
-  const signers: Array<Account | PublicKey> = [];
+  const signers: Array<Account> = [];
   settleTransactions
     .reduce(
-      (cumulative: Array<Account | PublicKey>, t) =>
+      (cumulative: Array<Account>, t) =>
         cumulative.concat(t.signers),
       [],
     )
     .forEach((signer) => {
-      if (
-        !signers.find((s) => {
-          if (s.constructor.name !== signer.constructor.name) {
-            return false;
-          } else if (s.constructor.name === 'PublicKey') {
-            // @ts-ignore
-            return s.equals(signer);
-          } else {
-            // @ts-ignore
-            return s.publicKey.equals(signer.publicKey);
-          }
-        })
-      ) {
+      if (!signers.find((s) => s.publicKey.equals(signer.publicKey))) {
         signers.push(signer);
       }
     });
@@ -572,13 +557,13 @@ export async function listMarket({
       transaction: tx1,
       wallet,
       connection,
-      signers: [wallet.publicKey, baseVault, quoteVault],
+      signers: [baseVault, quoteVault],
     }),
     signTransaction({
       transaction: tx2,
       wallet,
       connection,
-      signers: [wallet.publicKey, market, requestQueue, eventQueue, bids, asks],
+      signers: [market, requestQueue, eventQueue, bids, asks],
     }),
   ]);
   for (let signedTransaction of signedTransactions) {
@@ -600,7 +585,7 @@ const DEFAULT_TIMEOUT = 15000;
 async function sendTransaction({
   transaction,
   wallet,
-  signers = [wallet.publicKey],
+  signers = [],
   connection,
   sendingMessage = 'Sending transaction...',
   sentMessage = 'Transaction sent',
@@ -609,19 +594,19 @@ async function sendTransaction({
 }: {
   transaction: Transaction;
   wallet: Wallet;
-  signers?: Array<PublicKey | Account>;
+  signers?: Array<Account>;
   connection: Connection;
   sendingMessage?: string;
   sentMessage?: string;
   successMessage?: string;
   timeout?: number;
-}): Promise<string> {
+}) {
   const signedTransaction = await signTransaction({
     transaction,
     wallet,
     signers,
     connection,
-  });
+  })
   return await sendSignedTransaction({
     signedTransaction,
     connection,
@@ -635,18 +620,22 @@ async function sendTransaction({
 async function signTransaction({
   transaction,
   wallet,
-  signers = [wallet.publicKey],
+  signers = [],
   connection,
 }: {
   transaction: Transaction;
   wallet: Wallet;
-  signers: Array<Account | PublicKey>;
+  signers?: Array<Account>;
   connection: Connection;
 }) {
-  transaction.recentBlockhash = (
-    await connection.getRecentBlockhash('max')
-  ).blockhash;
-  transaction.signPartial(...signers);
+  transaction.recentBlockhash = (await connection.getRecentBlockhash('max')).blockhash;
+  transaction.setSigners(
+      wallet.publicKey,
+      ...signers.map(s => s.publicKey)
+  );
+  if (signers.length > 0) {
+      transaction.partialSign(...signers);
+  }
   return await wallet.signTransaction(transaction);
 }
 
