@@ -1468,9 +1468,9 @@
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
 "@project-serum/serum@../serum-js":
-  version "0.13.6"
+  version "0.13.7"
   dependencies:
-    "@solana/web3.js" "0.83.0"
+    "@solana/web3.js" "0.83.1"
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
@@ -1486,29 +1486,6 @@
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@sheerun/mutationobserver-shim/-/mutationobserver-shim-0.3.3.tgz#5405ee8e444ed212db44e79351f0c70a582aae25"
   integrity sha512-DetpxZw1fzPD5xUBrIAoplLChO2VB8DlL5Gg+I1IR9b2wPqYIca2WSUxL5g1vLeR4MsQq1NeWriXAVffV+U1Fw==
-
-"@solana/web3.js@0.83.0":
-  version "0.83.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.83.0.tgz#044a8de277e991edcd7ca85ba4ac6653328b1dbf"
-  integrity sha512-19k/L3i11JIntT2YDEVpv8Y2K+tkjXbmGnhm4SjHS4sdA0ecZsB4Mi3n3qINoPFQ0vlRQcwIh5oLZ3JiaCWwpw==
-  dependencies:
-    "@babel/runtime" "^7.3.1"
-    bn.js "^5.0.0"
-    bs58 "^4.0.1"
-    buffer "^5.4.3"
-    buffer-layout "^1.2.0"
-    crypto-hash "^1.2.2"
-    esdoc-inject-style-plugin "^1.0.0"
-    jayson "^3.0.1"
-    keccak "^3.0.1"
-    mz "^2.7.0"
-    node-fetch "^2.2.0"
-    npm-run-all "^4.1.5"
-    rpc-websockets "^7.4.2"
-    secp256k1 "^4.0.2"
-    superstruct "^0.8.3"
-    tweetnacl "^1.0.0"
-    ws "^7.0.0"
 
 "@solana/web3.js@0.83.1":
   version "0.83.1"
