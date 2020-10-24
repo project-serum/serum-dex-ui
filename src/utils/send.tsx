@@ -40,13 +40,15 @@ export async function createTokenAccountTransaction({
   newAccountPubkey: PublicKey;
 }> {
   const newAccount = new Account();
-  const transaction = SystemProgram.createAccount({
+  const transaction = new Transaction();
+  const instruction = SystemProgram.createAccount({
     fromPubkey: wallet.publicKey,
     newAccountPubkey: newAccount.publicKey,
     lamports: await connection.getMinimumBalanceForRentExemption(165),
     space: 165,
     programId: TokenInstructions.TOKEN_PROGRAM_ID,
   });
+  transaction.add(instruction);
   transaction.add(
     TokenInstructions.initializeAccount({
       account: newAccount.publicKey,
@@ -251,17 +253,21 @@ export async function settleAllFunds({
         );
       }),
     )
-  ).filter((x): x is { signers: Account[]; transaction: Transaction; payer: PublicKey } => !!x);
+  ).filter(
+    (
+      x,
+    ): x is {
+      signers: Account[];
+      transaction: Transaction;
+      payer: PublicKey;
+    } => !!x,
+  );
   if (!settleTransactions || settleTransactions.length === 0) return;
 
   const transactions = settleTransactions.slice(0, 4).map((t) => t.transaction);
   const signers: Array<Account> = [];
   settleTransactions
-    .reduce(
-      (cumulative: Array<Account>, t) =>
-        cumulative.concat(t.signers),
-      [],
-    )
+    .reduce((cumulative: Array<Account>, t) => cumulative.concat(t.signers), [])
     .forEach((signer) => {
       if (!signers.find((s) => s.publicKey.equals(signer.publicKey))) {
         signers.push(signer);
@@ -606,7 +612,7 @@ async function sendTransaction({
     wallet,
     signers,
     connection,
-  })
+  });
   return await sendSignedTransaction({
     signedTransaction,
     connection,
@@ -628,13 +634,12 @@ async function signTransaction({
   signers?: Array<Account>;
   connection: Connection;
 }) {
-  transaction.recentBlockhash = (await connection.getRecentBlockhash('max')).blockhash;
-  transaction.setSigners(
-      wallet.publicKey,
-      ...signers.map(s => s.publicKey)
-  );
+  transaction.recentBlockhash = (
+    await connection.getRecentBlockhash('max')
+  ).blockhash;
+  transaction.setSigners(wallet.publicKey, ...signers.map((s) => s.publicKey));
   if (signers.length > 0) {
-      transaction.partialSign(...signers);
+    transaction.partialSign(...signers);
   }
   return await wallet.signTransaction(transaction);
 }

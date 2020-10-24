@@ -8,7 +8,7 @@
     "@craco/craco": "^5.6.4",
     "@project-serum/serum": "../serum-js",
     "@project-serum/sol-wallet-adapter": "^0.1.1",
-    "@solana/web3.js": "0.74.0",
+    "@solana/web3.js": "0.83.1",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
