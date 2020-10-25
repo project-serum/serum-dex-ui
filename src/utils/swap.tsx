@@ -34,7 +34,7 @@ import { sendTransaction } from './send';
 import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
 import Wallet from '@project-serum/sol-wallet-adapter';
 
-const DEFAULT_SLIPPAGE = 1.0; // TODO: set to lower value
+const DEFAULT_SLIPPAGE = 0.25; // TODO: set to lower value
 export const PROGRAM_IDS = [
   {
     name: 'mainnet-beta',
