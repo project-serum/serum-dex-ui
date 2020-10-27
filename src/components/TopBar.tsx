@@ -150,6 +150,15 @@ export default function TopBar() {
           }}
         >
           <Menu.Item key="/">TRADE</Menu.Item>
+          <Menu.Item key="/swap">
+            <a
+              href={EXTERNAL_LINKS['/swap']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              SWAP
+            </a>
+          </Menu.Item>
           {connected && <Menu.Item key="/balances">BALANCES</Menu.Item>}
           {connected && <Menu.Item key="/orders">ORDERS</Menu.Item>}
           {connected && <Menu.Item key="/convert">CONVERT</Menu.Item>}
