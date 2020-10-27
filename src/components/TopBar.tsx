@@ -45,6 +45,7 @@ const EXTERNAL_LINKS = {
   '/developer-resources': 'https://serum-academy.com/en/developer-resources/',
   '/explorer': 'https://explorer.solana.com',
   '/srm-faq': 'https://projectserum.com/srm-faq',
+  '/swap': 'https://swap.projectserum.com'
 };
 
 export default function TopBar() {
@@ -149,6 +150,15 @@ export default function TopBar() {
           }}
         >
           <Menu.Item key="/">TRADE</Menu.Item>
+          <Menu.Item key="/swap">
+            <a
+              href={EXTERNAL_LINKS['/swap']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              SWAP
+            </a>
+          </Menu.Item>
           {connected && <Menu.Item key="/balances">BALANCES</Menu.Item>}
           {connected && <Menu.Item key="/orders">ORDERS</Menu.Item>}
           {connected && <Menu.Item key="/convert">CONVERT</Menu.Item>}
