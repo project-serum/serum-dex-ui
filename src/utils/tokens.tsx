@@ -9,6 +9,7 @@ import { getMultipleSolanaAccounts } from './send';
 import { useConnection } from './connection';
 import { useAsyncData } from './fetch-loop';
 import tuple from 'immutable-tuple';
+import BN from 'bn.js';
 
 export const ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(32, 'mint'),
@@ -18,7 +19,8 @@ export const ACCOUNT_LAYOUT = BufferLayout.struct([
 ]);
 
 export const MINT_LAYOUT = BufferLayout.struct([
-  BufferLayout.blob(44),
+  BufferLayout.blob(36),
+  BufferLayout.blob(8, 'supply'),
   BufferLayout.u8('decimals'),
   BufferLayout.u8('initialized'),
   BufferLayout.blob(36),
@@ -35,9 +37,19 @@ export function parseTokenAccountData(
   };
 }
 
-export function parseTokenMintData(data) {
-  let { decimals, initialized } = MINT_LAYOUT.decode(data);
-  return { decimals, initialized };
+export interface MintInfo {
+  decimals: number;
+  initialized: boolean;
+  supply: BN;
+}
+
+export function parseTokenMintData(data): MintInfo {
+  let { decimals, initialized, supply } = MINT_LAYOUT.decode(data);
+  return {
+    decimals,
+    initialized: !!initialized,
+    supply: new BN(supply, 10, 'le'),
+  };
 }
 
 export function getOwnedAccountsFilters(publicKey: PublicKey) {
