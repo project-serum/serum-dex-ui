@@ -8,6 +8,7 @@ import BasicLayout from './components/BasicLayout';
 import ListNewMarketPage from './pages/ListNewMarketPage';
 import NewPoolPage from './pages/pools/NewPoolPage';
 import PoolPage from './pages/pools/PoolPage';
+import PoolListPage from './pages/pools/PoolListPage';
 
 export function Routes() {
   return (
@@ -24,6 +25,9 @@ export function Routes() {
               path="/list-new-market"
               component={ListNewMarketPage}
             />
+            <Route exact path="/pools">
+              <PoolListPage />
+            </Route>
             <Route exact path="/pools/new">
               <NewPoolPage />
             </Route>
