@@ -121,9 +121,10 @@ export default function OpenOrderTable({
       ),
     },
   ];
-  const dataSource = (openOrders || []).map((order) =>
-    Object.assign(order, { key: order.orderId }),
-  );
+  const dataSource = (openOrders || []).map((order) => ({
+    ...order,
+    key: order.orderId,
+  }));
 
   return (
     <Row>
