@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import { Button, Form, Input, Tooltip, Typography } from 'antd';
 import { notify } from '../utils/notifications';
-import { isValidPublicKey } from '../utils/utils';
-import { PublicKey } from '@solana/web3.js';
-import { MARKETS, TokenInstructions } from '@project-serum/serum';
-import { useAccountInfo, useConnection } from '../utils/connection';
+import { MARKETS } from '@project-serum/serum';
+import { useConnection } from '../utils/connection';
 import FloatingElement from '../components/layout/FloatingElement';
 import styled from 'styled-components';
-import { parseTokenMintData } from '../utils/tokens';
 import { useWallet } from '../utils/wallet';
 import { listMarket } from '../utils/send';
-import Link from '../components/Link';
+import { useMintInput } from '../components/useMintInput';
 
 const { Text, Title } = Typography;
 
@@ -194,76 +191,4 @@ export default function ListNewMarketPage() {
       ) : null}
     </Wrapper>
   );
-}
-
-function useMintInput(name, label, tooltip) {
-  const [address, setAddress] = useState('');
-  const [accountInfo, loaded] = useAccountInfo(
-    isValidPublicKey(address) ? new PublicKey(address) : null,
-  );
-
-  let validateStatus = null;
-  let hasFeedback = false;
-  let help = null;
-  let mintInfo = null;
-  if (address) {
-    hasFeedback = true;
-    if (accountInfo) {
-      if (
-        accountInfo.owner.equals(TokenInstructions.TOKEN_PROGRAM_ID) &&
-        accountInfo.data.length === 82
-      ) {
-        let parsed = parseTokenMintData(accountInfo.data);
-        if (parsed.initialized) {
-          validateStatus = 'success';
-          mintInfo = {
-            address: new PublicKey(address),
-            decimals: parsed.decimals,
-          };
-        } else {
-          validateStatus = 'error';
-          help = 'Invalid SPL mint';
-        }
-      } else {
-        validateStatus = 'error';
-        help = 'Invalid SPL mint address';
-      }
-    } else if (isValidPublicKey(address) && !loaded) {
-      validateStatus = 'loading';
-    } else {
-      validateStatus = 'error';
-      help = 'Invalid Solana address';
-    }
-  }
-
-  const input = (
-    <Form.Item
-      label={
-        <Tooltip
-          title={
-            <>
-              {tooltip} You can look up token mint addresses on{' '}
-              <Link external to="https://sollet.io">
-                sollet.io
-              </Link>
-              .
-            </>
-          }
-        >
-          {label}
-        </Tooltip>
-      }
-      name={name}
-      validateStatus={validateStatus}
-      hasFeedback={hasFeedback}
-      help={help}
-    >
-      <Input
-        value={address}
-        onChange={(e) => setAddress(e.target.value.trim())}
-      />
-    </Form.Item>
-  );
-
-  return [input, mintInfo];
 }

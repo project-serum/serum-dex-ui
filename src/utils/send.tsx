@@ -11,13 +11,13 @@ import {
   Transaction,
   TransactionSignature,
 } from '@solana/web3.js';
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 import {
   DexInstructions,
   Market,
+  OpenOrders,
   TOKEN_MINTS,
   TokenInstructions,
-  OpenOrders,
 } from '@project-serum/serum';
 import Wallet from '@project-serum/sol-wallet-adapter';
 import { SelectedTokenAccounts, TokenAccount } from './types';
@@ -588,7 +588,7 @@ const getUnixTs = () => {
 
 const DEFAULT_TIMEOUT = 15000;
 
-async function sendTransaction({
+export async function sendTransaction({
   transaction,
   wallet,
   signers = [],
@@ -623,7 +623,7 @@ async function sendTransaction({
   });
 }
 
-async function signTransaction({
+export async function signTransaction({
   transaction,
   wallet,
   signers = [],
@@ -644,7 +644,7 @@ async function signTransaction({
   return await wallet.signTransaction(transaction);
 }
 
-async function sendSignedTransaction({
+export async function sendSignedTransaction({
   signedTransaction,
   connection,
   sendingMessage = 'Sending transaction...',

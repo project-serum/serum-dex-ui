@@ -7,6 +7,6 @@ const Wrapper = styled.div`
   background-color: #1a2029;
 `;
 
-export default function FloatingElement({ style, children }) {
+export default function FloatingElement({ style = undefined, children }) {
   return <Wrapper style={{ ...style }}>{children}</Wrapper>;
 }

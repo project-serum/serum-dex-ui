@@ -6,6 +6,7 @@ import BalancesPage from './pages/BalancesPage';
 import ConvertPage from './pages/ConvertPage';
 import BasicLayout from './components/BasicLayout';
 import ListNewMarketPage from './pages/ListNewMarketPage';
+import NewPoolPage from './pages/pools/NewPoolPage';
 
 export function Routes() {
   return (
@@ -17,6 +18,7 @@ export function Routes() {
           <Route exact path="/balances" component={BalancesPage} />
           <Route exact path="/convert" component={ConvertPage} />
           <Route exact path="/list-new-market" component={ListNewMarketPage} />
+          <Route exact path="/pools/new" component={NewPoolPage} />
         </BasicLayout>
       </HashRouter>
     </>
