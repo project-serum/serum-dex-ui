@@ -1,31 +1,24 @@
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Col, Row, Spin, Typography } from 'antd';
+import { Col, PageHeader, Row, Spin, Typography } from 'antd';
 import { PublicKey } from '@solana/web3.js';
 import { useAccountInfo } from '../../../utils/connection';
 import FloatingElement from '../../../components/layout/FloatingElement';
-import styled from 'styled-components';
 import { decodePoolState, PoolInfo } from '@project-serum/pool';
 import PoolInfoPanel from './PoolInfoPanel';
 import { parseTokenMintData } from '../../../utils/tokens';
 import PoolCreateRedeemPanel from './PoolCreateRedeemPanel';
 import PoolBalancesPanel from './PoolBalancesPanel';
+import { useHistory } from 'react-router-dom';
 
-const { Text, Title } = Typography;
-
-const Wrapper = styled.div`
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 24px;
-  margin-bottom: 24px;
-`;
+const { Text } = Typography;
 
 export default function PoolPage() {
   const { poolAddress } = useParams();
   const [poolAccountInfo, poolAccountLoaded] = useAccountInfo(
     isPublicKey(poolAddress) ? new PublicKey(poolAddress) : null,
   );
+  const history = useHistory();
 
   const poolInfo: PoolInfo | null = useMemo(() => {
     if (!poolAccountInfo) {
@@ -41,30 +34,51 @@ export default function PoolPage() {
       return null;
     }
   }, [poolAddress, poolAccountInfo]);
-  const [poolTokenMintInfo, poolTokenMintInfoLoaded] = useAccountInfo(
+  const [mintAccountInfo, mintAccountInfoLoaded] = useAccountInfo(
     poolInfo?.state.poolTokenMint,
   );
-  const poolTokenMintParsed = useMemo(
-    () =>
-      poolTokenMintInfo ? parseTokenMintData(poolTokenMintInfo.data) : null,
-    [poolTokenMintInfo],
+  const mintInfo = useMemo(
+    () => (mintAccountInfo ? parseTokenMintData(mintAccountInfo.data) : null),
+    [mintAccountInfo],
   );
 
-  if (poolInfo && poolTokenMintParsed) {
-    return <PoolPageInner poolInfo={poolInfo} mintInfo={poolTokenMintParsed} />;
+  if (poolInfo && mintInfo) {
+    return (
+      <>
+        <PageHeader
+          title={<>Pool {poolInfo.address.toBase58()}</>}
+          onBack={() => history.push('/pools')}
+          subTitle={poolInfo.state.name}
+        />
+        <Row>
+          <Col xs={24} lg={12}>
+            <PoolInfoPanel poolInfo={poolInfo} mintInfo={mintInfo} />
+          </Col>
+          <Col xs={24} lg={12}>
+            <PoolCreateRedeemPanel poolInfo={poolInfo} mintInfo={mintInfo} />
+          </Col>
+          <Col xs={24}>
+            <PoolBalancesPanel poolInfo={poolInfo} />
+          </Col>
+        </Row>
+      </>
+    );
   }
 
   return (
-    <Wrapper>
+    <>
+      <PageHeader
+        title={<>Pool {poolAddress}</>}
+        onBack={() => history.push('/pools')}
+      />
       <FloatingElement>
-        <Title level={4}>Pool {poolAddress}</Title>
-        {!poolAccountLoaded || !poolTokenMintInfoLoaded ? (
+        {!poolAccountLoaded || !mintAccountInfoLoaded ? (
           <Spin />
         ) : (
           <Text>Invalid pool</Text>
         )}
       </FloatingElement>
-    </Wrapper>
+    </>
   );
 }
 
@@ -75,22 +89,4 @@ function isPublicKey(address) {
   } catch (e) {
     return false;
   }
-}
-
-function PoolPageInner({ poolInfo, mintInfo }) {
-  return (
-    <>
-      <Row>
-        <Col xs={24} lg={14} xl={12}>
-          <PoolInfoPanel poolInfo={poolInfo} mintInfo={mintInfo} />
-        </Col>
-        <Col xs={24} lg={10} xl={12}>
-          <PoolCreateRedeemPanel poolInfo={poolInfo} mintInfo={mintInfo} />
-        </Col>
-        <Col xs={24}>
-          <PoolBalancesPanel poolInfo={poolInfo} />
-        </Col>
-      </Row>
-    </>
-  );
 }

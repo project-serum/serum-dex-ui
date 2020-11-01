@@ -5,11 +5,10 @@ import { Spin, Typography } from 'antd';
 import { MintInfo } from '../../../utils/tokens';
 import { useAsyncData } from '../../../utils/fetch-loop';
 import { useConnection } from '../../../utils/connection';
-import { PublicKey } from '@solana/web3.js';
 import tuple from 'immutable-tuple';
 import PoolBasketDisplay from './PoolBasketDisplay';
 
-const { Text, Title, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 
 interface PoolInfoProps {
   poolInfo: PoolInfo;
@@ -31,11 +30,14 @@ export default function PoolInfoPanel({ poolInfo, mintInfo }: PoolInfoProps) {
   );
 
   return (
-    <FloatingElement>
-      <Title level={4}>Pool {poolInfo.address.toBase58()}</Title>
+    <FloatingElement stretchVertical>
       <Paragraph>Name: {poolInfo.state.name}</Paragraph>
       <Paragraph>
-        Pool token mint address: {poolInfo.state.poolTokenMint.toBase58()}
+        Address: <Text copyable>{poolInfo.address.toBase58()}</Text>
+      </Paragraph>
+      <Paragraph>
+        Pool token mint address:{' '}
+        <Text copyable>{poolInfo.state.poolTokenMint.toBase58()}</Text>
       </Paragraph>
       <Paragraph>
         Total supply: {mintInfo.supply.toNumber() / 10 ** mintInfo.decimals}
