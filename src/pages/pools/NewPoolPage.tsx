@@ -11,6 +11,7 @@ import { PoolTransactions } from '@project-serum/pool';
 import { useTokenAccounts } from '../../utils/markets';
 import BN from 'bn.js';
 import { notify } from '../../utils/notifications';
+import Link from '../../components/Link';
 
 const { Text, Title } = Typography;
 
@@ -185,7 +186,12 @@ export default function NewPoolPage() {
       </FloatingElement>
       {newPoolAddress ? (
         <FloatingElement>
-          <Text>New pool address: {newPoolAddress.toBase58()}</Text>
+          <Text>
+            New pool address:{' '}
+            <Link to={`/pools/${newPoolAddress.toBase58()}`}>
+              {newPoolAddress.toBase58()}
+            </Link>
+          </Text>
         </FloatingElement>
       ) : null}
     </Wrapper>

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Spin, Typography } from 'antd';
+import { Col, Row, Spin, Typography } from 'antd';
 import { PublicKey } from '@solana/web3.js';
 import { useAccountInfo } from '../../../utils/connection';
 import FloatingElement from '../../../components/layout/FloatingElement';
@@ -9,6 +9,7 @@ import { decodePoolState, PoolInfo } from '@project-serum/pool';
 import PoolInfoPanel from './PoolInfoPanel';
 import { parseTokenMintData } from '../../../utils/tokens';
 import PoolCreateRedeemPanel from './PoolCreateRedeemPanel';
+import PoolBalancesPanel from './PoolBalancesPanel';
 
 const { Text, Title } = Typography;
 
@@ -78,9 +79,18 @@ function isPublicKey(address) {
 
 function PoolPageInner({ poolInfo, mintInfo }) {
   return (
-    <Wrapper>
-      <PoolInfoPanel poolInfo={poolInfo} mintInfo={mintInfo} />
-      <PoolCreateRedeemPanel poolInfo={poolInfo} mintInfo={mintInfo} />
-    </Wrapper>
+    <>
+      <Row>
+        <Col xs={24} lg={14} xl={12}>
+          <PoolInfoPanel poolInfo={poolInfo} mintInfo={mintInfo} />
+        </Col>
+        <Col xs={24} lg={10} xl={12}>
+          <PoolCreateRedeemPanel poolInfo={poolInfo} mintInfo={mintInfo} />
+        </Col>
+        <Col xs={24}>
+          <PoolBalancesPanel poolInfo={poolInfo} />
+        </Col>
+      </Row>
+    </>
   );
 }
