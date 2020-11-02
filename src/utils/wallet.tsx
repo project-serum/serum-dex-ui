@@ -6,7 +6,7 @@ import { useLocalStorageState } from './utils';
 import { WalletContextValues } from './types';
 
 export const WALLET_PROVIDERS = [
-  { name: 'mathwallet', url: 'https://www.mathwalet.org' },
+  { name: 'mathwallet', url: 'https://www.mathwallet.org' },
   { name: 'sollet.io', url: 'https://www.sollet.io' }
 ];
 
