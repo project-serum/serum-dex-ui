@@ -6,8 +6,8 @@ import { useLocalStorageState } from './utils';
 import { WalletContextValues } from './types';
 
 export const WALLET_PROVIDERS = [
-  { name: 'mathwallet', url: 'https://www.mathwallet.org' },
-  { name: 'sollet.io', url: 'https://www.sollet.io' }
+  { name: 'sollet.io', url: 'https://www.sollet.io' },
+  { name: 'mathwallet', url: 'https://www.mathwallet.org' }
 ];
 
 const WalletContext = React.createContext<null | WalletContextValues>(null);
