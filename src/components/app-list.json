@@ -261,6 +261,13 @@
   },
   {
     "name": "Solana Explorer",
+    "url": "https://explorer.solana.com",
+    "description": "",
+    "icon": "",
+    "tags": ["solana", "explorer", "chain", "blockchain", "transaction"]
+  },
+  {
+    "name": "Solana Explorer Source",
     "url": "https://github.com/solana-labs/solana/tree/master/explorer",
     "description": "",
     "icon": "",

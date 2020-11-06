@@ -60,7 +60,7 @@ export default function AppSearch(props) {
       showSearch
       allowClear
       value={searchValue}
-      placeholder={props.focussed || props.focussed === undefined ? 'Search for apps...' : ''}
+      placeholder={props.focussed || props.focussed === undefined ? 'Search for dex, swap, wallet, token...' : ''}
       onSearch={handleSearch}
       onClear={handleClear}
       onSelect={handleSelect}
