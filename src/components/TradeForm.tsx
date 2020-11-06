@@ -21,7 +21,7 @@ import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { placeOrder } from '../utils/send';
 import { SwitchChangeEventHandler } from 'antd/es/switch';
-import {refreshCache} from "../utils/fetch-loop";
+import { refreshCache } from '../utils/fetch-loop';
 import tuple from 'immutable-tuple';
 
 const SellButton = styled(Button)`
@@ -222,7 +222,7 @@ export default function TradeForm({
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
       });
-      refreshCache(tuple('getTokenAccounts', wallet, connected))
+      refreshCache(tuple('getTokenAccounts', wallet, connected));
       setPrice(undefined);
       onSetBaseSize(undefined);
     } catch (e) {

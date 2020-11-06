@@ -16,6 +16,7 @@ import { EndpointInfo } from '../utils/types';
 import { notify } from '../utils/notifications';
 import { Connection } from '@solana/web3.js';
 import WalletConnect from './WalletConnect';
+import AppSearch from './AppSearch';
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -45,7 +46,7 @@ const EXTERNAL_LINKS = {
   '/developer-resources': 'https://serum-academy.com/en/developer-resources/',
   '/explorer': 'https://explorer.solana.com',
   '/srm-faq': 'https://projectserum.com/srm-faq',
-  '/swap': 'https://swap.projectserum.com'
+  '/swap': 'https://swap.projectserum.com',
 };
 
 export default function TopBar() {
@@ -61,6 +62,7 @@ export default function TopBar() {
   const [testingConnection, setTestingConnection] = useState(false);
   const location = useLocation();
   const history = useHistory();
+  const [searchFocussed, setSearchFocussed] = useState(false);
 
   const handleClick = useCallback(
     (e) => {
@@ -133,8 +135,8 @@ export default function TopBar() {
         onClose={() => setAddEndpointVisible(false)}
       />
       <Wrapper>
-        <LogoWrapper>
-          <img src={logo} alt="" onClick={() => history.push('/')} />
+        <LogoWrapper onClick={() => history.push('/')} >
+          <img src={logo} alt=""/>
           {'SERUM'}
         </LogoWrapper>
         <Menu
@@ -149,80 +151,107 @@ export default function TopBar() {
             flex: 1,
           }}
         >
-          <Menu.Item key="/">TRADE</Menu.Item>
-          <Menu.Item key="/swap">
-            <a
-              href={EXTERNAL_LINKS['/swap']}
-              target="_blank"
-              rel="noopener noreferrer"
+          <Menu.Item key="/" style={{margin: "0 10px 0 20px"}}>TRADE</Menu.Item>
+          {!searchFocussed && (
+            <Menu.Item key="/swap" style={{margin: "0 10px"}}>
+              <a
+                href={EXTERNAL_LINKS['/swap']}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                SWAP
+              </a>
+            </Menu.Item>
+          )}
+          {connected && (!searchFocussed || location.pathname === '/balances') &&
+            <Menu.Item key="/balances" style={{margin: "0 10px"}}>BALANCES</Menu.Item>
+          }
+          {connected && (!searchFocussed || location.pathname === '/orders') &&
+            <Menu.Item key="/orders" style={{margin: "0 10px"}}>ORDERS</Menu.Item>
+          }
+          {connected && (!searchFocussed || location.pathname === '/convert') &&
+            <Menu.Item key="/convert" style={{margin: "0 10px"}}>CONVERT</Menu.Item>
+          }
+          {(!searchFocussed || location.pathname === '/list-new-market') &&
+            <Menu.Item key="/list-new-market" style={{margin: "0 10px"}}>ADD MARKET</Menu.Item>
+          }
+          {!searchFocussed && (
+            <Menu.SubMenu
+              title="LEARN"
+              onTitleClick={() => window.open(EXTERNAL_LINKS['/learn'], '_blank')}
+              style={{margin: "0 0px 0 10px"}}
             >
-              SWAP
-            </a>
-          </Menu.Item>
-          {connected && <Menu.Item key="/balances">BALANCES</Menu.Item>}
-          {connected && <Menu.Item key="/orders">ORDERS</Menu.Item>}
-          {connected && <Menu.Item key="/convert">CONVERT</Menu.Item>}
-          <Menu.Item key="/list-new-market">ADD MARKET</Menu.Item>
-          <Menu.SubMenu
-            title="LEARN"
-            onTitleClick={() => window.open(EXTERNAL_LINKS['/learn'], '_blank')}
-          >
-            <Menu.Item key="/add-market">
-              <a
-                href={EXTERNAL_LINKS['/add-market']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Adding a market
-              </a>
-            </Menu.Item>
-            <Menu.Item key="/wallet-support">
-              <a
-                href={EXTERNAL_LINKS['/wallet-support']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Supported wallets
-              </a>
-            </Menu.Item>
-            <Menu.Item key="/dex-list">
-              <a
-                href={EXTERNAL_LINKS['/dex-list']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                DEX list
-              </a>
-            </Menu.Item>
-            <Menu.Item key="/developer-resources">
-              <a
-                href={EXTERNAL_LINKS['/developer-resources']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Developer resources
-              </a>
-            </Menu.Item>
-            <Menu.Item key="/explorer">
-              <a
-                href={EXTERNAL_LINKS['/explorer']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Solana block explorer
-              </a>
-            </Menu.Item>
-            <Menu.Item key="/srm-faq">
-              <a
-                href={EXTERNAL_LINKS['/srm-faq']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                SRM FAQ
-              </a>
-            </Menu.Item>
-          </Menu.SubMenu>
+              <Menu.Item key="/add-market">
+                <a
+                  href={EXTERNAL_LINKS['/add-market']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Adding a market
+                </a>
+              </Menu.Item>
+              <Menu.Item key="/wallet-support">
+                <a
+                  href={EXTERNAL_LINKS['/wallet-support']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Supported wallets
+                </a>
+              </Menu.Item>
+              <Menu.Item key="/dex-list">
+                <a
+                  href={EXTERNAL_LINKS['/dex-list']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  DEX list
+                </a>
+              </Menu.Item>
+              <Menu.Item key="/developer-resources">
+                <a
+                  href={EXTERNAL_LINKS['/developer-resources']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Developer resources
+                </a>
+              </Menu.Item>
+              <Menu.Item key="/explorer">
+                <a
+                  href={EXTERNAL_LINKS['/explorer']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Solana block explorer
+                </a>
+              </Menu.Item>
+              <Menu.Item key="/srm-faq">
+                <a
+                  href={EXTERNAL_LINKS['/srm-faq']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  SRM FAQ
+                </a>
+              </Menu.Item>
+            </Menu.SubMenu>
+          )}
         </Menu>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            paddingRight: 5,
+          }}
+        >
+          <AppSearch
+            onFocus={() => setSearchFocussed(true)}
+            onBlur={() => setSearchFocussed(false)}
+            focussed={searchFocussed}
+            width={searchFocussed ? "350px" : "35px"}
+          />
+        </div>
         <div>
           <Row
             align="middle"

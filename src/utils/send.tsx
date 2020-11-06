@@ -395,11 +395,11 @@ export async function placeOrder({
     const {
       transaction: createAccountTransaction,
       signer: createAccountSigners,
-      newAccountPubkey
+      newAccountPubkey,
     } = await createTokenAccountTransaction({
       connection,
       wallet,
-      mintPublicKey: market.baseMintAddress
+      mintPublicKey: market.baseMintAddress,
     });
     transaction.add(createAccountTransaction);
     signers.push(createAccountSigners);
@@ -409,11 +409,11 @@ export async function placeOrder({
     const {
       transaction: createAccountTransaction,
       signer: createAccountSigners,
-      newAccountPubkey
+      newAccountPubkey,
     } = await createTokenAccountTransaction({
       connection,
       wallet,
-      mintPublicKey: market.quoteMintAddress
+      mintPublicKey: market.quoteMintAddress,
     });
     transaction.add(createAccountTransaction);
     signers.push(createAccountSigners);
@@ -439,7 +439,7 @@ export async function placeOrder({
   console.log(params);
 
   const matchOrderstransaction = market.makeMatchOrdersTransaction(5);
-  transaction.add(matchOrderstransaction)
+  transaction.add(matchOrderstransaction);
   let {
     transaction: placeOrderTx,
     signers: placeOrderSigners,
