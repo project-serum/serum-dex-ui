@@ -1,7 +1,7 @@
-import React, {useState} from "react";
-import {Select} from "antd";
-import apps from "./app-list.json";
-import {SearchOutlined} from "@ant-design/icons";
+import React, {useRef, useState} from 'react';
+import { Select, Typography } from 'antd';
+import apps from './app-list.json';
+import { SearchOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -12,35 +12,70 @@ interface App {
   tags: string[];
 }
 
-
-export default function AppSearch() {
+export default function AppSearch(props) {
   const [searchMatches, setSearchMatches] = useState<App[]>([]);
   const [searchValue, setSearchValue] = useState<string | undefined>(undefined);
 
   const matchApp = (searchString: string, app: App) => {
-    return app.name.toLowerCase().includes(searchString.toLowerCase());
-  }
+    const lowerSearchStr = searchString.toLowerCase();
+    return (
+      app.name.toLowerCase().includes(lowerSearchStr) ||
+      app.tags.some(
+        (tag) =>
+          tag.toLowerCase().includes(lowerSearchStr) ||
+          lowerSearchStr.includes(tag.toLowerCase()),
+      )
+    );
+  };
 
   const handleSearch = (value) => {
-    console.log(value);
-    setSearchValue(value);
-    console.log(apps);
-    setSearchMatches(apps.filter(app => matchApp(value, app)));
-  }
+    setSearchValue(value === '' ? undefined : value);
+    const filteredApps = apps.filter((app) => matchApp(value, app));
+    setSearchMatches(filteredApps);
+  };
 
-  const options = searchMatches.map(d => <Option key={d.name} value={d.name}>{d.name}</Option>);
+  const handleSelect = (value, option) => {
+    window.open(option.href, '_blank');
+    handleClear();
+  };
+
+  const handleClear = () => {
+    setSearchMatches([]);
+    setSearchValue(undefined);
+  };
+
+  const options = searchMatches.map((d) => (
+    <Option key={d.name} value={d.name} href={d.url}>
+      <h3>{d.name}</h3>
+      <Typography.Text type="secondary">
+        {d.url.replace('https://', '')}
+      </Typography.Text>
+    </Option>
+  ));
+
+  const ref = useRef<any>();
   return (
     <Select
+      ref={ref}
       showSearch
       allowClear
       value={searchValue}
-      placeholder={"Search for app..."}
+      placeholder={props.focussed || props.focussed === undefined ? 'Search for apps...' : ''}
       onSearch={handleSearch}
-      notFoundContent={null} // have this be your history
+      onClear={handleClear}
+      onSelect={handleSelect}
+      onFocus={props.onFocus}
+      onBlur={() => props.onBlur() && handleClear()}
+      notFoundContent={null} // todo: make this search history
       style={{
-        width: '250px'
+        width: props.width || '300px',
+        transition: props.focussed ? "width 0.1s ease 0.1s" : ""
       }}
-      suffixIcon={<SearchOutlined/>}
+      dropdownStyle={{
+        width: "300px"
+      }}
+      suffixIcon={<SearchOutlined onClick={() => ref.current && ref.current.focus()}/>}
+      filterOption={false}
     >
       {options}
     </Select>

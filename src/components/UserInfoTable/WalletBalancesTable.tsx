@@ -12,8 +12,8 @@ import {
   useTokenAccounts,
 } from '../../utils/markets';
 import StandaloneTokenAccountsSelect from '../StandaloneTokenAccountSelect';
-import {abbreviateAddress} from "../../utils/utils";
-import {PublicKey} from "@solana/web3.js";
+import { abbreviateAddress } from '../../utils/utils';
+import { PublicKey } from '@solana/web3.js';
 
 export default function WalletBalancesTable({
   walletBalances,
@@ -80,13 +80,14 @@ export default function WalletBalancesTable({
         <Row align="middle">
           <a
             href={`https://explorer.solana.com/address/${walletBalance.mint}`}
-            target={"_blank"}
+            target={'_blank'}
             rel="noopener noreferrer"
           >
-            {walletBalance.coin || abbreviateAddress(new PublicKey(walletBalance.mint))}
+            {walletBalance.coin ||
+              abbreviateAddress(new PublicKey(walletBalance.mint))}
           </a>
         </Row>
-      )
+      ),
     },
     {
       title: 'Wallet Balance',
