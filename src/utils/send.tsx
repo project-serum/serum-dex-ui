@@ -11,13 +11,13 @@ import {
   Transaction,
   TransactionSignature,
 } from '@solana/web3.js';
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 import {
   DexInstructions,
   Market,
+  OpenOrders,
   TOKEN_MINTS,
   TokenInstructions,
-  OpenOrders,
 } from '@project-serum/serum';
 import Wallet from '@project-serum/sol-wallet-adapter';
 import { SelectedTokenAccounts, TokenAccount } from './types';
@@ -388,6 +388,37 @@ export async function placeOrder({
     return;
   }
   const owner = wallet.publicKey;
+  const transaction = new Transaction();
+  const signers: Account[] = [];
+
+  if (!baseCurrencyAccount) {
+    const {
+      transaction: createAccountTransaction,
+      signer: createAccountSigners,
+      newAccountPubkey
+    } = await createTokenAccountTransaction({
+      connection,
+      wallet,
+      mintPublicKey: market.baseMintAddress
+    });
+    transaction.add(createAccountTransaction);
+    signers.push(createAccountSigners);
+    baseCurrencyAccount = newAccountPubkey;
+  }
+  if (!quoteCurrencyAccount) {
+    const {
+      transaction: createAccountTransaction,
+      signer: createAccountSigners,
+      newAccountPubkey
+    } = await createTokenAccountTransaction({
+      connection,
+      wallet,
+      mintPublicKey: market.quoteMintAddress
+    });
+    transaction.add(createAccountTransaction);
+    signers.push(createAccountSigners);
+    quoteCurrencyAccount = newAccountPubkey;
+  }
 
   const payer = side === 'sell' ? baseCurrencyAccount : quoteCurrencyAccount;
   if (!payer) {
@@ -407,10 +438,11 @@ export async function placeOrder({
   };
   console.log(params);
 
-  const transaction = market.makeMatchOrdersTransaction(5);
+  const matchOrderstransaction = market.makeMatchOrdersTransaction(5);
+  transaction.add(matchOrderstransaction)
   let {
     transaction: placeOrderTx,
-    signers,
+    signers: placeOrderSigners,
   } = await market.makePlaceOrderTransaction(
     connection,
     params,
@@ -419,6 +451,7 @@ export async function placeOrder({
   );
   transaction.add(placeOrderTx);
   transaction.add(market.makeMatchOrdersTransaction(5));
+  signers.push(...placeOrderSigners);
 
   return await sendTransaction({
     transaction,
@@ -588,7 +621,7 @@ const getUnixTs = () => {
 
 const DEFAULT_TIMEOUT = 15000;
 
-async function sendTransaction({
+export async function sendTransaction({
   transaction,
   wallet,
   signers = [],
@@ -623,7 +656,7 @@ async function sendTransaction({
   });
 }
 
-async function signTransaction({
+export async function signTransaction({
   transaction,
   wallet,
   signers = [],
@@ -644,7 +677,7 @@ async function signTransaction({
   return await wallet.signTransaction(transaction);
 }
 
-async function sendSignedTransaction({
+export async function sendSignedTransaction({
   signedTransaction,
   connection,
   sendingMessage = 'Sending transaction...',

@@ -21,6 +21,8 @@ import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { placeOrder } from '../utils/send';
 import { SwitchChangeEventHandler } from 'antd/es/switch';
+import {refreshCache} from "../utils/fetch-loop";
+import tuple from 'immutable-tuple';
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
@@ -58,7 +60,7 @@ export default function TradeForm({
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
-  const { wallet } = useWallet();
+  const { wallet, connected } = useWallet();
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
 
@@ -220,6 +222,7 @@ export default function TradeForm({
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
       });
+      refreshCache(tuple('getTokenAccounts', wallet, connected))
       setPrice(undefined);
       onSetBaseSize(undefined);
     } catch (e) {

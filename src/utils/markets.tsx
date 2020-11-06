@@ -20,7 +20,7 @@ import { useAccountData, useAccountInfo, useConnection } from './connection';
 import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
 import { notify } from './notifications';
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 import {
   getTokenAccountInfo,
   parseTokenAccountData,
