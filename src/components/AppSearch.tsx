@@ -65,7 +65,10 @@ export default function AppSearch(props) {
       onClear={handleClear}
       onSelect={handleSelect}
       onFocus={props.onFocus}
-      onBlur={() => props.onBlur() && handleClear()}
+      onBlur={() => {
+        props.onBlur();
+        handleClear();
+      }}
       notFoundContent={null} // todo: make this search history
       style={{
         width: props.width || '300px',
