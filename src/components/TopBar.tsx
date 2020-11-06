@@ -16,6 +16,7 @@ import { EndpointInfo } from '../utils/types';
 import { notify } from '../utils/notifications';
 import { Connection } from '@solana/web3.js';
 import WalletConnect from './WalletConnect';
+import AppSearch from "./AppSearch";
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -223,6 +224,16 @@ export default function TopBar() {
             </Menu.Item>
           </Menu.SubMenu>
         </Menu>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            paddingLeft: 5,
+            paddingRight: 5,
+          }}
+        >
+          <AppSearch/>
+        </div>
         <div>
           <Row
             align="middle"
