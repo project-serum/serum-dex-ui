@@ -414,25 +414,11 @@
     "tags": ["amm", "documentation"]
   },
   {
-    "name": "Serum (SRM) SPL",
-    "url": "https://explorer.solana.com/address/SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt",
-    "description": "",
-    "icon": "",
-    "tags": ["srm", "token", "solana"]
-  },
-  {
     "name": "Serum (SRM) ERC20",
     "url": "https://etherscan.io/token/0x476c5e26a75bd202a9683ffd34359c0cc15be0ff",
     "description": "",
     "icon": "",
     "tags": ["srm", "token", "solana", "eth"]
-  },
-  {
-    "name": "MegaSerum (MSRM) SPL",
-    "url": "https://explorer.solana.com/address/MSRMcoVyrFxnSgo5uXwone5SKcGhT1KEJMFEkMEWf9L",
-    "description": "",
-    "icon": "",
-    "tags": ["srm", "token", "solana"]
   },
   {
     "name": "MegaSerum (MSRM) ERC20",

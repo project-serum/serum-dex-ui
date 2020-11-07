@@ -2,8 +2,19 @@ import React, {useRef, useState} from 'react';
 import { Select, Typography } from 'antd';
 import apps from './app-list.json';
 import { SearchOutlined } from '@ant-design/icons';
+import {TOKEN_MINTS} from "@project-serum/serum";
 
 const { Option } = Select;
+
+const appsAndTokens = apps.concat(TOKEN_MINTS.map(mint => {
+  return {
+    "name": `${mint.name} SPL`,
+    "url": `https://explorer.solana.com/address/${mint.address.toBase58()}`,
+    "description": `${mint.name} SPL token`,
+    "icon": "",
+    "tags": ["token", "blockchain", "solana", "spl", "solana", mint.address.toBase58()]
+  }
+}))
 
 interface App {
   name: string;
@@ -15,6 +26,7 @@ interface App {
 export default function AppSearch(props) {
   const [searchMatches, setSearchMatches] = useState<App[]>([]);
   const [searchValue, setSearchValue] = useState<string | undefined>(undefined);
+
 
   const matchApp = (searchString: string, app: App) => {
     const lowerSearchStr = searchString.toLowerCase();
@@ -30,7 +42,7 @@ export default function AppSearch(props) {
 
   const handleSearch = (value) => {
     setSearchValue(value === '' ? undefined : value);
-    const filteredApps = apps.filter((app) => matchApp(value, app));
+    const filteredApps = appsAndTokens.filter((app) => matchApp(value, app));
     setSearchMatches(filteredApps);
   };
 
@@ -75,8 +87,9 @@ export default function AppSearch(props) {
         transition: props.focussed ? "width 0.1s ease 0.1s" : ""
       }}
       dropdownStyle={{
-        width: "300px"
+        width: props.width || "300px"
       }}
+      dropdownMatchSelectWidth={false}
       suffixIcon={<SearchOutlined onClick={() => ref.current && ref.current.focus()}/>}
       filterOption={false}
     >
