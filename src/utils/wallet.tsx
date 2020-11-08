@@ -4,8 +4,10 @@ import { notify } from './notifications';
 import { useConnectionConfig } from './connection';
 import { useLocalStorageState } from './utils';
 import { WalletContextValues } from './types';
+import {SolongAdapter} from './solong_adapter'
 
 export const WALLET_PROVIDERS = [
+  {name:'solong', url:'https://solongwallet.com/'},
   { name: 'sollet.io', url: 'https://www.sollet.io' },
 ];
 
@@ -25,7 +27,12 @@ export function WalletProvider({ children }) {
     providerUrl = savedProviderUrl;
   }
 
-  const wallet = useMemo(() => new Wallet(providerUrl, endpoint), [
+  const wallet :any = useMemo(() => { 
+    if (providerUrl === 'https://solongwallet.com/') { 
+      return new SolongAdapter(providerUrl, endpoint);
+    } else {
+      return new Wallet(providerUrl, endpoint)
+    }}, [
     providerUrl,
     endpoint,
   ]);
