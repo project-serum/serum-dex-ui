@@ -426,5 +426,12 @@
     "description": "",
     "icon": "",
     "tags": ["srm", "token", "solana", "eth"]
+  },
+  {
+    "name": "Bonfida API Documentation",
+    "url": "https://docs.bonfida.com",
+    "description": "Documentation of the Bonfida API",
+    "icon": "",
+    "tags": ["bonfida", "api", "data", "documentation"]
   }
 ]
