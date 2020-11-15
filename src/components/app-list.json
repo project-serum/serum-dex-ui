@@ -285,7 +285,14 @@
     "url": "https://docs.solana.com/",
     "description": "",
     "icon": "",
-    "tags": ["documentation", "docs", "solana", "blockchain", "chain", "on-chain"]
+    "tags": [
+      "documentation",
+      "docs",
+      "solana",
+      "blockchain",
+      "chain",
+      "on-chain"
+    ]
   },
   {
     "name": "Solana Discord",
@@ -327,14 +334,31 @@
     "url": "https://github.com/project-serum/rfcs/blob/master/text/0001-registry.md",
     "description": "",
     "icon": "",
-    "tags": ["staking", "on-chain", "blockchain", "rewards", "solana", "srm", "node"]
+    "tags": [
+      "staking",
+      "on-chain",
+      "blockchain",
+      "rewards",
+      "solana",
+      "srm",
+      "node"
+    ]
   },
   {
     "name": "Node RFC",
     "url": "https://github.com/project-serum/rfcs/blob/master/text/0001-registry.md",
     "description": "",
     "icon": "",
-    "tags": ["node", "staking", "on-chain", "blockchain", "rewards", "governance", "solana", "srm"]
+    "tags": [
+      "node",
+      "staking",
+      "on-chain",
+      "blockchain",
+      "rewards",
+      "governance",
+      "solana",
+      "srm"
+    ]
   },
   {
     "name": "SolFlare",
@@ -426,5 +450,12 @@
     "description": "",
     "icon": "",
     "tags": ["srm", "token", "solana", "eth"]
+  },
+  {
+    "name": "Bonfida API Documentation",
+    "url": "https://docs.bonfida.com",
+    "description": "Documentation of the Bonfida API",
+    "icon": "",
+    "tags": ["bonfida", "api", "data", "documentation"]
   }
 ]
