@@ -457,5 +457,12 @@
     "description": "Documentation of the Bonfida API",
     "icon": "",
     "tags": ["bonfida", "api", "data", "documentation"]
+  },
+  {
+    "name": "StableSwap on Solana",
+    "url": "https://stableswap.pro",
+    "description": "An automated market maker for stablecoins on Solana.",
+    "icon": "https://stableswap.pro/favicon.ico",
+    "tags": ["stablecoin", "amm", "usdc", "usdt", "solana"]
   }
 ]
