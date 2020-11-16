@@ -1530,6 +1530,11 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
+"@project-serum/awesome-serum@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@project-serum/awesome-serum/-/awesome-serum-1.0.1.tgz#185a348cb57eb00592aee4f8c730b65cc9ae7a22"
+  integrity sha512-WbykMEX2Ja1oeY3n7cVK79XMBxFgWsWxDMxfJ7GL+/88R568vwPvhP57HrBgULZmwu/Zt5CmMWjf6oeD1E621g==
+
 "@project-serum/pool@^0.1.1":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@project-serum/pool/-/pool-0.1.3.tgz#9f99e6046f4565e38896934b24d447eae1527a62"
