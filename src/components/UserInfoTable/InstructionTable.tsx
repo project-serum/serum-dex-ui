@@ -1,10 +1,12 @@
 import React from 'react';
 import DataTable from '../layout/DataTable';
 import { useWallet } from '../../utils/wallet';
-import { Col, Row, Tag } from 'antd';
+import { Col, Row, Tabs, Tag } from 'antd';
 import { Account, Instruction, useSerumInstruction } from './dfuse/use-serum-instruction';
 import { MarketInfo } from '../../utils/types';
 import { MARKETS } from '@project-serum/serum';
+import { useBalances } from '../../utils/markets';
+import BalancesTable from './BalancesTable';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -232,7 +234,6 @@ const columns = [
 export default function InstructionTable() {
   let { wallet } = useWallet();
 
-
   const publicKey = wallet.publicKey.toString();
   const {
     instructions,
@@ -261,3 +262,16 @@ export default function InstructionTable() {
     </Row>
   );
 }
+
+
+
+export const InstructionTab = () => {
+  const { wallet } = useWallet()
+  if(wallet && wallet.publicKey) {
+    return <InstructionTable />;
+  }
+
+  return (
+    <p>Connect a wallet to see your instruction history.</p>
+  )
+};

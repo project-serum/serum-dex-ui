@@ -6,7 +6,7 @@ import FillsTable from './FillsTable';
 import FloatingElement from '../layout/FloatingElement';
 import FeesTable from './FeesTable';
 import { useOpenOrders, useBalances, useMarket } from '../../utils/markets';
-import InstructionTable from './InstructionTable';
+import { InstructionTab } from './InstructionTable';
 import { useWallet } from '../../utils/wallet';
 
 const { Paragraph } = Typography;
@@ -42,11 +42,9 @@ export default function Index() {
             <FeesTable />
           </TabPane>
         ) : null}
-        {wallet && wallet.publicKey ? (
-          <TabPane tab="Serum Instructions" key="instructions">
-            <InstructionTable />
-          </TabPane>
-        ) : null}
+        <TabPane tab="Serum Instructions" key="instructions">
+          <InstructionTab />
+        </TabPane>
       </Tabs>
     </FloatingElement>
   );
