@@ -6,11 +6,14 @@ import FillsTable from './FillsTable';
 import FloatingElement from '../layout/FloatingElement';
 import FeesTable from './FeesTable';
 import { useOpenOrders, useBalances, useMarket } from '../../utils/markets';
+import InstructionTable from './InstructionTable';
+import { useWallet } from '../../utils/wallet';
 
 const { Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 export default function Index() {
+  const { wallet } = useWallet();
   const { market } = useMarket();
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 20 }}>
@@ -37,6 +40,11 @@ export default function Index() {
         {market && market.supportsSrmFeeDiscounts ? (
           <TabPane tab="Fee discounts" key="fees">
             <FeesTable />
+          </TabPane>
+        ) : null}
+        {wallet && wallet.publicKey ? (
+          <TabPane tab="Serum Instructions" key="instructions">
+            <InstructionTable />
           </TabPane>
         ) : null}
       </Tabs>

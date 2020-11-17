@@ -1283,6 +1283,14 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
+"@dfuse/client@^0.3.17":
+  version "0.3.17"
+  resolved "https://registry.yarnpkg.com/@dfuse/client/-/client-0.3.17.tgz#6d225394880f6e975783be7a8f7a6ebf2eae6842"
+  integrity sha512-GPF7SkqBXByF0sntScXZG0bo4j9iNGNl2UW1V9zwbx1oN8TFce+ewcp+u01QZGTxY0AVEXCVs94qWo3tjERkSA==
+  dependencies:
+    "@types/debug" "^0.0.31"
+    debug "^4.1.0"
+
 "@emotion/is-prop-valid@^0.8.8":
   version "0.8.8"
   resolved "https://registry.yarnpkg.com/@emotion/is-prop-valid/-/is-prop-valid-0.8.8.tgz#db28b1c4368a259b60a97311d6a952d4fd01ac1a"
@@ -1810,6 +1818,11 @@
   integrity sha512-2+FrkXY4zllzTNfJth7jOqEHC+enpLeGslEhpnTAkg21GkRrWV4SsAtqchtT4YS9/nODBU2/ZfsBY2X4J/dX7A==
   dependencies:
     "@types/node" "*"
+
+"@types/debug@^0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-0.0.31.tgz#bac8d8aab6a823e91deb7f79083b2a35fa638f33"
+  integrity sha512-LS1MCPaQKqspg7FvexuhmDbWUhE2yIJ+4AgVIyObfc06/UKZ8REgxGNjZc82wPLWmbeOm7S+gSsLgo75TanG4A==
 
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
