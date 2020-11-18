@@ -200,8 +200,7 @@ const stringToGqlError = (input: string): GqlError => {
 
 const client = createDfuseClient({
   apiKey: 'web_0123456789abcdef',
-  // network: 'mainnet.sol.dfuse.io',
-  network: 'localhost:8080',
+  network: 'mainnet.sol.dfuse.io',
   authUrl: 'null://',
   secure: false,
   graphqlStreamClientOptions: {
