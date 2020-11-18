@@ -142,6 +142,7 @@ export interface CancelOrderByClientId {
 
 
 export interface Instruction {
+  trxSignature: string
   instruction: SerumInstruction
 }
 
@@ -199,7 +200,8 @@ const stringToGqlError = (input: string): GqlError => {
 
 const client = createDfuseClient({
   apiKey: 'web_0123456789abcdef',
-  network: 'mainnet.sol.dfuse.io',
+  // network: 'mainnet.sol.dfuse.io',
+  network: 'localhost:8080',
   authUrl: 'null://',
   secure: false,
   graphqlStreamClientOptions: {
@@ -223,7 +225,7 @@ export const useSerumInstruction = (
       account,
       onData: (data) => {
         setInstructions(prevState => {
-          return [...prevState, data];
+          return [data, ...prevState];
         });
       },
       onComplete: () => {

@@ -1,6 +1,7 @@
 export const streamSerumInstructionSubGraphql = `
 subscription($account: String!){
   serumInstructionHistory(account: $account){
+    trxSignature
     instruction {
       __typename
       ...on  SerumNewOrder {

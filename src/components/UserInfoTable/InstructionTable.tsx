@@ -7,6 +7,8 @@ import { MarketInfo } from '../../utils/types';
 import { MARKETS } from '@project-serum/serum';
 import { useBalances } from '../../utils/markets';
 import BalancesTable from './BalancesTable';
+import { PublicKey } from '@solana/web3.js';
+import Link from '../Link';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -15,6 +17,17 @@ const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
   : MARKETS;
 
+
+const TrxSignature:React.FC<{trxSignature: string}> = ({ trxSignature }) => {
+  return (
+    <Link
+      external
+      to={'https://explorer.solana.com/tx/' + trxSignature}
+    >
+      {trxSignature.slice(0, 8)}...{trxSignature.slice(trxSignature.length - 8)}
+    </Link>
+  )
+}
 
 const resolveMarket = (marketAddress: string): string => {
   let marketName = marketAddress;
@@ -221,7 +234,17 @@ const columns = [
     render: (_, instruction: Instruction) => {
       return renderInstructionDetails(instruction);
     },
-  }, {
+  },
+  {
+    title: 'Trx Signature',
+    dataIndex: 'trxSignature',
+    key: 'trxSignature',
+    render: (_, instruction: Instruction) => {
+
+      return <TrxSignature trxSignature={instruction.trxSignature} />
+    },
+  },
+  {
     title: 'Addresses',
     dataIndex: 'addresses',
     key: 'addresses',
@@ -231,10 +254,8 @@ const columns = [
     },
   }];
 
-export default function InstructionTable() {
-  let { wallet } = useWallet();
-
-  const publicKey = wallet.publicKey.toString();
+export const InstructionTable:React.FC<{walletAddress: PublicKey}> = ({ walletAddress }) =>{
+  const publicKey = walletAddress.toString();
   const {
     instructions,
     isStreaming,
@@ -268,7 +289,7 @@ export default function InstructionTable() {
 export const InstructionTab = () => {
   const { wallet } = useWallet()
   if(wallet && wallet.publicKey) {
-    return <InstructionTable />;
+    return <InstructionTable walletAddress={wallet.publicKey}/>;
   }
 
   return (
