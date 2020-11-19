@@ -243,7 +243,7 @@ const columns = [
     key: 'status',
     render: (_, instruction: Instruction) => {
       if (instruction.trxError) {
-        return <Tag color={'danger'}>Error</Tag>
+        return <Tag color={'volcano'}>Error</Tag>
       } else {
         return <Tag color={'success'}>Success</Tag>
       }
@@ -276,6 +276,7 @@ export const InstructionTable:React.FC<{walletAddress: PublicKey}> = ({ walletAd
     account: publicKey,
   });
 
+  const receivingResult = (instructions.length > 0)
 
   const dataSource = (instructions || []).map((instruction, index) => ({
     ...instruction,
@@ -287,18 +288,16 @@ export const InstructionTable:React.FC<{walletAddress: PublicKey}> = ({ walletAd
     <Row>
       <Col span={24}>
         <DataTable
-          emptyLabel="No open orders"
+          emptyLabel="loading instructions"
           dataSource={dataSource}
           columns={columns}
           pagination={true}
-          loading={!isStreaming}
+          loading={isStreaming && !receivingResult}
         />
       </Col>
     </Row>
   );
 }
-
-
 
 export const InstructionTab = () => {
   const { wallet } = useWallet()

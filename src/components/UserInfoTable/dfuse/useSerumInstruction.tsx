@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createDfuseClient, DfuseClient, Stream } from '@dfuse/client';
 import { streamSerumInstructionSubGraphql } from './gql';
 
@@ -227,11 +227,9 @@ export const useSerumInstruction = (
   const { account } = params;
   const [instructions, setInstructions] = useState<Instruction[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [stream, setStream] = useState<Stream>();
   const [errors, setErrors] = useState<GqlError[]>([]);
 
-
-  const streamInstruction = async () => {
+  const streamInstructionCallback = useCallback(async () => {
     return streamSerumInstructions({
       client,
       account,
@@ -247,18 +245,18 @@ export const useSerumInstruction = (
         setErrors(errs)
       },
     });
-  };
-
+  }, [account]);
 
   useEffect(() => {
-    streamInstruction().then((stream) => {
+    let s: Stream
+    streamInstructionCallback().then((stream) => {
       setIsStreaming(true)
-      setStream(stream);
+      s = stream;
     });
     return () => {
-      stream?.close();
+      s?.close();
     };
-  }, [account]);
+  }, [account, streamInstructionCallback]);
 
   return {
     instructions,
