@@ -2,8 +2,19 @@ export const streamSerumInstructionSubGraphql = `
 subscription($account: String!){
   serumInstructionHistory(account: $account){
     trxSignature
+    trxError
     instruction {
       __typename
+      
+      ...on UndecodedInstruction {
+        programIDIndex
+        accountCount
+        rawAccounts:accounts
+        dataLength
+        data
+        error
+      }
+      
       ...on  SerumNewOrder {
         side
         limitPrice

@@ -9,8 +9,9 @@ type SerumInstructionOptions = {
 type UseSerumInstructionResponse = {
   instructions: Instruction[]
   isStreaming: boolean
-
+  errors: GqlError[]
 }
+
 export type SideType = 'BID' | 'ASK' | 'UNKNOWN'
 export type OrderType = 'LIMIT' | 'IMMEDIATE_OR_CANCEL' | 'POST_ONLY' | 'UNKNOWN'
 
@@ -22,6 +23,7 @@ export interface Account {
 }
 
 export type SerumInstruction =
+  | UndecodedInstruction
   | InitializeMarket
   | NewOrder
   | MatchOrder
@@ -29,6 +31,16 @@ export type SerumInstruction =
   | CancelOrder
   | SettleFunds
   | CancelOrderByClientId
+
+export interface UndecodedInstruction {
+  __typename: 'UndecodedInstruction'
+  programIDIndex: number
+  accountCount: number
+  rawAccounts: number[]
+  dataLength: number
+  data: string
+  error: string
+}
 
 export interface InitializeMarket {
   __typename: 'SerumInitializeMarket'
@@ -143,6 +155,7 @@ export interface CancelOrderByClientId {
 
 export interface Instruction {
   trxSignature: string
+  trxError: boolean
   instruction: SerumInstruction
 }
 
@@ -202,7 +215,6 @@ const client = createDfuseClient({
   apiKey: 'web_0123456789abcdef',
   network: 'mainnet.sol.dfuse.io',
   authUrl: 'null://',
-  secure: false,
   graphqlStreamClientOptions: {
     autoDisconnectSocket: false,
   },
@@ -216,6 +228,7 @@ export const useSerumInstruction = (
   const [instructions, setInstructions] = useState<Instruction[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [stream, setStream] = useState<Stream>();
+  const [errors, setErrors] = useState<GqlError[]>([]);
 
 
   const streamInstruction = async () => {
@@ -228,8 +241,10 @@ export const useSerumInstruction = (
         });
       },
       onComplete: () => {
+        setIsStreaming(false)
       },
       onError: (errs) => {
+        setErrors(errs)
       },
     });
   };
@@ -237,11 +252,10 @@ export const useSerumInstruction = (
 
   useEffect(() => {
     streamInstruction().then((stream) => {
-      setIsStreaming(true);
+      setIsStreaming(true)
       setStream(stream);
     });
     return () => {
-      console.log('shutting down stream');
       stream?.close();
     };
   }, [account]);
@@ -249,6 +263,7 @@ export const useSerumInstruction = (
   return {
     instructions,
     isStreaming,
+    errors,
   };
 
 };

@@ -1,12 +1,10 @@
 import React from 'react';
 import DataTable from '../layout/DataTable';
 import { useWallet } from '../../utils/wallet';
-import { Col, Row, Tabs, Tag } from 'antd';
-import { Account, Instruction, useSerumInstruction } from './dfuse/use-serum-instruction';
+import { Col, Row, Tag } from 'antd';
+import { Account, Instruction, useSerumInstruction } from './dfuse/useSerumInstruction';
 import { MarketInfo } from '../../utils/types';
 import { MARKETS } from '@project-serum/serum';
-import { useBalances } from '../../utils/markets';
-import BalancesTable from './BalancesTable';
 import { PublicKey } from '@solana/web3.js';
 import Link from '../Link';
 
@@ -31,8 +29,8 @@ const TrxSignature:React.FC<{trxSignature: string}> = ({ trxSignature }) => {
 
 const resolveMarket = (marketAddress: string): string => {
   let marketName = marketAddress;
-  USE_MARKETS.map(market => {
-    if (market.address.toString() == marketAddress) {
+  USE_MARKETS.forEach(market => {
+    if (market.address.toString() === marketAddress) {
       marketName = market.name;
     }
   });
@@ -221,6 +219,10 @@ const columns = [
     dataIndex: 'market',
     key: 'market',
     render: (_, instruction: Instruction) => {
+      if (instruction.instruction.__typename === "UndecodedInstruction") {
+        return null
+      }
+
       if (instruction.instruction?.accounts?.market) {
         return resolveMarket(instruction.instruction.accounts.market.publicKey);
       }
@@ -236,11 +238,22 @@ const columns = [
     },
   },
   {
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
+    render: (_, instruction: Instruction) => {
+      if (instruction.trxError) {
+        return <Tag color={'danger'}>Error</Tag>
+      } else {
+        return <Tag color={'success'}>Success</Tag>
+      }
+    },
+  },
+  {
     title: 'Trx Signature',
     dataIndex: 'trxSignature',
     key: 'trxSignature',
     render: (_, instruction: Instruction) => {
-
       return <TrxSignature trxSignature={instruction.trxSignature} />
     },
   },
@@ -278,6 +291,7 @@ export const InstructionTable:React.FC<{walletAddress: PublicKey}> = ({ walletAd
           dataSource={dataSource}
           columns={columns}
           pagination={true}
+          loading={!isStreaming}
         />
       </Col>
     </Row>
