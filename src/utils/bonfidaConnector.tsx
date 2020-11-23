@@ -22,3 +22,5 @@ export default class BonfidaApi {
     return BonfidaApi.get(`trades/address/${marketAddress}`);
   }
 }
+
+export const BONFIDA_DATA_FEED = 'https://serum-api.bonfida.com/tv';
