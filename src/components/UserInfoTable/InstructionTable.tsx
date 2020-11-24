@@ -113,6 +113,13 @@ const renderAccount = (display: string, account: Account | undefined) => {
 };
 
 const renderInstructionAddresses = (instruction: Instruction) => {
+  if (instruction.instruction.__typename === "UndecodedInstruction") {
+    return null
+  }
+
+  if (!instruction.instruction.accounts) {
+    return null
+  }
   switch (instruction.instruction.__typename) {
     case 'SerumSettleFunds':
       return (

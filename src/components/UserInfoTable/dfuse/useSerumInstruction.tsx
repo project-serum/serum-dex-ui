@@ -15,7 +15,6 @@ type UseSerumInstructionResponse = {
 export type SideType = 'BID' | 'ASK' | 'UNKNOWN'
 export type OrderType = 'LIMIT' | 'IMMEDIATE_OR_CANCEL' | 'POST_ONLY' | 'UNKNOWN'
 
-
 export interface Account {
   publicKey: string
   isWritable: boolean
@@ -50,7 +49,7 @@ export interface InitializeMarket {
   vaultSignerNonce: number
   quoteDustThreshold: number
 
-  accounts: {
+  accounts?: {
     market: Account
     splCoinToken: Account
     splPriceToken: Account
@@ -67,7 +66,7 @@ export interface NewOrder {
   orderType: OrderType
   clientID: number
 
-  accounts: {
+  accounts?: {
     market: Account
     openOrders: Account
     requestQueue: Account
@@ -85,7 +84,7 @@ export interface MatchOrder {
   __typename: 'SerumMatchOrder'
   limit: number
 
-  accounts: {
+  accounts?: {
     market: Account
     requestQueue: Account
     eventQueue: Account
@@ -100,7 +99,7 @@ export interface ConsumeEvents {
   __typename: 'SerumConsumeEvents'
   limit: number
 
-  accounts: {
+  accounts?: {
     openOrders: Account[]
     market: Account
     eventQueue: Account
@@ -116,7 +115,7 @@ export interface CancelOrder {
   openOrders: string
   openOrderSlot: number
 
-  accounts: {
+  accounts?: {
     market: Account
     requestQueue: Account
     owner: Account
@@ -126,7 +125,7 @@ export interface CancelOrder {
 export interface SettleFunds {
   __typename: 'SerumSettleFunds'
 
-  accounts: {
+  accounts?: {
     market: Account
     openOrders: Account
     owner: Account
@@ -144,7 +143,7 @@ export interface CancelOrderByClientId {
   __typename: 'SerumCancelOrderByClientId'
   clientID: number
 
-  accounts: {
+  accounts?: {
     market: Account
     openOrders: Account
     requestQueue: Account
