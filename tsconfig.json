@@ -20,5 +20,10 @@
     "lib": ["dom", "esnext"]
   },
   "include": ["./src/"],
-  "exclude": ["./src/**/*.test.js", "node_modules", "**/node_modules"]
+  "exclude": [
+    "./src/**/*.test.js",
+    "node_modules",
+    "**/node_modules",
+    "./src/components/TradingView/index.tsx"
+  ]
 }
