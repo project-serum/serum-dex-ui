@@ -135,8 +135,8 @@ export default function TopBar() {
         onClose={() => setAddEndpointVisible(false)}
       />
       <Wrapper>
-        <LogoWrapper onClick={() => history.push('/')} >
-          <img src={logo} alt=""/>
+        <LogoWrapper onClick={() => history.push('/')}>
+          <img src={logo} alt="" />
           {'SERUM'}
         </LogoWrapper>
         <Menu
@@ -151,9 +151,11 @@ export default function TopBar() {
             flex: 1,
           }}
         >
-          <Menu.Item key="/" style={{margin: "0 10px 0 20px"}}>TRADE</Menu.Item>
+          <Menu.Item key="/" style={{ margin: '0 10px 0 20px' }}>
+            TRADE
+          </Menu.Item>
           {!searchFocussed && (
-            <Menu.Item key="/swap" style={{margin: "0 10px"}}>
+            <Menu.Item key="/swap" style={{ margin: '0 10px' }}>
               <a
                 href={EXTERNAL_LINKS['/swap']}
                 target="_blank"
@@ -163,23 +165,33 @@ export default function TopBar() {
               </a>
             </Menu.Item>
           )}
-          {connected && (!searchFocussed || location.pathname === '/balances') &&
-            <Menu.Item key="/balances" style={{margin: "0 10px"}}>BALANCES</Menu.Item>
-          }
-          {connected && (!searchFocussed || location.pathname === '/orders') &&
-            <Menu.Item key="/orders" style={{margin: "0 10px"}}>ORDERS</Menu.Item>
-          }
-          {connected && (!searchFocussed || location.pathname === '/convert') &&
-            <Menu.Item key="/convert" style={{margin: "0 10px"}}>CONVERT</Menu.Item>
-          }
-          {(!searchFocussed || location.pathname === '/list-new-market') &&
-            <Menu.Item key="/list-new-market" style={{margin: "0 10px"}}>ADD MARKET</Menu.Item>
-          }
+          {connected && (!searchFocussed || location.pathname === '/balances') && (
+            <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
+              BALANCES
+            </Menu.Item>
+          )}
+          {connected && (!searchFocussed || location.pathname === '/orders') && (
+            <Menu.Item key="/orders" style={{ margin: '0 10px' }}>
+              ORDERS
+            </Menu.Item>
+          )}
+          {connected && (!searchFocussed || location.pathname === '/convert') && (
+            <Menu.Item key="/convert" style={{ margin: '0 10px' }}>
+              CONVERT
+            </Menu.Item>
+          )}
+          {(!searchFocussed || location.pathname === '/list-new-market') && (
+            <Menu.Item key="/list-new-market" style={{ margin: '0 10px' }}>
+              ADD MARKET
+            </Menu.Item>
+          )}
           {!searchFocussed && (
             <Menu.SubMenu
               title="LEARN"
-              onTitleClick={() => window.open(EXTERNAL_LINKS['/learn'], '_blank')}
-              style={{margin: "0 0px 0 10px"}}
+              onTitleClick={() =>
+                window.open(EXTERNAL_LINKS['/learn'], '_blank')
+              }
+              style={{ margin: '0 0px 0 10px' }}
             >
               <Menu.Item key="/add-market">
                 <a
@@ -249,7 +261,7 @@ export default function TopBar() {
             onFocus={() => setSearchFocussed(true)}
             onBlur={() => setSearchFocussed(false)}
             focussed={searchFocussed}
-            width={searchFocussed ? "350px" : "35px"}
+            width={searchFocussed ? '350px' : '35px'}
           />
         </div>
         <div>

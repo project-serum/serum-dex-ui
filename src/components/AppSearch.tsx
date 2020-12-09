@@ -1,20 +1,29 @@
-import React, {useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import { Select, Typography } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import {TOKEN_MINTS} from "@project-serum/serum";
-import apps from "@project-serum/awesome-serum";
+import { TOKEN_MINTS } from '@project-serum/serum';
+import apps from '@project-serum/awesome-serum';
 
 const { Option } = Select;
 
-const appsAndTokens = apps.concat(TOKEN_MINTS.map(mint => {
-  return {
-    "name": `${mint.name} SPL`,
-    "url": `https://explorer.solana.com/address/${mint.address.toBase58()}`,
-    "description": `${mint.name} SPL token`,
-    "icon": "",
-    "tags": ["token", "blockchain", "solana", "spl", "solana", mint.address.toBase58()]
-  }
-}))
+const appsAndTokens = apps.concat(
+  TOKEN_MINTS.map((mint) => {
+    return {
+      name: `${mint.name} SPL`,
+      url: `https://explorer.solana.com/address/${mint.address.toBase58()}`,
+      description: `${mint.name} SPL token`,
+      icon: '',
+      tags: [
+        'token',
+        'blockchain',
+        'solana',
+        'spl',
+        'solana',
+        mint.address.toBase58(),
+      ],
+    };
+  }),
+);
 
 interface App {
   name: string;
@@ -26,7 +35,6 @@ interface App {
 export default function AppSearch(props) {
   const [searchMatches, setSearchMatches] = useState<App[]>([]);
   const [searchValue, setSearchValue] = useState<string | undefined>(undefined);
-
 
   const matchApp = (searchString: string, app: App) => {
     const lowerSearchStr = searchString.toLowerCase();
@@ -72,7 +80,11 @@ export default function AppSearch(props) {
       showSearch
       allowClear
       value={searchValue}
-      placeholder={props.focussed || props.focussed === undefined ? 'Search for dex, swap, wallet, token...' : ''}
+      placeholder={
+        props.focussed || props.focussed === undefined
+          ? 'Search for dex, swap, wallet, token...'
+          : ''
+      }
       onSearch={handleSearch}
       onClear={handleClear}
       onSelect={handleSelect}
@@ -84,13 +96,15 @@ export default function AppSearch(props) {
       notFoundContent={null} // todo: make this search history
       style={{
         width: props.width || '300px',
-        transition: props.focussed ? "width 0.1s ease 0.1s" : ""
+        transition: props.focussed ? 'width 0.1s ease 0.1s' : '',
       }}
       dropdownStyle={{
-        width: props.width || "300px"
+        width: props.width || '300px',
       }}
       dropdownMatchSelectWidth={false}
-      suffixIcon={<SearchOutlined onClick={() => ref.current && ref.current.focus()}/>}
+      suffixIcon={
+        <SearchOutlined onClick={() => ref.current && ref.current.focus()} />
+      }
       filterOption={false}
     >
       {options}
