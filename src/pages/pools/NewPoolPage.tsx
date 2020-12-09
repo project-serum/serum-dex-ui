@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form, Input, Tooltip, Typography } from 'antd';
+import { Button, Form, Input, Switch, Tooltip, Typography } from 'antd';
 import { PublicKey } from '@solana/web3.js';
 import { useConnection } from '../../utils/connection';
 import FloatingElement from '../../components/layout/FloatingElement';
@@ -28,7 +28,7 @@ const AddRemoveTokenButtons = styled.div`
   margin-bottom: 16px;
 `;
 
-const DEFAULT_PROGRAM_ID = '8qZoqDMXTfLZz6BYrDfD5Cuy65JKkaNwktb54hj1yaoK';
+const DEFAULT_PROGRAM_ID = 'DL7L4cFHwmfNevZRg92rF5unbdUvFGoiuMrQ4aV7Nzsc';
 
 export default function NewPoolPage() {
   const connection = useConnection();
@@ -40,6 +40,7 @@ export default function NewPoolPage() {
     { valid: false },
     { valid: false },
   ]);
+  const [adminControlled, setAdminControlled] = useState(false);
   const [tokenAccounts] = useTokenAccounts();
   const [submitting, setSubmitting] = useState(false);
   const [newPoolAddress, setNewPoolAddress] = useState<PublicKey | null>(null);
@@ -83,6 +84,9 @@ export default function NewPoolPage() {
           }
           return found.pubkey;
         }),
+        additionalAccounts: adminControlled
+          ? [{ pubkey: wallet.publicKey, isSigner: false, isWritable: false }]
+          : [],
       });
       const signed = await Promise.all(
         transactions.map(({ transaction, signers }) =>
@@ -172,6 +176,19 @@ export default function NewPoolPage() {
           {initialAssets.map((asset, i) => (
             <AssetInput setInitialAssets={setInitialAssets} index={i} key={i} />
           ))}
+          <Form.Item
+            label={
+              <Tooltip title="Whether the assets in the pool can be controlled by the pool admin.">
+                Admin Controlled
+              </Tooltip>
+            }
+            name="adminControlled"
+          >
+            <Switch
+              checked={adminControlled}
+              onChange={(checked) => setAdminControlled(checked)}
+            />
+          </Form.Item>
           <Form.Item label=" " colon={false}>
             <Button
               type="primary"

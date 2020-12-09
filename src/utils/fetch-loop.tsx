@@ -177,6 +177,7 @@ class FetchLoops {
     loop.removeListener(listener);
     if (loop.stopped) {
       this.loops.delete(listener.cacheKey);
+      globalCache.delete(listener.cacheKey);
     }
   }
 

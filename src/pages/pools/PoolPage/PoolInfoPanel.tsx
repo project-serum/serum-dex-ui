@@ -15,18 +15,18 @@ interface PoolInfoProps {
   mintInfo: MintInfo;
 }
 
+const feeFormat = new Intl.NumberFormat(undefined, {
+  style: 'percent',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 6,
+});
+
 export default function PoolInfoPanel({ poolInfo, mintInfo }: PoolInfoProps) {
   const connection = useConnection();
 
   const [totalBasket] = useAsyncData(
     () => getPoolBasket(connection, poolInfo, { redeem: mintInfo.supply }),
-    tuple(
-      getPoolBasket,
-      connection,
-      poolInfo.address.toBase58(),
-      'total',
-      mintInfo.supply.toString(),
-    ),
+    tuple(getPoolBasket, connection, poolInfo, 'total', mintInfo),
   );
 
   return (
@@ -38,6 +38,14 @@ export default function PoolInfoPanel({ poolInfo, mintInfo }: PoolInfoProps) {
       <Paragraph>
         Pool token mint address:{' '}
         <Text copyable>{poolInfo.state.poolTokenMint.toBase58()}</Text>
+      </Paragraph>
+      {poolInfo.state.adminKey ? (
+        <Paragraph>
+          Pool admin: <Text copyable>{poolInfo.state.adminKey.toBase58()}</Text>
+        </Paragraph>
+      ) : null}
+      <Paragraph>
+        Fee rate: {feeFormat.format(poolInfo.state.feeRate / 1_000_000)}
       </Paragraph>
       <Paragraph>
         Total supply: {mintInfo.supply.toNumber() / 10 ** mintInfo.decimals}

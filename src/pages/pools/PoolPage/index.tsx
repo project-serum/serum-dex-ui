@@ -4,12 +4,18 @@ import { Col, PageHeader, Row, Spin, Typography } from 'antd';
 import { PublicKey } from '@solana/web3.js';
 import { useAccountInfo } from '../../../utils/connection';
 import FloatingElement from '../../../components/layout/FloatingElement';
-import { decodePoolState, PoolInfo } from '@project-serum/pool';
+import {
+  decodePoolState,
+  isAdminControlledPool,
+  PoolInfo,
+} from '@project-serum/pool';
 import PoolInfoPanel from './PoolInfoPanel';
 import { parseTokenMintData } from '../../../utils/tokens';
 import PoolCreateRedeemPanel from './PoolCreateRedeemPanel';
 import PoolBalancesPanel from './PoolBalancesPanel';
 import { useHistory } from 'react-router-dom';
+import { PoolAdminPanel } from './PoolAdminPanel';
+import { useWallet } from '../../../utils/wallet';
 
 const { Text } = Typography;
 
@@ -41,6 +47,7 @@ export default function PoolPage() {
     () => (mintAccountInfo ? parseTokenMintData(mintAccountInfo.data) : null),
     [mintAccountInfo],
   );
+  const { wallet } = useWallet();
 
   if (poolInfo && mintInfo) {
     return (
@@ -60,6 +67,13 @@ export default function PoolPage() {
           <Col xs={24}>
             <PoolBalancesPanel poolInfo={poolInfo} />
           </Col>
+          {wallet.connected &&
+          poolInfo.state.adminKey?.equals(wallet.publicKey) &&
+          isAdminControlledPool(poolInfo) ? (
+            <Col xs={24}>
+              <PoolAdminPanel poolInfo={poolInfo} />
+            </Col>
+          ) : null}
         </Row>
       </>
     );
