@@ -44,7 +44,7 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write src"
   },
   "eslintConfig": {
     "extends": "react-app"

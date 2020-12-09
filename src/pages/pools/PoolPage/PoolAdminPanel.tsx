@@ -69,7 +69,8 @@ function PauseUnpauseTab({ poolInfo }: TabParams) {
       await sendTransaction({ connection, wallet, transaction });
     } catch (e) {
       notify({
-        message: 'Error pausing pool: ' + e.message,
+        message: 'Error pausing pool',
+        description: e.message,
         type: 'error',
       });
     } finally {
@@ -88,7 +89,8 @@ function PauseUnpauseTab({ poolInfo }: TabParams) {
       await sendTransaction({ connection, wallet, transaction });
     } catch (e) {
       notify({
-        message: 'Error unpausing pool: ' + e.message,
+        message: 'Error unpausing pool',
+        description: e.message,
         type: 'error',
       });
     } finally {
@@ -396,7 +398,8 @@ function useOnSubmitHandler(
       }
     } catch (e) {
       notify({
-        message: `Error ${description}: ${e.message}`,
+        message: `Error ${description}`,
+        description: e.message,
         type: 'error',
       });
     } finally {

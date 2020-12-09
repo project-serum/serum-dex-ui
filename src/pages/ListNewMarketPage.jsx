@@ -100,7 +100,8 @@ export default function ListNewMarketPage() {
     } catch (e) {
       console.warn(e);
       notify({
-        message: 'Error listing new market: ' + e.message,
+        message: 'Error listing new market',
+        description: e.message,
         type: 'error',
       });
     } finally {

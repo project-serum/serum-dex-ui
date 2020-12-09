@@ -28,7 +28,7 @@ const AddRemoveTokenButtons = styled.div`
   margin-bottom: 16px;
 `;
 
-const DEFAULT_PROGRAM_ID = 'DL7L4cFHwmfNevZRg92rF5unbdUvFGoiuMrQ4aV7Nzsc';
+const DEFAULT_PROGRAM_ID = 'CkMC9rHPB6xu7pQ3L49KUEYL6rcLJ25aKLLPcrNe5wLv';
 
 export default function NewPoolPage() {
   const connection = useConnection();
@@ -100,7 +100,8 @@ export default function NewPoolPage() {
     } catch (e) {
       console.warn(e);
       notify({
-        message: 'Error creating new pool: ' + e.message,
+        message: 'Error creating new pool',
+        description: e.message,
         type: 'error',
       });
     } finally {

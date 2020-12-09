@@ -119,8 +119,8 @@ function CreateRedeemTab({ poolInfo, mintInfo, tab }: CreateRedeemInnerPanel) {
         message:
           'Error ' +
           (tab === 'create' ? 'creating' : 'redeeming') +
-          ' pool tokens: ' +
-          e.message,
+          ' pool tokens',
+        description: e.message,
         type: 'error',
       });
     } finally {
