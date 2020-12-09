@@ -6,6 +6,7 @@ import FillsTable from './FillsTable';
 import FloatingElement from '../layout/FloatingElement';
 import FeesTable from './FeesTable';
 import { useOpenOrders, useBalances, useMarket } from '../../utils/markets';
+import { InstructionTab } from './InstructionTable';
 
 const { Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -39,6 +40,9 @@ export default function Index() {
             <FeesTable />
           </TabPane>
         ) : null}
+        <TabPane tab="Serum Instructions" key="instructions">
+          <InstructionTab />
+        </TabPane>
       </Tabs>
     </FloatingElement>
   );
