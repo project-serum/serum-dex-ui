@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form, Input, Switch, Tooltip, Typography } from 'antd';
+import {
+  AutoComplete,
+  Button,
+  Form,
+  Input,
+  Switch,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { PublicKey } from '@solana/web3.js';
 import { useConnection } from '../../utils/connection';
 import FloatingElement from '../../components/layout/FloatingElement';
@@ -28,7 +36,20 @@ const AddRemoveTokenButtons = styled.div`
   margin-bottom: 16px;
 `;
 
-const DEFAULT_PROGRAM_ID = 'CkMC9rHPB6xu7pQ3L49KUEYL6rcLJ25aKLLPcrNe5wLv';
+const SIMPLE_POOL_PROGRAM_ID = 'AuQRLHwApDLinkrAZCkGqQ9TB7bH7KhpfCHtm6iYNHUz';
+const ADMIN_CONTROLLED_POOL_PROGRAM_ID =
+  '4RtoceJET4bF5mWXCp2iaZmssEPS7Z43XRaYEyA8TCkB';
+const DEFAULT_PROGRAM_ID = ADMIN_CONTROLLED_POOL_PROGRAM_ID;
+const PROGRAM_ID_OPTIONS = [
+  {
+    label: `Simple Pool (${SIMPLE_POOL_PROGRAM_ID})`,
+    value: SIMPLE_POOL_PROGRAM_ID,
+  },
+  {
+    label: `Admin-Controlled Pool (${ADMIN_CONTROLLED_POOL_PROGRAM_ID})`,
+    value: ADMIN_CONTROLLED_POOL_PROGRAM_ID,
+  },
+];
 
 export default function NewPoolPage() {
   const connection = useConnection();
@@ -44,6 +65,14 @@ export default function NewPoolPage() {
   const [tokenAccounts] = useTokenAccounts();
   const [submitting, setSubmitting] = useState(false);
   const [newPoolAddress, setNewPoolAddress] = useState<PublicKey | null>(null);
+
+  useEffect(() => {
+    if (programId === SIMPLE_POOL_PROGRAM_ID) {
+      setAdminControlled(false);
+    } else if (programId === ADMIN_CONTROLLED_POOL_PROGRAM_ID) {
+      setAdminControlled(true);
+    }
+  }, [programId]);
 
   const canSubmit =
     connected &&
@@ -135,9 +164,10 @@ export default function NewPoolPage() {
             name="programId"
             initialValue={DEFAULT_PROGRAM_ID}
           >
-            <Input
+            <AutoComplete
               value={programId}
-              onChange={(e) => setProgramId(e.target.value)}
+              onChange={(value) => setProgramId(value)}
+              options={PROGRAM_ID_OPTIONS}
             />
           </Form.Item>
           <Form.Item
@@ -188,6 +218,10 @@ export default function NewPoolPage() {
             <Switch
               checked={adminControlled}
               onChange={(checked) => setAdminControlled(checked)}
+              disabled={
+                programId === SIMPLE_POOL_PROGRAM_ID ||
+                programId === ADMIN_CONTROLLED_POOL_PROGRAM_ID
+              }
             />
           </Form.Item>
           <Form.Item label=" " colon={false}>
