@@ -6,9 +6,11 @@ import {
   parseTokenAccountData,
   parseTokenMintData,
 } from '../../../utils/tokens';
-import { Spin, Tabs } from 'antd';
+import { Button, Spin, Tabs } from 'antd';
 import FloatingElement from '../../../components/layout/FloatingElement';
 import { useTokenAccounts } from '../../../utils/markets';
+import { MintName } from '../../../components/MintName';
+import { LinkOutlined } from '@ant-design/icons';
 
 const { TabPane } = Tabs;
 
@@ -90,7 +92,14 @@ function BalanceItem({ mint, publicKey }: BalanceItemProps) {
 
   return (
     <li>
-      {quantityDisplay} {mint.toBase58()} {publicKey.toBase58()}
+      {quantityDisplay} <MintName mint={mint} />{' '}
+      <Button
+        type="link"
+        icon={<LinkOutlined />}
+        href={'https://explorer.solana.com/address/' + publicKey.toBase58()}
+        target="_blank"
+        rel="noopener noreferrer"
+      />
     </li>
   );
 }

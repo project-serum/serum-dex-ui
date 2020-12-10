@@ -5,10 +5,11 @@ import { PublicKey } from '@solana/web3.js';
 import { useAccountInfo } from '../../../utils/connection';
 import { parseTokenMintData } from '../../../utils/tokens';
 import { Spin } from 'antd';
+import { MintName } from '../../../components/MintName';
 
 interface BasketDisplayProps {
   poolInfo: PoolInfo;
-  basket: Basket;
+  basket?: Basket | null | undefined;
 }
 
 export default function PoolBasketDisplay({
@@ -21,7 +22,7 @@ export default function PoolBasketDisplay({
         <BasketItem
           key={index}
           mint={asset.mint}
-          quantity={basket.quantities[index]}
+          quantity={basket?.quantities[index]}
         />
       ))}
     </ul>
@@ -30,20 +31,20 @@ export default function PoolBasketDisplay({
 
 interface BasketItemProps {
   mint: PublicKey;
-  quantity: BN;
+  quantity?: BN;
 }
 
 function BasketItem({ mint, quantity }: BasketItemProps) {
   const [mintAccountInfo] = useAccountInfo(mint);
   let quantityDisplay = <Spin size="small" />;
-  if (mintAccountInfo) {
+  if (mintAccountInfo && quantity) {
     const mintInfo = parseTokenMintData(mintAccountInfo.data);
     quantityDisplay = <>{quantity.toNumber() / 10 ** mintInfo.decimals}</>;
   }
 
   return (
     <li>
-      {quantityDisplay} {mint.toBase58()}
+      {quantityDisplay} <MintName mint={mint} showAddress />
     </li>
   );
 }

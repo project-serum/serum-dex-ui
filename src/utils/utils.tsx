@@ -132,7 +132,7 @@ export function useListener(emitter, eventName) {
   }, [emitter, eventName]);
 }
 
-export function abbreviateAddress(address, size = 4) {
+export function abbreviateAddress(address: PublicKey, size = 4) {
   const base58 = address.toBase58();
   return base58.slice(0, size) + '…' + base58.slice(-size);
 }

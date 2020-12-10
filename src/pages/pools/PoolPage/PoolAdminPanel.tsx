@@ -11,16 +11,17 @@ import {
 import { sendTransaction } from '../../../utils/send';
 import { notify } from '../../../utils/notifications';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { Button, Input, Tabs } from 'antd';
+import { Button, Input, Select, Tabs } from 'antd';
 import {
   createAssociatedTokenAccount,
   getAssociatedTokenAddress,
 } from '@project-serum/associated-token';
-import { parseTokenMintData } from '../../../utils/tokens';
+import { parseTokenMintData, useMintToTickers } from '../../../utils/tokens';
 import BN from 'bn.js';
 import { refreshAllCaches } from '../../../utils/fetch-loop';
 
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 export function PoolAdminPanel({ poolInfo }: { poolInfo: PoolInfo }) {
   return (
@@ -41,7 +42,7 @@ export function PoolAdminPanel({ poolInfo }: { poolInfo: PoolInfo }) {
         <TabPane tab="Withdraw" key="withdraw">
           <WithdrawTab poolInfo={poolInfo} />
         </TabPane>
-        <TabPane tab="Change Fee" key="updateFee">
+        <TabPane tab="Modify Fee" key="updateFee">
           <UpdateFeeTab poolInfo={poolInfo} />
         </TabPane>
       </Tabs>
@@ -177,10 +178,11 @@ function RemoveAssetTab({ poolInfo }: TabParams) {
 
   return (
     <form onSubmit={onSubmit}>
-      <Input
-        addonBefore={<>Token Mint Address</>}
+      <MintInPoolSelector
+        poolInfo={poolInfo}
+        label="Token Mint Address"
         value={address}
-        onChange={(e) => setAddress(e.target.value.trim())}
+        onChange={(value) => setAddress(value)}
         style={{ marginBottom: 24 }}
       />
       <SubmitButton canSubmit={canSubmit} submitting={submitting} />
@@ -242,10 +244,11 @@ function DepositTab({ poolInfo }: TabParams) {
 
   return (
     <form onSubmit={onSubmit}>
-      <Input
-        addonBefore={<>Token Mint Address</>}
+      <MintInPoolSelector
+        poolInfo={poolInfo}
+        label="Token Mint Address"
         value={address}
-        onChange={(e) => setAddress(e.target.value.trim())}
+        onChange={(value) => setAddress(value)}
         style={{ marginBottom: 24 }}
       />
       <Input
@@ -318,10 +321,11 @@ function WithdrawTab({ poolInfo }: TabParams) {
 
   return (
     <form onSubmit={onSubmit}>
-      <Input
-        addonBefore={<>Token Mint Address</>}
+      <MintInPoolSelector
+        poolInfo={poolInfo}
+        label="Token Mint Address"
         value={address}
-        onChange={(e) => setAddress(e.target.value.trim())}
+        onChange={(value) => setAddress(value)}
         style={{ marginBottom: 24 }}
       />
       <Input
@@ -420,5 +424,39 @@ function SubmitButton({ canSubmit, submitting }) {
     >
       {!connected ? 'Wallet not connected' : 'Submit'}
     </Button>
+  );
+}
+
+function MintInPoolSelector({
+  poolInfo,
+  label,
+  value,
+  onChange,
+  style,
+}: {
+  poolInfo: PoolInfo;
+  label: string;
+  value: string;
+  onChange: (string) => void;
+  style: any;
+}) {
+  const mintToTickers = useMintToTickers();
+  return (
+    <Input.Group style={style}>
+      <span className="ant-input-group-addon">{label}</span>
+      <Select onChange={onChange} value={value} style={{ width: '100%' }}>
+        {poolInfo.state.assets.map((asset) => (
+          <Option value={asset.mint.toBase58()} key={asset.mint.toBase58()}>
+            {mintToTickers[asset.mint.toBase58()] ? (
+              <>
+                {mintToTickers[asset.mint.toBase58()]} ({asset.mint.toBase58()})
+              </>
+            ) : (
+              asset.mint.toBase58()
+            )}
+          </Option>
+        ))}
+      </Select>
+    </Input.Group>
   );
 }

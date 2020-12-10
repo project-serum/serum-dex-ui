@@ -1,7 +1,7 @@
 import { getPoolBasket, PoolInfo } from '@project-serum/pool';
 import React from 'react';
 import FloatingElement from '../../../components/layout/FloatingElement';
-import { Spin, Typography } from 'antd';
+import { Typography } from 'antd';
 import { MintInfo } from '../../../utils/tokens';
 import { useAsyncData } from '../../../utils/fetch-loop';
 import { useConnection } from '../../../utils/connection';
@@ -52,11 +52,7 @@ export default function PoolInfoPanel({ poolInfo, mintInfo }: PoolInfoProps) {
       </Paragraph>
       <Text>Total assets:</Text>
       <div>
-        {!totalBasket ? (
-          <Spin />
-        ) : (
-          <PoolBasketDisplay poolInfo={poolInfo} basket={totalBasket} />
-        )}
+        <PoolBasketDisplay poolInfo={poolInfo} basket={totalBasket} />
       </div>
     </FloatingElement>
   );
