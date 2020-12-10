@@ -4,8 +4,8 @@ import { useAccountInfo } from '../utils/connection';
 import { isValidPublicKey } from '../utils/utils';
 import { ValidateStatus } from 'antd/lib/form/FormItem';
 import { TokenInstructions } from '@project-serum/serum';
-import { parseTokenMintData } from '../utils/tokens';
-import { Form, Input, Tooltip } from 'antd';
+import { parseTokenMintData, useMintToTickers } from '../utils/tokens';
+import { AutoComplete, Form, Tooltip } from 'antd';
 import Link from './Link';
 
 export interface MintInfo {
@@ -22,6 +22,24 @@ export function useMintInput(
   const [accountInfo, loaded] = useAccountInfo(
     isValidPublicKey(address) ? new PublicKey(address) : null,
   );
+
+  const mintToTickers = useMintToTickers();
+  const options = useMemo(() => {
+    return Object.entries(mintToTickers)
+      .filter(
+        ([mintAddress, ticker]) =>
+          mintAddress.includes(address) ||
+          ticker.toLowerCase().includes(address.toLowerCase()),
+      )
+      .map(([mintAddress, ticker]) => ({
+        value: mintAddress,
+        label: (
+          <>
+            {ticker} ({mintAddress})
+          </>
+        ),
+      }));
+  }, [mintToTickers, address]);
 
   const { validateStatus, hasFeedback, help, mintInfo } = useMemo(() => {
     let validateStatus: ValidateStatus = '';
@@ -82,9 +100,10 @@ export function useMintInput(
       hasFeedback={hasFeedback}
       help={help}
     >
-      <Input
+      <AutoComplete
+        options={options}
         value={address}
-        onChange={(e) => setAddress(e.target.value.trim())}
+        onChange={(value) => setAddress(value)}
       />
     </Form.Item>
   );

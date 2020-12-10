@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useMemo, useState } from 'react';
 import { AdminControlledPoolInstructions, PoolInfo } from '@project-serum/pool';
 import { TokenInstructions } from '@project-serum/serum';
 import FloatingElement from '../../../components/layout/FloatingElement';
@@ -11,7 +11,7 @@ import {
 import { sendTransaction } from '../../../utils/send';
 import { notify } from '../../../utils/notifications';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { Button, Input, Select, Tabs } from 'antd';
+import { AutoComplete, Button, Input, Select, Tabs } from 'antd';
 import {
   createAssociatedTokenAccount,
   getAssociatedTokenAddress,
@@ -143,10 +143,10 @@ function AddAssetTab({ poolInfo }: TabParams) {
 
   return (
     <form onSubmit={onSubmit}>
-      <Input
-        addonBefore={<>Token Mint Address</>}
+      <MintSelector
+        label="Token Mint Address"
         value={address}
-        onChange={(e) => setAddress(e.target.value.trim())}
+        onChange={(value) => setAddress(value)}
         style={{ marginBottom: 24 }}
       />
       <SubmitButton canSubmit={canSubmit} submitting={submitting} />
@@ -457,6 +457,37 @@ function MintInPoolSelector({
           </Option>
         ))}
       </Select>
+    </Input.Group>
+  );
+}
+
+function MintSelector({ label, style, value, onChange }) {
+  const mintToTickers = useMintToTickers();
+  const options = useMemo(() => {
+    return Object.entries(mintToTickers)
+      .filter(
+        ([mintAddress, ticker]) =>
+          mintAddress.includes(value) ||
+          ticker.toLowerCase().includes(value.toLowerCase()),
+      )
+      .map(([mintAddress, ticker]) => ({
+        value: mintAddress,
+        label: (
+          <>
+            {ticker} ({mintAddress})
+          </>
+        ),
+      }));
+  }, [mintToTickers, value]);
+  return (
+    <Input.Group style={style}>
+      <span className="ant-input-group-addon">{label}</span>
+      <AutoComplete
+        options={options}
+        value={value}
+        onChange={(e) => onChange(e)}
+        style={{ width: '100%' }}
+      />
     </Input.Group>
   );
 }

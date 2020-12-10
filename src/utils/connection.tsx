@@ -162,12 +162,12 @@ export function useAccountInfo(
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cacheKey]);
-  const previousInfoRef = useRef<AccountInfo<Buffer> | null>(null);
+  const previousInfoRef = useRef<AccountInfo<Buffer> | null | undefined>(null);
   if (
-    accountInfo &&
-    (!previousInfoRef.current ||
-      !previousInfoRef.current.data.equals(accountInfo.data) ||
-      previousInfoRef.current.lamports !== accountInfo.lamports)
+    !accountInfo ||
+    !previousInfoRef.current ||
+    !previousInfoRef.current.data.equals(accountInfo.data) ||
+    previousInfoRef.current.lamports !== accountInfo.lamports
   ) {
     previousInfoRef.current = accountInfo;
   }
