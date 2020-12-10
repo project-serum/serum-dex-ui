@@ -10,7 +10,12 @@ import {
 } from '../../../utils/markets';
 import { sendTransaction } from '../../../utils/send';
 import { notify } from '../../../utils/notifications';
-import { PublicKey, Transaction } from '@solana/web3.js';
+import {
+  Account,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+} from '@solana/web3.js';
 import { AutoComplete, Button, Input, Select, Tabs } from 'antd';
 import {
   createAssociatedTokenAccount,
@@ -137,7 +142,7 @@ function AddAssetTab({ poolInfo }: TabParams) {
       transaction.add(
         AdminControlledPoolInstructions.addAsset(poolInfo, vaultAddress),
       );
-      return transaction;
+      return [transaction, []];
     },
   );
 
@@ -172,7 +177,7 @@ function RemoveAssetTab({ poolInfo }: TabParams) {
       transaction.add(
         AdminControlledPoolInstructions.removeAsset(poolInfo, vaultAddress),
       );
-      return transaction;
+      return [transaction, []];
     },
   );
 
@@ -228,16 +233,52 @@ function DepositTab({ poolInfo }: TabParams) {
         parseFloat(quantity) * 10 ** mintDecimals,
       );
 
+      const wrappedSolAccount =
+        mintAddress.equals(TokenInstructions.WRAPPED_SOL_MINT) &&
+        walletTokenAccount.pubkey.equals(wallet.publicKey)
+          ? new Account()
+          : null;
+
       const transaction = new Transaction();
-      transaction.add(
-        TokenInstructions.transfer({
-          source: walletTokenAccount.pubkey,
-          destination: vaultAddress,
-          amount: parsedQuantity,
-          owner: wallet.publicKey,
-        }),
-      );
-      return transaction;
+      const signers: Account[] = [];
+      if (wrappedSolAccount) {
+        transaction.add(
+          SystemProgram.createAccount({
+            fromPubkey: wallet.publicKey,
+            lamports: parsedQuantity + 2.04e6,
+            newAccountPubkey: wrappedSolAccount.publicKey,
+            programId: TokenInstructions.TOKEN_PROGRAM_ID,
+            space: 165,
+          }),
+          TokenInstructions.initializeAccount({
+            account: wrappedSolAccount.publicKey,
+            mint: TokenInstructions.WRAPPED_SOL_MINT,
+            owner: wallet.publicKey,
+          }),
+          TokenInstructions.transfer({
+            source: wrappedSolAccount.publicKey,
+            destination: vaultAddress,
+            amount: parsedQuantity,
+            owner: wallet.publicKey,
+          }),
+          TokenInstructions.closeAccount({
+            source: wrappedSolAccount.publicKey,
+            destination: walletTokenAccount.pubkey,
+            owner: wallet.publicKey,
+          }),
+        );
+        signers.push(wrappedSolAccount);
+      } else {
+        transaction.add(
+          TokenInstructions.transfer({
+            source: walletTokenAccount.pubkey,
+            destination: vaultAddress,
+            amount: parsedQuantity,
+            owner: wallet.publicKey,
+          }),
+        );
+      }
+      return [transaction, signers];
     },
     true,
   );
@@ -300,7 +341,31 @@ function WithdrawTab({ poolInfo }: TabParams) {
         parseFloat(quantity) * 10 ** mintDecimals,
       );
 
+      const wrappedSolAccount =
+        mintAddress.equals(TokenInstructions.WRAPPED_SOL_MINT) &&
+        walletTokenAccount.pubkey.equals(wallet.publicKey)
+          ? new Account()
+          : null;
+
       const transaction = new Transaction();
+      const signers: Account[] = [];
+      if (wrappedSolAccount) {
+        transaction.add(
+          SystemProgram.createAccount({
+            fromPubkey: wallet.publicKey,
+            lamports: 2.04e6,
+            newAccountPubkey: wrappedSolAccount.publicKey,
+            programId: TokenInstructions.TOKEN_PROGRAM_ID,
+            space: 165,
+          }),
+          TokenInstructions.initializeAccount({
+            account: wrappedSolAccount.publicKey,
+            mint: TokenInstructions.WRAPPED_SOL_MINT,
+            owner: wallet.publicKey,
+          }),
+        );
+        signers.push(wrappedSolAccount);
+      }
       transaction.add(
         AdminControlledPoolInstructions.approveDelegate(
           poolInfo,
@@ -308,14 +373,32 @@ function WithdrawTab({ poolInfo }: TabParams) {
           wallet.publicKey,
           new BN(parsedQuantity),
         ),
-        TokenInstructions.transfer({
-          source: vaultAddress,
-          destination: walletTokenAccount.pubkey,
-          amount: parsedQuantity,
-          owner: wallet.publicKey,
-        }),
       );
-      return transaction;
+      if (wrappedSolAccount) {
+        transaction.add(
+          TokenInstructions.transfer({
+            source: vaultAddress,
+            destination: wrappedSolAccount.publicKey,
+            amount: parsedQuantity,
+            owner: wallet.publicKey,
+          }),
+          TokenInstructions.closeAccount({
+            source: wrappedSolAccount.publicKey,
+            destination: walletTokenAccount.pubkey,
+            owner: wallet.publicKey,
+          }),
+        );
+      } else {
+        transaction.add(
+          TokenInstructions.transfer({
+            source: vaultAddress,
+            destination: walletTokenAccount.pubkey,
+            amount: parsedQuantity,
+            owner: wallet.publicKey,
+          }),
+        );
+      }
+      return [transaction, signers];
     },
   );
 
@@ -356,7 +439,7 @@ function UpdateFeeTab({ poolInfo }: TabParams) {
           Math.round(parseFloat(feeRate) * 1_000_000),
         ),
       );
-      return transaction;
+      return [transaction, []];
     },
   );
 
@@ -375,7 +458,7 @@ function UpdateFeeTab({ poolInfo }: TabParams) {
 
 function useOnSubmitHandler(
   description: string,
-  makeTransaction: () => Promise<Transaction | null | undefined>,
+  makeTransaction: () => Promise<[Transaction, Account[]]>,
   refresh = false,
 ): [(FormEvent) => void, boolean] {
   const connection = useConnection();
@@ -392,11 +475,8 @@ function useOnSubmitHandler(
       if (!connected) {
         throw new Error('Wallet not connected');
       }
-      const transaction = await makeTransaction();
-      if (!transaction) {
-        return;
-      }
-      await sendTransaction({ connection, wallet, transaction });
+      const [transaction, signers] = await makeTransaction();
+      await sendTransaction({ connection, wallet, transaction, signers });
       if (refresh) {
         refreshAllCaches();
       }
