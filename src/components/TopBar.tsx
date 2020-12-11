@@ -17,6 +17,7 @@ import { notify } from '../utils/notifications';
 import { Connection } from '@solana/web3.js';
 import WalletConnect from './WalletConnect';
 import AppSearch from './AppSearch';
+import { getTradePageUrl } from '../utils/markets';
 
 const Wrapper = styled.div`
   background-color: #0d1017;
@@ -126,6 +127,10 @@ export default function TopBar() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [endpointInfoCustom, setEndpoint]);
 
+  const tradePageUrl = location.pathname.startsWith('/market/')
+    ? location.pathname
+    : getTradePageUrl();
+
   return (
     <>
       <CustomClusterEndpointDialog
@@ -135,7 +140,7 @@ export default function TopBar() {
         onClose={() => setAddEndpointVisible(false)}
       />
       <Wrapper>
-        <LogoWrapper onClick={() => history.push('/')}>
+        <LogoWrapper onClick={() => history.push(tradePageUrl)}>
           <img src={logo} alt="" />
           {'SERUM'}
         </LogoWrapper>
@@ -151,7 +156,7 @@ export default function TopBar() {
             flex: 1,
           }}
         >
-          <Menu.Item key="/" style={{ margin: '0 10px 0 20px' }}>
+          <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
             TRADE
           </Menu.Item>
           {!searchFocussed && (

@@ -220,11 +220,7 @@ export function useCustomMarkets() {
   return { customMarkets, setCustomMarkets };
 }
 
-export function MarketProvider({ children }) {
-  const [marketAddress, setMarketAddress] = useLocalStorageState(
-    'marketAddress',
-    DEFAULT_MARKET?.address.toBase58(),
-  );
+export function MarketProvider({ marketAddress, setMarketAddress, children }) {
   const { customMarkets, setCustomMarkets } = useCustomMarkets();
 
   const address = marketAddress && new PublicKey(marketAddress);
@@ -288,6 +284,17 @@ export function MarketProvider({ children }) {
       {children}
     </MarketContext.Provider>
   );
+}
+
+export function getTradePageUrl(marketAddress?: string) {
+  if (!marketAddress) {
+    const saved = localStorage.getItem('marketAddress');
+    if (saved) {
+      marketAddress = JSON.parse(saved);
+    }
+    marketAddress = marketAddress || DEFAULT_MARKET?.address.toBase58() || '';
+  }
+  return `/market/${marketAddress}`;
 }
 
 export function useSelectedTokenAccounts(): [

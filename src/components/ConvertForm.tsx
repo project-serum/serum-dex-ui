@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Col, Input, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
-import { Market, Orderbook } from '@project-serum/serum';
+import { Orderbook } from '@project-serum/serum';
 import {
   getExpectedFillPrice,
   getMarketDetails,
   getMarketInfos,
   getMarketOrderPrice,
   getSelectedTokenAccountForMint,
+  MarketProvider,
   useBalances,
   useCustomMarkets,
   useMarket,
@@ -42,7 +43,7 @@ export default function ConvertForm() {
   const { connected, wallet } = useWallet();
   const { customMarkets } = useCustomMarkets();
   const marketInfos = getMarketInfos(customMarkets);
-  const { market, setMarketAddress } = useMarket();
+  const [marketAddress, setMarketAddress] = useState<string | null>(null);
 
   const [fromToken, setFromToken] = useState<string | undefined>(undefined);
   const [toToken, setToToken] = useState<string | undefined>(undefined);
@@ -140,15 +141,19 @@ export default function ConvertForm() {
             </Row>
           )}
           {fromToken && toToken && (
-            <ConvertFormSubmit
-              size={size}
-              setSize={setSize}
-              fromToken={fromToken}
-              toToken={toToken}
-              wallet={wallet}
-              market={market}
-              customMarkets={customMarkets}
-            />
+            <MarketProvider
+              marketAddress={marketAddress}
+              setMarketAddress={setMarketAddress}
+            >
+              <ConvertFormSubmit
+                size={size}
+                setSize={setSize}
+                fromToken={fromToken}
+                toToken={toToken}
+                wallet={wallet}
+                customMarkets={customMarkets}
+              />
+            </MarketProvider>
           )}
         </>
       )}
@@ -162,7 +167,6 @@ function ConvertFormSubmit({
   fromToken,
   toToken,
   wallet,
-  market,
   customMarkets,
 }: {
   size: number | null | undefined;
@@ -170,9 +174,9 @@ function ConvertFormSubmit({
   fromToken: string;
   toToken: string;
   wallet: Wallet;
-  market: Market | null | undefined;
   customMarkets: CustomMarketInfo[];
 }) {
+  const { market } = useMarket();
   const [accounts] = useTokenAccounts();
   const balances = useBalances();
   const [fromAmount, setFromAmount] = useState<number | undefined>();
