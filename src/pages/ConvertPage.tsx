@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import ConvertForm from '../components/ConvertForm';
 import { Row, Col } from 'antd';
+import { MarketProvider } from '../utils/markets';
 
 const Wrapper = styled.div`
   height: 100%;
@@ -18,7 +19,9 @@ export default function ConvertPage() {
     <Wrapper style={{ flex: 1, paddingTop: 10 }}>
       <Row justify="center">
         <Col>
-          <ConvertForm />
+          <MarketProvider>
+            <ConvertForm />
+          </MarketProvider>
         </Col>
       </Row>
     </Wrapper>

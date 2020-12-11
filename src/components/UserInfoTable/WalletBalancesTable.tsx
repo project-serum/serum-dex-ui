@@ -7,7 +7,6 @@ import { useConnection } from '../../utils/connection';
 import { useWallet } from '../../utils/wallet';
 import {
   useAllMarkets,
-  useMarket,
   useSelectedTokenAccounts,
   useTokenAccounts,
 } from '../../utils/markets';
@@ -30,8 +29,7 @@ export default function WalletBalancesTable({
   const { wallet, connected } = useWallet();
   const [selectedTokenAccounts] = useSelectedTokenAccounts();
   const [tokenAccounts, tokenAccountsConnected] = useTokenAccounts();
-  const { customMarkets } = useMarket();
-  const [allMarkets, allMarketsConnected] = useAllMarkets(customMarkets);
+  const [allMarkets, allMarketsConnected] = useAllMarkets();
   const [settlingFunds, setSettlingFunds] = useState(false);
 
   async function onSettleFunds() {

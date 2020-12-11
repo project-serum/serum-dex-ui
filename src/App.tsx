@@ -15,15 +15,13 @@ export default function App() {
       <GlobalStyle />
       <ErrorBoundary>
         <ConnectionProvider>
-          <MarketProvider>
-            <WalletProvider>
-              <PreferencesProvider>
-                <Suspense fallback={() => <Spin size="large" />}>
-                  <Routes />
-                </Suspense>
-              </PreferencesProvider>
-            </WalletProvider>
-          </MarketProvider>
+          <WalletProvider>
+            <PreferencesProvider>
+              <Suspense fallback={() => <Spin size="large" />}>
+                <Routes />
+              </Suspense>
+            </PreferencesProvider>
+          </WalletProvider>
         </ConnectionProvider>
       </ErrorBoundary>
     </Suspense>

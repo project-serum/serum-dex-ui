@@ -4,7 +4,7 @@ import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
 import { TokenAccount } from './types';
 import { TOKEN_MINTS } from '@project-serum/serum';
-import { useAllMarkets, useMarket, useTokenAccounts } from './markets';
+import { useAllMarkets, useCustomMarkets, useTokenAccounts } from './markets';
 import { getMultipleSolanaAccounts } from './send';
 import { useConnection } from './connection';
 import { useAsyncData } from './fetch-loop';
@@ -146,8 +146,8 @@ export async function getTokenAccountInfo(
 }
 
 export function useMintToTickers(): { [mint: string]: string } {
-  const { customMarkets } = useMarket();
-  const [markets] = useAllMarkets(customMarkets);
+  const { customMarkets } = useCustomMarkets();
+  const [markets] = useAllMarkets();
   return useMemo(() => {
     const mintsToTickers = Object.fromEntries(
       TOKEN_MINTS.map((mint) => [mint.address.toBase58(), mint.name]),
@@ -191,9 +191,8 @@ export function useMintInfos(): [
   boolean,
 ] {
   const connection = useConnection();
-  const { customMarkets } = useMarket();
   const [tokenAccounts] = useTokenAccounts();
-  const [allMarkets] = useAllMarkets(customMarkets);
+  const [allMarkets] = useAllMarkets();
 
   const allMints = (tokenAccounts || [])
     .map((account) => account.effectiveMint)

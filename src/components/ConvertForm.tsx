@@ -9,6 +9,7 @@ import {
   getMarketOrderPrice,
   getSelectedTokenAccountForMint,
   useBalances,
+  useCustomMarkets,
   useMarket,
   useTokenAccounts,
 } from '../utils/markets';
@@ -39,7 +40,7 @@ const ConvertButton = styled(Button)`
 
 export default function ConvertForm() {
   const { connected, wallet } = useWallet();
-  const { customMarkets } = useMarket();
+  const { customMarkets } = useCustomMarkets();
   const marketInfos = getMarketInfos(customMarkets);
   const { market, setMarketAddress } = useMarket();
 

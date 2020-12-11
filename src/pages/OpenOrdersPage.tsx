@@ -1,10 +1,9 @@
 import React from 'react';
 import FloatingElement from '../components/layout/FloatingElement';
 import {
-  getMarketInfos,
   useAllMarkets,
   useAllOpenOrders,
-  useMarket,
+  useMarketInfos,
 } from '../utils/markets';
 import OpenOrderTable from '../components/UserInfoTable/OpenOrderTable';
 import { Button } from 'antd';
@@ -12,12 +11,11 @@ import { OrderWithMarketAndMarketName } from '../utils/types';
 
 export default function OpenOrdersPage() {
   const { openOrders, loaded, refreshOpenOrders } = useAllOpenOrders();
-  let { customMarkets } = useMarket();
-  let marketInfos = getMarketInfos(customMarkets);
+  let marketInfos = useMarketInfos();
   let marketAddressesToNames = Object.fromEntries(
     marketInfos.map((info) => [info.address.toBase58(), info.name]),
   );
-  let [allMarkets] = useAllMarkets(customMarkets);
+  let [allMarkets] = useAllMarkets();
   const marketsByAddress = Object.fromEntries(
     (allMarkets || []).map((marketInfo) => [
       marketInfo.market.address.toBase58(),

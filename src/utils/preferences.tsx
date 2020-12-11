@@ -5,9 +5,8 @@ import { useConnection } from './connection';
 import { useWallet } from './wallet';
 import {
   useAllMarkets,
-  useTokenAccounts,
-  useMarket,
   useSelectedTokenAccounts,
+  useTokenAccounts,
 } from './markets';
 import { settleAllFunds } from './send';
 import { PreferencesContextValues } from './types';
@@ -24,8 +23,7 @@ export function PreferencesProvider({ children }) {
 
   const [tokenAccounts] = useTokenAccounts();
   const { connected, wallet } = useWallet();
-  const { customMarkets } = useMarket();
-  const [marketList] = useAllMarkets(customMarkets);
+  const [marketList] = useAllMarkets();
   const connection = useConnection();
   const [selectedTokenAccounts] = useSelectedTokenAccounts();
 

@@ -9,6 +9,7 @@ import {
   useMarketsList,
   useUnmigratedDeprecatedMarkets,
   getMarketInfos,
+  MarketProvider,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
@@ -35,6 +36,14 @@ const Wrapper = styled.div`
 `;
 
 export default function TradePage() {
+  return (
+    <MarketProvider>
+      <TradePageInner />
+    </MarketProvider>
+  );
+}
+
+function TradePageInner() {
   const {
     market,
     marketName,
@@ -83,7 +92,7 @@ export default function TradePage() {
       [],
     ),
   };
-  const getComponent = useCallback(() => {
+  const component = (() => {
     if (handleDeprecated) {
       return (
         <DeprecatedMarketsPage
@@ -97,7 +106,7 @@ export default function TradePage() {
     } else {
       return <RenderNormal {...componentProps} />;
     }
-  }, [width, componentProps, handleDeprecated]);
+  })();
 
   const onAddCustomMarket = (customMarket) => {
     const marketInfo = getMarketInfos(customMarkets).some(
@@ -176,7 +185,7 @@ export default function TradePage() {
             </React.Fragment>
           )}
         </Row>
-        {getComponent()}
+        {component}
       </Wrapper>
     </>
   );

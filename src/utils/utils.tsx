@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 
@@ -111,7 +111,7 @@ export function useLocalStorageState<T = any>(
     JSON.stringify(defaultState),
   );
   return [
-    stringState && JSON.parse(stringState),
+    useMemo(() => stringState && JSON.parse(stringState), [stringState]),
     (newState) => setStringState(JSON.stringify(newState)),
   ];
 }
