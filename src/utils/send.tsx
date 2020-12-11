@@ -593,20 +593,17 @@ export async function listMarket({
     }),
   );
 
-  const signedTransactions = await Promise.all([
-    signTransaction({
-      transaction: tx1,
-      wallet,
-      connection,
-      signers: [baseVault, quoteVault],
-    }),
-    signTransaction({
-      transaction: tx2,
-      wallet,
-      connection,
-      signers: [market, requestQueue, eventQueue, bids, asks],
-    }),
-  ]);
+  const signedTransactions = await signTransactions({
+    transactionsAndSigners: [
+      { transaction: tx1, signers: [baseVault, quoteVault] },
+      {
+        transaction: tx2,
+        signers: [market, requestQueue, eventQueue, bids, asks],
+      },
+    ],
+    wallet,
+    connection,
+  });
   for (let signedTransaction of signedTransactions) {
     await sendSignedTransaction({
       signedTransaction,
@@ -677,6 +674,34 @@ export async function signTransaction({
     transaction.partialSign(...signers);
   }
   return await wallet.signTransaction(transaction);
+}
+
+export async function signTransactions({
+  transactionsAndSigners,
+  wallet,
+  connection,
+}: {
+  transactionsAndSigners: {
+    transaction: Transaction;
+    signers?: Array<Account>;
+  }[];
+  wallet: Wallet;
+  connection: Connection;
+}) {
+  const blockhash = (await connection.getRecentBlockhash('max')).blockhash;
+  transactionsAndSigners.forEach(({ transaction, signers = [] }) => {
+    transaction.recentBlockhash = blockhash;
+    transaction.setSigners(
+      wallet.publicKey,
+      ...signers.map((s) => s.publicKey),
+    );
+    if (signers?.length > 0) {
+      transaction.partialSign(...signers);
+    }
+  });
+  return await wallet.signAllTransactions(
+    transactionsAndSigners.map(({ transaction }) => transaction),
+  );
 }
 
 export async function sendSignedTransaction({

@@ -1569,9 +1569,9 @@
     buffer-layout "^1.2.0"
 
 "@project-serum/sol-wallet-adapter@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@project-serum/sol-wallet-adapter/-/sol-wallet-adapter-0.1.1.tgz#f4358e5210c2a059a28e4c9972b25b4345412f97"
-  integrity sha512-BrJTbqwM9548DBXUnwpF1OCBwC36oITfJOskdIMGyNMKUSNSmzKqUuFCx/GrUJU1gqMpFJSPfzZnQEQKTn33Nw==
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@project-serum/sol-wallet-adapter/-/sol-wallet-adapter-0.1.4.tgz#dfcc2339bdcc352b16deab5055d0b818b1da1e3e"
+  integrity sha512-bjcBx2iEEqIZUNgOkfEpqgzsEha8lU0IbzWZWVkRdIpdZnTguomHmarZ7Z9zvZvjI2M9fZ8wA/0m/s2GXYoQVQ==
   dependencies:
     bs58 "^4.0.1"
     eventemitter3 "^4.0.4"

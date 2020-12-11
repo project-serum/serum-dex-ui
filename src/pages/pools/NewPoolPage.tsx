@@ -13,7 +13,7 @@ import { useConnection } from '../../utils/connection';
 import FloatingElement from '../../components/layout/FloatingElement';
 import styled from 'styled-components';
 import { useWallet } from '../../utils/wallet';
-import { sendSignedTransaction, signTransaction } from '../../utils/send';
+import { sendSignedTransaction, signTransactions } from '../../utils/send';
 import { useMintInput } from '../../components/useMintInput';
 import { PoolTransactions } from '@project-serum/pool';
 import { useTokenAccounts } from '../../utils/markets';
@@ -91,7 +91,7 @@ export default function NewPoolPage() {
       const assets = initialAssets as ValidInitialAsset[];
       const [
         poolAddress,
-        transactions,
+        transactionsAndSigners,
       ] = await PoolTransactions.initializeSimplePool({
         connection,
         programId: new PublicKey(programId),
@@ -117,11 +117,11 @@ export default function NewPoolPage() {
           ? [{ pubkey: wallet.publicKey, isSigner: false, isWritable: false }]
           : [],
       });
-      const signed = await Promise.all(
-        transactions.map(({ transaction, signers }) =>
-          signTransaction({ transaction, wallet, signers, connection }),
-        ),
-      );
+      const signed = await signTransactions({
+        transactionsAndSigners,
+        wallet,
+        connection,
+      });
       for (let signedTransaction of signed) {
         await sendSignedTransaction({ signedTransaction, connection });
       }
