@@ -53,6 +53,7 @@ function WalletBalancesTab({ poolInfo }: { poolInfo: PoolInfo }) {
             key={index}
             mint={mint}
             publicKey={tokenAccount.pubkey}
+            isPoolToken={mint.equals(poolInfo.state.poolTokenMint)}
           />
         );
       })}
@@ -79,9 +80,10 @@ function PoolBalancesTab({ poolInfo }: { poolInfo: PoolInfo }) {
 interface BalanceItemProps {
   mint: PublicKey;
   publicKey: PublicKey;
+  isPoolToken?: boolean;
 }
 
-function BalanceItem({ mint, publicKey }: BalanceItemProps) {
+function BalanceItem({ mint, publicKey, isPoolToken }: BalanceItemProps) {
   const [mintAccountInfo] = useAccountInfo(mint);
   const [balanceAccountInfo] = useAccountInfo(publicKey);
   let quantityDisplay = <Spin size="small" />;
@@ -99,7 +101,14 @@ function BalanceItem({ mint, publicKey }: BalanceItemProps) {
 
   return (
     <li>
-      {quantityDisplay} <MintName mint={mint} />{' '}
+      {quantityDisplay}{' '}
+      {isPoolToken ? (
+        <>
+          Pool Token (<MintName mint={mint} />)
+        </>
+      ) : (
+        <MintName mint={mint} />
+      )}{' '}
       <Button
         type="link"
         icon={<LinkOutlined />}
