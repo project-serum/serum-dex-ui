@@ -442,15 +442,18 @@ export async function placeOrder({
 
   const matchOrderstransaction = market.makeMatchOrdersTransaction(5);
   transaction.add(matchOrderstransaction);
+  const startTime = getUnixTs();
   let {
     transaction: placeOrderTx,
     signers: placeOrderSigners,
   } = await market.makePlaceOrderTransaction(
     connection,
     params,
-    10_000,
-    10_000,
+    120_000,
+    120_000,
   );
+  const endTime = getUnixTs();
+  console.log(`Creating order transaction took ${endTime - startTime}`);
   transaction.add(placeOrderTx);
   transaction.add(market.makeMatchOrdersTransaction(5));
   signers.push(...placeOrderSigners);
@@ -614,7 +617,7 @@ export async function listMarket({
   return market.publicKey;
 }
 
-const getUnixTs = () => {
+export const getUnixTs = () => {
   return new Date().getTime() / 1000;
 };
 
