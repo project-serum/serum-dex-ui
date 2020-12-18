@@ -453,7 +453,7 @@ export async function placeOrder({
     120_000,
   );
   const endTime = getUnixTs();
-  console.log(`Creating order transaction took ${endTime - startTime}`)
+  console.log(`Creating order transaction took ${endTime - startTime}`);
   transaction.add(placeOrderTx);
   transaction.add(market.makeMatchOrdersTransaction(5));
   signers.push(...placeOrderSigners);

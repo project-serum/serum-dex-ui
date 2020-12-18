@@ -19,7 +19,7 @@ import {
 } from '../utils/utils';
 import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
-import {getUnixTs, placeOrder} from '../utils/send';
+import { getUnixTs, placeOrder } from '../utils/send';
 import { SwitchChangeEventHandler } from 'antd/es/switch';
 import { refreshCache } from '../utils/fetch-loop';
 import tuple from 'immutable-tuple';
@@ -101,26 +101,27 @@ export default function TradeForm({
   useEffect(() => {
     const warmUpCache = async () => {
       if (!wallet || !wallet.publicKey || !market) {
-        console.log(`Skipping refreshing accounts`)
+        console.log(`Skipping refreshing accounts`);
         return;
       }
-      const startTime = getUnixTs()
-      console.log(`Refreshing accounts for ${market.address}`)
+      const startTime = getUnixTs();
+      console.log(`Refreshing accounts for ${market.address}`);
       await market.findOpenOrdersAccountsForOwner(
         sendConnection,
-        wallet.publicKey
-      )
-      await market.findBestFeeDiscountKey(
-        sendConnection,
-        wallet.publicKey
-      )
-      const endTime = getUnixTs()
-      console.log(`Finished refreshing accounts for ${market.address} after ${endTime - startTime}`)
-    }
+        wallet.publicKey,
+      );
+      await market.findBestFeeDiscountKey(sendConnection, wallet.publicKey);
+      const endTime = getUnixTs();
+      console.log(
+        `Finished refreshing accounts for ${market.address} after ${
+          endTime - startTime
+        }`,
+      );
+    };
     warmUpCache();
-    const id = setInterval(warmUpCache, 30_000)
+    const id = setInterval(warmUpCache, 30_000);
     return () => clearInterval(id);
-  }, [market, sendConnection, wallet, wallet.publicKey])
+  }, [market, sendConnection, wallet, wallet.publicKey]);
 
   const onSetBaseSize = (baseSize: number | undefined) => {
     setBaseSize(baseSize);
