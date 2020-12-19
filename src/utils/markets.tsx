@@ -568,6 +568,17 @@ export function useTrades(limit = 100) {
     }));
 }
 
+export function useLocallyStoredFeeDiscountKey(): {
+  storedFeeDiscountKey: PublicKey | undefined,
+  setStoredFeeDiscountKey: (key: string) => void
+} {
+  const [storedFeeDiscountKey, setStoredFeeDiscountKey] = useLocalStorageState<string>(`feeDiscountKey`, undefined);
+  return {
+    storedFeeDiscountKey: storedFeeDiscountKey ? new PublicKey(storedFeeDiscountKey) : undefined,
+    setStoredFeeDiscountKey
+  }
+}
+
 export function useFeeDiscountKeys(): [
   (
     | {
@@ -584,14 +595,19 @@ export function useFeeDiscountKeys(): [
   const { market } = useMarket();
   const { connected, wallet } = useWallet();
   const connection = useConnection();
-  async function getFeeDiscountKeys() {
+  const { setStoredFeeDiscountKey } = useLocallyStoredFeeDiscountKey();
+  let getFeeDiscountKeys = async () => {
     if (!connected) {
       return null;
     }
     if (!market) {
       return null;
     }
-    return await market.findFeeDiscountKeys(connection, wallet.publicKey);
+    const feeDiscountKey = await market.findFeeDiscountKeys(connection, wallet.publicKey);
+    if (feeDiscountKey) {
+      setStoredFeeDiscountKey(feeDiscountKey[0].pubkey.toBase58())
+    }
+    return feeDiscountKey;
   }
   return useAsyncData(
     getFeeDiscountKeys,

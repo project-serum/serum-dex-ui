@@ -36,6 +36,7 @@ export function WalletProvider({ children }) {
     console.log('trying to connect');
     wallet.on('connect', () => {
       console.log('connected');
+      localStorage.removeItem('feeDiscountKey')
       setConnected(true);
       let walletPublicKey = wallet.publicKey.toBase58();
       let keyToDisplay =
@@ -56,6 +57,7 @@ export function WalletProvider({ children }) {
         message: 'Wallet update',
         description: 'Disconnected from wallet',
       });
+      localStorage.removeItem('feeDiscountKey')
     });
     return () => {
       wallet.disconnect();

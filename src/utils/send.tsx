@@ -331,6 +331,7 @@ export async function placeOrder({
   wallet,
   baseCurrencyAccount,
   quoteCurrencyAccount,
+  feeDiscountPubkey = undefined,
 }: {
   side: 'buy' | 'sell';
   price: number;
@@ -341,6 +342,7 @@ export async function placeOrder({
   wallet: Wallet;
   baseCurrencyAccount: PublicKey | undefined;
   quoteCurrencyAccount: PublicKey | undefined;
+  feeDiscountPubkey: PublicKey | undefined;
 }) {
   let formattedMinOrderSize =
     market?.minOrderSize?.toFixed(getDecimalCount(market.minOrderSize)) ||
@@ -437,6 +439,7 @@ export async function placeOrder({
     price,
     size,
     orderType,
+    feeDiscountPubkey: feeDiscountPubkey || null,
   };
   console.log(params);
 

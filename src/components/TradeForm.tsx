@@ -8,7 +8,7 @@ import {
   useMarkPrice,
   useSelectedOpenOrdersAccount,
   useSelectedBaseCurrencyAccount,
-  useSelectedQuoteCurrencyAccount,
+  useSelectedQuoteCurrencyAccount, useFeeDiscountKeys, useLocallyStoredFeeDiscountKey,
 } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
@@ -63,6 +63,8 @@ export default function TradeForm({
   const { wallet, connected } = useWallet();
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
+  useFeeDiscountKeys();
+  const { storedFeeDiscountKey: feeDiscountKey } = useLocallyStoredFeeDiscountKey();
 
   const [postOnly, setPostOnly] = useState(false);
   const [ioc, setIoc] = useState(false);
@@ -246,6 +248,7 @@ export default function TradeForm({
         wallet,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
+        feeDiscountPubkey: feeDiscountKey
       });
       refreshCache(tuple('getTokenAccounts', wallet, connected));
       setPrice(undefined);
