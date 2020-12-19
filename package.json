@@ -9,7 +9,7 @@
     "@project-serum/associated-token": "0.1.0",
     "@project-serum/awesome-serum": "1.0.1",
     "@project-serum/pool": "^0.2.0",
-    "@project-serum/serum": "^0.13.14",
+    "@project-serum/serum": "^0.13.15",
     "@project-serum/sol-wallet-adapter": "^0.1.1",
     "@solana/web3.js": "0.86.1",
     "@testing-library/jest-dom": "^4.2.4",
