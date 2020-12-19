@@ -8,7 +8,7 @@ import {
   useMarkPrice,
   useSelectedOpenOrdersAccount,
   useSelectedBaseCurrencyAccount,
-  useSelectedQuoteCurrencyAccount,
+  useSelectedQuoteCurrencyAccount, useFeeDiscountKeys, useLocallyStoredFeeDiscountKey,
 } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
@@ -63,6 +63,8 @@ export default function TradeForm({
   const { wallet, connected } = useWallet();
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
+  useFeeDiscountKeys();
+  const { storedFeeDiscountKey: feeDiscountKey } = useLocallyStoredFeeDiscountKey();
 
   const [postOnly, setPostOnly] = useState(false);
   const [ioc, setIoc] = useState(false);
@@ -100,23 +102,27 @@ export default function TradeForm({
 
   useEffect(() => {
     const warmUpCache = async () => {
-      if (!wallet || !wallet.publicKey || !market) {
-        console.log(`Skipping refreshing accounts`);
-        return;
+      try {
+        if (!wallet || !wallet.publicKey || !market) {
+          console.log(`Skipping refreshing accounts`);
+          return;
+        }
+        const startTime = getUnixTs();
+        console.log(`Refreshing accounts for ${market.address}`);
+        await market?.findOpenOrdersAccountsForOwner(
+          sendConnection,
+          wallet.publicKey,
+        );
+        await market?.findBestFeeDiscountKey(sendConnection, wallet.publicKey);
+        const endTime = getUnixTs();
+        console.log(
+          `Finished refreshing accounts for ${market.address} after ${
+            endTime - startTime
+          }`,
+        );
+      } catch (e) {
+        console.log(`Encountered error when refreshing trading accounts: ${e}`);
       }
-      const startTime = getUnixTs();
-      console.log(`Refreshing accounts for ${market.address}`);
-      await market.findOpenOrdersAccountsForOwner(
-        sendConnection,
-        wallet.publicKey,
-      );
-      await market.findBestFeeDiscountKey(sendConnection, wallet.publicKey);
-      const endTime = getUnixTs();
-      console.log(
-        `Finished refreshing accounts for ${market.address} after ${
-          endTime - startTime
-        }`,
-      );
     };
     warmUpCache();
     const id = setInterval(warmUpCache, 30_000);
@@ -246,6 +252,7 @@ export default function TradeForm({
         wallet,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
+        feeDiscountPubkey: feeDiscountKey
       });
       refreshCache(tuple('getTokenAccounts', wallet, connected));
       setPrice(undefined);
