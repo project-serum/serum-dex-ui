@@ -39,8 +39,10 @@ export function roundToDecimal(
 }
 
 export function getDecimalCount(value): number {
-  if (!isNaN(value) && Math.floor(value) !== value)
+  if (!isNaN(value) && Math.floor(value) !== value && value.toString().includes('.'))
     return value.toString().split('.')[1].length || 0;
+  if (!isNaN(value) && Math.floor(value) !== value && value.toString().includes('e'))
+    return parseInt(value.toString().split(('e-'))[1] || "0");
   return 0;
 }
 
