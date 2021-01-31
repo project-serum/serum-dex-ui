@@ -35,6 +35,13 @@ It is possible to add OHLCV candles built from on chain data using [Bonfida's AP
 "./src/components/TradingView/index.tsx"
 ```
 
+5. Uncomment the following in `public/index.html`
+
+```
+<script src="%PUBLIC_URL%/datafeeds/udf/dist/polyfills.js"></script>
+<script src="%PUBLIC_URL%/datafeeds/udf/dist/bundle.js">
+```
+
 <p align="center">
 <img height="300" src="https://i.imgur.com/UyFKmTv.png">
 </p>
