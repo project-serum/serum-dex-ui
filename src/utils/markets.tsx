@@ -41,6 +41,7 @@ import {
 import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
 import { Order } from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
+import { sleep } from './utils';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -817,22 +818,28 @@ export const useAllOpenOrders = (): {
       const getAllOpenOrders = async () => {
         setLoaded(false);
         const _openOrders: { orders: Order[]; marketAddress: string }[] = [];
-        for (let i = 0; i < USE_MARKETS.length; i++) {
-          const market = await Market.load(
-            connection,
-            USE_MARKETS[i].address,
-            undefined,
-            USE_MARKETS[i].programId,
-          );
-          const orders = await market.loadOrdersForOwner(
-            connection,
-            wallet?.publicKey,
-          );
-          _openOrders.push({
-            orders: orders,
-            marketAddress: USE_MARKETS[i].address.toBase58(),
-          });
-        }
+        const getOpenOrdersForMarket = async (marketInfo: MarketInfo) => {
+          await sleep(1000 * Math.random()); // Try not to hit rate limit
+          try {
+            const market = await Market.load(
+              connection,
+              marketInfo.address,
+              undefined,
+              marketInfo.programId,
+            );
+            const orders = await market.loadOrdersForOwner(
+              connection,
+              wallet?.publicKey,
+            );
+            _openOrders.push({
+              orders: orders,
+              marketAddress: marketInfo.address.toBase58(),
+            });
+          } catch (e) {
+            console.warn(`Error loading open order ${marketInfo.name} - ${e}`);
+          }
+        };
+        await Promise.all(USE_MARKETS.map((m) => getOpenOrdersForMarket(m)));
         setOpenOrders(_openOrders);
         setLoaded(true);
       };
