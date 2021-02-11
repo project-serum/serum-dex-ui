@@ -12,7 +12,7 @@ import { useWallet } from '../utils/wallet';
 import WalletConnect from '../components/WalletConnect';
 
 export default function OpenOrdersPage() {
-  const { connected } = useWallet(0);
+  const { connected } = useWallet();
   const { openOrders, loaded, refreshOpenOrders } = useAllOpenOrders();
   let marketInfos = useMarketInfos();
   let marketAddressesToNames = Object.fromEntries(
