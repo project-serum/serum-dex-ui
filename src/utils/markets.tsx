@@ -808,9 +808,14 @@ export const useAllOpenOrders = (): {
   const [openOrders, setOpenOrders] = useState<
     { orders: Order[]; marketAddress: string }[] | null | undefined
   >(null);
+  const [lastRefresh, setLastRefresh] = useState(0);
 
   const refreshOpenOrders = () => {
-    setRefresh((prev) => prev + 1);
+    if (new Date().getTime() - lastRefresh > 10 * 1000) {
+      setRefresh((prev) => prev + 1);
+    } else {
+      console.log('not refreshing');
+    }
   };
 
   useEffect(() => {
@@ -841,11 +846,12 @@ export const useAllOpenOrders = (): {
         };
         await Promise.all(USE_MARKETS.map((m) => getOpenOrdersForMarket(m)));
         setOpenOrders(_openOrders);
+        setLastRefresh(new Date().getTime());
         setLoaded(true);
       };
       getAllOpenOrders();
     }
-  }, [connected, connection, wallet, refresh]);
+  }, [connected, wallet, refresh]);
   return {
     openOrders: openOrders,
     loaded: loaded,
