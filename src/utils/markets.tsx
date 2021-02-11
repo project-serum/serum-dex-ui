@@ -835,6 +835,7 @@ export const useAllOpenOrders = (): {
             const orders = await market.loadOrdersForOwner(
               connection,
               wallet?.publicKey,
+              30000,
             );
             _openOrders.push({
               orders: orders,
