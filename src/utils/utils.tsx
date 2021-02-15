@@ -28,7 +28,7 @@ export function floorToDecimal(
   value: number,
   decimals: number | undefined | null,
 ) {
-  return decimals ? Math.floor(value * 10 ** decimals) / 10 ** decimals : value;
+  return decimals ? Math.floor(value * 10 ** decimals) / 10 ** decimals : Math.floor(value);
 }
 
 export function roundToDecimal(
