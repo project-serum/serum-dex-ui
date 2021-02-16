@@ -41,6 +41,7 @@ import {
 import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
 import { Order } from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
+import { sleep } from './utils';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -569,14 +570,19 @@ export function useTrades(limit = 100) {
 }
 
 export function useLocallyStoredFeeDiscountKey(): {
-  storedFeeDiscountKey: PublicKey | undefined,
-  setStoredFeeDiscountKey: (key: string) => void
+  storedFeeDiscountKey: PublicKey | undefined;
+  setStoredFeeDiscountKey: (key: string) => void;
 } {
-  const [storedFeeDiscountKey, setStoredFeeDiscountKey] = useLocalStorageState<string>(`feeDiscountKey`, undefined);
+  const [
+    storedFeeDiscountKey,
+    setStoredFeeDiscountKey,
+  ] = useLocalStorageState<string>(`feeDiscountKey`, undefined);
   return {
-    storedFeeDiscountKey: storedFeeDiscountKey ? new PublicKey(storedFeeDiscountKey) : undefined,
-    setStoredFeeDiscountKey
-  }
+    storedFeeDiscountKey: storedFeeDiscountKey
+      ? new PublicKey(storedFeeDiscountKey)
+      : undefined,
+    setStoredFeeDiscountKey,
+  };
 }
 
 export function useFeeDiscountKeys(): [
@@ -603,12 +609,15 @@ export function useFeeDiscountKeys(): [
     if (!market) {
       return null;
     }
-    const feeDiscountKey = await market.findFeeDiscountKeys(connection, wallet.publicKey);
+    const feeDiscountKey = await market.findFeeDiscountKeys(
+      connection,
+      wallet.publicKey,
+    );
     if (feeDiscountKey) {
-      setStoredFeeDiscountKey(feeDiscountKey[0].pubkey.toBase58())
+      setStoredFeeDiscountKey(feeDiscountKey[0].pubkey.toBase58());
     }
     return feeDiscountKey;
-  }
+  };
   return useAsyncData(
     getFeeDiscountKeys,
     tuple('getFeeDiscountKeys', wallet, market, connected),
@@ -787,67 +796,69 @@ export function useAllOpenOrdersBalances() {
   return openOrdersBalances;
 }
 
-export function useAllOpenOrders(): {
+export const useAllOpenOrders = (): {
   openOrders: { orders: Order[]; marketAddress: string }[] | null | undefined;
   loaded: boolean;
   refreshOpenOrders: () => void;
-} {
+} => {
   const connection = useConnection();
-  const { connected } = useWallet();
-  const [
-    openOrdersAccounts,
-    openOrdersAccountsConnected,
-  ] = useAllOpenOrdersAccounts();
-  const [marketInfos, marketInfosConnected] = useAllMarkets();
-  const openOrdersAccountsByAddress: {
-    [marketAddress: string]: OpenOrders[];
-  } = {};
-  for (let account of openOrdersAccounts || []) {
-    const marketsAddr = account.market.toBase58();
-    if (!(marketsAddr in openOrdersAccountsByAddress)) {
-      openOrdersAccountsByAddress[marketsAddr] = [];
+  const { connected, wallet } = useWallet();
+  const [loaded, setLoaded] = useState(false);
+  const [refresh, setRefresh] = useState(0);
+  const [openOrders, setOpenOrders] = useState<
+    { orders: Order[]; marketAddress: string }[] | null | undefined
+  >(null);
+  const [lastRefresh, setLastRefresh] = useState(0);
+
+  const refreshOpenOrders = () => {
+    if (new Date().getTime() - lastRefresh > 10 * 1000) {
+      setRefresh((prev) => prev + 1);
+    } else {
+      console.log('not refreshing');
     }
-    openOrdersAccountsByAddress[marketsAddr].push(account);
-  }
-  const marketsByAddress = Object.fromEntries(
-    (marketInfos || []).map((info) => [info.market.publicKey.toBase58(), info]),
-  );
-  const getAllOpenOrders = async () => {
-    return await Promise.all(
-      Object.keys(openOrdersAccountsByAddress).map(async (marketAddr) => {
-        const market = marketsByAddress[marketAddr].market;
-        const [bids, asks] = await Promise.all([
-          market.loadBids(connection),
-          market.loadAsks(connection),
-        ]);
-        return {
-          orders: market.filterForOpenOrders(
-            bids,
-            asks,
-            openOrdersAccountsByAddress[marketAddr],
-          ),
-          marketAddress: marketAddr,
+  };
+
+  useEffect(() => {
+    if (connected) {
+      const getAllOpenOrders = async () => {
+        setLoaded(false);
+        const _openOrders: { orders: Order[]; marketAddress: string }[] = [];
+        const getOpenOrdersForMarket = async (marketInfo: MarketInfo) => {
+          await sleep(1000 * Math.random()); // Try not to hit rate limit
+          try {
+            const market = await Market.load(
+              connection,
+              marketInfo.address,
+              undefined,
+              marketInfo.programId,
+            );
+            const orders = await market.loadOrdersForOwner(
+              connection,
+              wallet?.publicKey,
+              30000,
+            );
+            _openOrders.push({
+              orders: orders,
+              marketAddress: marketInfo.address.toBase58(),
+            });
+          } catch (e) {
+            console.warn(`Error loading open order ${marketInfo.name} - ${e}`);
+          }
         };
-      }),
-    );
-  };
-  const cacheKey = tuple(
-    'getAllOpenOrders',
-    openOrdersAccountsConnected,
-    (openOrdersAccounts || []).length,
-    connection,
-    connected,
-    marketInfosConnected,
-  );
-  const [openOrders, loaded] = useAsyncData(getAllOpenOrders, cacheKey, {
-    refreshInterval: _VERY_SLOW_REFRESH_INTERVAL,
-  });
+        await Promise.all(USE_MARKETS.map((m) => getOpenOrdersForMarket(m)));
+        setOpenOrders(_openOrders);
+        setLastRefresh(new Date().getTime());
+        setLoaded(true);
+      };
+      getAllOpenOrders();
+    }
+  }, [connected, wallet, refresh]);
   return {
-    openOrders,
-    loaded,
-    refreshOpenOrders: () => refreshCache(cacheKey),
+    openOrders: openOrders,
+    loaded: loaded,
+    refreshOpenOrders: refreshOpenOrders,
   };
-}
+};
 
 export function useBalances(): Balances[] {
   const baseCurrencyBalances = useSelectedBaseCurrencyBalances();

@@ -6,10 +6,13 @@ import {
   useMarketInfos,
 } from '../utils/markets';
 import OpenOrderTable from '../components/UserInfoTable/OpenOrderTable';
-import { Button } from 'antd';
+import { Button, Row } from 'antd';
 import { OrderWithMarketAndMarketName } from '../utils/types';
+import { useWallet } from '../utils/wallet';
+import WalletConnect from '../components/WalletConnect';
 
 export default function OpenOrdersPage() {
+  const { connected } = useWallet();
   const { openOrders, loaded, refreshOpenOrders } = useAllOpenOrders();
   let marketInfos = useMarketInfos();
   let marketAddressesToNames = Object.fromEntries(
@@ -34,6 +37,19 @@ export default function OpenOrdersPage() {
       }),
     )
     .flat();
+
+  if (!connected) {
+    return (
+      <Row
+        justify="center"
+        style={{
+          marginTop: '10%',
+        }}
+      >
+        <WalletConnect />
+      </Row>
+    );
+  }
 
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
