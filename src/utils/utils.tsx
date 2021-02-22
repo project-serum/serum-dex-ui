@@ -28,7 +28,9 @@ export function floorToDecimal(
   value: number,
   decimals: number | undefined | null,
 ) {
-  return decimals ? Math.floor(value * 10 ** decimals) / 10 ** decimals : Math.floor(value);
+  return decimals
+    ? Math.floor(value * 10 ** decimals) / 10 ** decimals
+    : Math.floor(value);
 }
 
 export function roundToDecimal(
@@ -39,10 +41,18 @@ export function roundToDecimal(
 }
 
 export function getDecimalCount(value): number {
-  if (!isNaN(value) && Math.floor(value) !== value && value.toString().includes('.'))
+  if (
+    !isNaN(value) &&
+    Math.floor(value) !== value &&
+    value.toString().includes('.')
+  )
     return value.toString().split('.')[1].length || 0;
-  if (!isNaN(value) && Math.floor(value) !== value && value.toString().includes('e'))
-    return parseInt(value.toString().split(('e-'))[1] || "0");
+  if (
+    !isNaN(value) &&
+    Math.floor(value) !== value &&
+    value.toString().includes('e')
+  )
+    return parseInt(value.toString().split('e-')[1] || '0');
   return 0;
 }
 

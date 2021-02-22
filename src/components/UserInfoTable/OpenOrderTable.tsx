@@ -36,9 +36,9 @@ export default function OpenOrderTable({
   async function cancel(order) {
     setCancelId(order?.orderId);
     try {
-      if( !wallet) {
+      if (!wallet) {
         return null;
-      }    
+      }
 
       await cancelOrder({
         order,

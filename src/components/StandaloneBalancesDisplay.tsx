@@ -52,7 +52,7 @@ export default function StandaloneBalancesDisplay() {
     balances && balances.find((b) => b.coin === quoteCurrency);
 
   async function onSettleFunds() {
-    if( !wallet) {
+    if (!wallet) {
       notify({
         message: 'Wallet not connected',
         description: 'wallet is undefined',
@@ -60,7 +60,7 @@ export default function StandaloneBalancesDisplay() {
       });
       return;
     }
-  
+
     if (!market) {
       notify({
         message: 'Error settling funds',
@@ -95,8 +95,6 @@ export default function StandaloneBalancesDisplay() {
     }
 
     try {
-      
-
       await settleFunds({
         market,
         openOrders: openOrdersAccount,

@@ -35,14 +35,14 @@ export default function WalletBalancesTable({
   async function onSettleFunds() {
     setSettlingFunds(true);
     try {
-      if( !wallet) {
+      if (!wallet) {
         notify({
           message: 'Wallet not connected',
           description: 'Wallet not connected',
           type: 'error',
         });
         return;
-      }    
+      }
 
       if (!tokenAccounts || !tokenAccountsConnected) {
         notify({

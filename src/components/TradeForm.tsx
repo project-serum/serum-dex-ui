@@ -8,7 +8,9 @@ import {
   useMarkPrice,
   useSelectedOpenOrdersAccount,
   useSelectedBaseCurrencyAccount,
-  useSelectedQuoteCurrencyAccount, useFeeDiscountKeys, useLocallyStoredFeeDiscountKey,
+  useSelectedQuoteCurrencyAccount,
+  useFeeDiscountKeys,
+  useLocallyStoredFeeDiscountKey,
 } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
@@ -64,7 +66,9 @@ export default function TradeForm({
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
   useFeeDiscountKeys();
-  const { storedFeeDiscountKey: feeDiscountKey } = useLocallyStoredFeeDiscountKey();
+  const {
+    storedFeeDiscountKey: feeDiscountKey,
+  } = useLocallyStoredFeeDiscountKey();
 
   const [postOnly, setPostOnly] = useState(false);
   const [ioc, setIoc] = useState(false);
@@ -111,10 +115,7 @@ export default function TradeForm({
         }
         const startTime = getUnixTs();
         console.log(`Refreshing accounts for ${market.address}`);
-        await market?.findOpenOrdersAccountsForOwner(
-          sendConnection,
-          publicKey,
-        );
+        await market?.findOpenOrdersAccountsForOwner(sendConnection, publicKey);
         await market?.findBestFeeDiscountKey(sendConnection, publicKey);
         const endTime = getUnixTs();
         console.log(
@@ -244,9 +245,9 @@ export default function TradeForm({
 
     setSubmitting(true);
     try {
-      if( !wallet) {
+      if (!wallet) {
         return null;
-      }    
+      }
 
       await placeOrder({
         side,
@@ -258,7 +259,7 @@ export default function TradeForm({
         wallet,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
-        feeDiscountPubkey: feeDiscountKey
+        feeDiscountPubkey: feeDiscountKey,
       });
       refreshCache(tuple('getTokenAccounts', wallet, connected));
       setPrice(undefined);

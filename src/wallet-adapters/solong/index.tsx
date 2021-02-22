@@ -1,7 +1,7 @@
-import EventEmitter from "eventemitter3";
-import {PublicKey, Transaction} from "@solana/web3.js";
-import { notify } from "../../utils/notifications";
-import { DEFAULT_PUBLIC_KEY, WalletAdapter } from "../types";
+import EventEmitter from 'eventemitter3';
+import { PublicKey, Transaction } from '@solana/web3.js';
+import { notify } from '../../utils/notifications';
+import { DEFAULT_PUBLIC_KEY, WalletAdapter } from '../types';
 
 export class SolongWalletAdapter extends EventEmitter implements WalletAdapter {
   _publicKey?: PublicKey;
@@ -22,9 +22,11 @@ export class SolongWalletAdapter extends EventEmitter implements WalletAdapter {
     return false;
   }
 
-  public async signAllTransactions(transactions: Transaction[]): Promise<Transaction[]> {
+  public async signAllTransactions(
+    transactions: Transaction[],
+  ): Promise<Transaction[]> {
     const solong = (window as any).solong;
-    if(solong.signAllTransactions) {
+    if (solong.signAllTransactions) {
       return solong.signAllTransactions(transactions);
     } else {
       const result: Transaction[] = [];
@@ -53,8 +55,8 @@ export class SolongWalletAdapter extends EventEmitter implements WalletAdapter {
 
     if ((window as any).solong === undefined) {
       notify({
-        message: "Solong Error",
-        description: "Please install solong wallet from Chrome ",
+        message: 'Solong Error',
+        description: 'Please install solong wallet from Chrome ',
       });
       return;
     }
@@ -65,7 +67,7 @@ export class SolongWalletAdapter extends EventEmitter implements WalletAdapter {
       .then((account: any) => {
         this._publicKey = new PublicKey(account);
         this._connected = true;
-        this.emit("connect", this._publicKey);
+        this.emit('connect', this._publicKey);
       })
       .catch(() => {
         this.disconnect();
@@ -79,7 +81,7 @@ export class SolongWalletAdapter extends EventEmitter implements WalletAdapter {
     if (this._publicKey) {
       this._publicKey = undefined;
       this._connected = false;
-      this.emit("disconnect");
+      this.emit('disconnect');
     }
   }
 }

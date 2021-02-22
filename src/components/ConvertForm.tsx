@@ -10,7 +10,8 @@ import {
   getSelectedTokenAccountForMint,
   MarketProvider,
   useBalances,
-  useCustomMarkets, useLocallyStoredFeeDiscountKey,
+  useCustomMarkets,
+  useLocallyStoredFeeDiscountKey,
   useMarket,
   useTokenAccounts,
 } from '../utils/markets';
@@ -181,7 +182,9 @@ function ConvertFormSubmit({
   const balances = useBalances();
   const [fromAmount, setFromAmount] = useState<number | undefined>();
   const [toAmount, setToAmount] = useState<number | undefined>();
-  const { storedFeeDiscountKey: feeDiscountKey } = useLocallyStoredFeeDiscountKey();
+  const {
+    storedFeeDiscountKey: feeDiscountKey,
+  } = useLocallyStoredFeeDiscountKey();
 
   const connection = useConnection();
   const sendConnection = useSendConnection();
@@ -269,9 +272,9 @@ function ConvertFormSubmit({
 
     setIsConverting(true);
     try {
-      if( !wallet) {
+      if (!wallet) {
         return null;
-      }    
+      }
 
       await placeOrder({
         side,

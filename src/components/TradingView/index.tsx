@@ -4,7 +4,7 @@ import {
   widget,
   ChartingLibraryWidgetOptions,
   IChartingLibraryWidget,
-  ResolutionString
+  ResolutionString,
 } from '../../charting_library'; // Make sure to follow step 1 of the README
 import { useMarket } from '../../utils/markets';
 import { BONFIDA_DATA_FEED } from '../../utils/bonfidaConnector';
