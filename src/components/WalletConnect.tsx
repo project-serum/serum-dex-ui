@@ -9,7 +9,7 @@ export default function WalletConnect() {
 
   const menu = (
     <Menu>
-      <LinkAddress shorten={true} address={publicKey} />
+      {connected && <LinkAddress shorten={true} address={publicKey} />}
       <Menu.Item key="3" onClick={select}>Change Wallet</Menu.Item>
     </Menu>
   );
