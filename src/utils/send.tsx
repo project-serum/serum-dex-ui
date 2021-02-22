@@ -21,12 +21,12 @@ import {
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
-import Wallet from '@project-serum/sol-wallet-adapter';
 import { SelectedTokenAccounts, TokenAccount } from './types';
 import { Order } from '@project-serum/serum/lib/market';
 import { Buffer } from 'buffer';
 import assert from 'assert';
 import { struct } from 'superstruct';
+import { WalletAdapter } from '../wallet-adapters';
 
 export async function createTokenAccountTransaction({
   connection,
@@ -34,7 +34,7 @@ export async function createTokenAccountTransaction({
   mintPublicKey,
 }: {
   connection: Connection;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   mintPublicKey: PublicKey;
 }): Promise<{
   transaction: Transaction;
@@ -76,7 +76,7 @@ export async function settleFunds({
   market: Market;
   openOrders: OpenOrders;
   connection: Connection;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   baseCurrencyAccount: TokenAccount;
   quoteCurrencyAccount: TokenAccount;
 }): Promise<string | undefined> {
@@ -174,7 +174,7 @@ export async function settleAllFunds({
   selectedTokenAccounts,
 }: {
   connection: Connection;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   tokenAccounts: TokenAccount[];
   markets: Market[];
   selectedTokenAccounts?: SelectedTokenAccounts;
@@ -289,7 +289,7 @@ export async function settleAllFunds({
 export async function cancelOrder(params: {
   market: Market;
   connection: Connection;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   order: Order;
 }) {
   return cancelOrders({ ...params, orders: [params.order] });
@@ -302,7 +302,7 @@ export async function cancelOrders({
   orders,
 }: {
   market: Market;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   connection: Connection;
   orders: Order[];
 }) {
@@ -339,7 +339,7 @@ export async function placeOrder({
   orderType: 'ioc' | 'postOnly' | 'limit';
   market: Market | undefined | null;
   connection: Connection;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   baseCurrencyAccount: PublicKey | undefined;
   quoteCurrencyAccount: PublicKey | undefined;
   feeDiscountPubkey: PublicKey | undefined;
@@ -480,7 +480,7 @@ export async function listMarket({
   dexProgramId,
 }: {
   connection: Connection;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   baseMint: PublicKey;
   quoteMint: PublicKey;
   baseLotSize: number;
@@ -637,7 +637,7 @@ export async function sendTransaction({
   timeout = DEFAULT_TIMEOUT,
 }: {
   transaction: Transaction;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   signers?: Array<Account>;
   connection: Connection;
   sendingMessage?: string;
@@ -668,7 +668,7 @@ export async function signTransaction({
   connection,
 }: {
   transaction: Transaction;
-  wallet: Wallet;
+  wallet: WalletAdapter;
   signers?: Array<Account>;
   connection: Connection;
 }) {
@@ -691,7 +691,7 @@ export async function signTransactions({
     transaction: Transaction;
     signers?: Array<Account>;
   }[];
-  wallet: Wallet;
+  wallet: WalletAdapter;
   connection: Connection;
 }) {
   const blockhash = (await connection.getRecentBlockhash('max')).blockhash;

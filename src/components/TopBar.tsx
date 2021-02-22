@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.svg';
 import styled from 'styled-components';
-import { useWallet, WALLET_PROVIDERS } from '../utils/wallet';
+import { useWallet } from '../utils/wallet';
 import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
 import Settings from './Settings';
 import CustomClusterEndpointDialog from './CustomClusterEndpointDialog';
@@ -51,7 +51,7 @@ const EXTERNAL_LINKS = {
 };
 
 export default function TopBar() {
-  const { connected, wallet, providerUrl, setProvider } = useWallet();
+  const { connected, wallet } = useWallet();
   const {
     endpoint,
     endpointInfo,
@@ -321,15 +321,6 @@ export default function TopBar() {
             </Popover>
           </div>
         )}
-        <div>
-          <Select onSelect={setProvider} value={providerUrl}>
-            {WALLET_PROVIDERS.map(({ name, url }) => (
-              <Select.Option value={url} key={url}>
-                {name}
-              </Select.Option>
-            ))}
-          </Select>
-        </div>
         <div>
           <WalletConnect />
         </div>

@@ -95,7 +95,7 @@ function CreateRedeemTab({ poolInfo, mintInfo, tab }: CreateRedeemInnerPanel) {
 
   async function onSubmit(e) {
     e.preventDefault();
-    if (!action || !basket || !connected || !canSubmit) {
+    if (!action || !basket || !connected || !canSubmit || !wallet) {
       return;
     }
     setSubmitting(true);

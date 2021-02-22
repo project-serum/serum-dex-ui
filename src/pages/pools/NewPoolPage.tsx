@@ -76,7 +76,7 @@ export default function NewPoolPage() {
   }, [programId]);
 
   useEffect(() => {
-    if (connected) {
+    if (connected && wallet) {
       setAdminAddress(wallet.publicKey.toBase58());
     }
   }, [wallet, connected]);
@@ -91,7 +91,7 @@ export default function NewPoolPage() {
     (adminAddress || !adminControlled);
 
   async function onSubmit() {
-    if (!canSubmit) {
+    if (!canSubmit || !wallet) {
       return;
     }
     setSubmitting(true);

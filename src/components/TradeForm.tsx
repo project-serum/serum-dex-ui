@@ -85,6 +85,8 @@ export default function TradeForm({
     market?.minOrderSize && getDecimalCount(market.minOrderSize);
   let priceDecimalCount = market?.tickSize && getDecimalCount(market.tickSize);
 
+  const publicKey = wallet?.publicKey;
+
   useEffect(() => {
     setChangeOrderRef && setChangeOrderRef(doChangeOrder);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,7 +105,7 @@ export default function TradeForm({
   useEffect(() => {
     const warmUpCache = async () => {
       try {
-        if (!wallet || !wallet.publicKey || !market) {
+        if (!wallet || !publicKey || !market) {
           console.log(`Skipping refreshing accounts`);
           return;
         }
@@ -111,9 +113,9 @@ export default function TradeForm({
         console.log(`Refreshing accounts for ${market.address}`);
         await market?.findOpenOrdersAccountsForOwner(
           sendConnection,
-          wallet.publicKey,
+          publicKey,
         );
-        await market?.findBestFeeDiscountKey(sendConnection, wallet.publicKey);
+        await market?.findBestFeeDiscountKey(sendConnection, publicKey);
         const endTime = getUnixTs();
         console.log(
           `Finished refreshing accounts for ${market.address} after ${
@@ -127,7 +129,7 @@ export default function TradeForm({
     warmUpCache();
     const id = setInterval(warmUpCache, 30_000);
     return () => clearInterval(id);
-  }, [market, sendConnection, wallet, wallet.publicKey]);
+  }, [market, sendConnection, wallet, publicKey]);
 
   const onSetBaseSize = (baseSize: number | undefined) => {
     setBaseSize(baseSize);
@@ -242,6 +244,10 @@ export default function TradeForm({
 
     setSubmitting(true);
     try {
+      if( !wallet) {
+        return null;
+      }    
+
       await placeOrder({
         side,
         price,

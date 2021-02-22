@@ -423,7 +423,7 @@ export function useOpenOrdersAccounts(fast = false) {
   const { connected, wallet } = useWallet();
   const connection = useConnection();
   async function getOpenOrdersAccounts() {
-    if (!connected) {
+    if (!connected || !wallet) {
       return null;
     }
     if (!market) {
@@ -456,7 +456,7 @@ export function useTokenAccounts(): [
   const { connected, wallet } = useWallet();
   const connection = useConnection();
   async function getTokenAccounts() {
-    if (!connected) {
+    if (!connected || !wallet) {
       return null;
     }
     return await getTokenAccountInfo(connection, wallet.publicKey);
@@ -603,7 +603,7 @@ export function useFeeDiscountKeys(): [
   const connection = useConnection();
   const { setStoredFeeDiscountKey } = useLocallyStoredFeeDiscountKey();
   let getFeeDiscountKeys = async () => {
-    if (!connected) {
+    if (!connected || !wallet) {
       return null;
     }
     if (!market) {
@@ -660,7 +660,7 @@ export function useFillsForAllMarkets(limit = 100) {
     let marketData;
     for (marketData of allMarkets) {
       const { market, marketName } = marketData;
-      if (!market) {
+      if (!market || !wallet) {
         return fills;
       }
       const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
@@ -710,7 +710,7 @@ export function useAllOpenOrdersAccounts() {
   ].map((stringProgramId) => new PublicKey(stringProgramId));
 
   const getAllOpenOrdersAccounts = async () => {
-    if (!connected) {
+    if (!connected || !wallet) {
       return [];
     }
     return (
@@ -819,7 +819,7 @@ export const useAllOpenOrders = (): {
   };
 
   useEffect(() => {
-    if (connected) {
+    if (connected && wallet) {
       const getAllOpenOrders = async () => {
         setLoaded(false);
         const _openOrders: { orders: Order[]; marketAddress: string }[] = [];
@@ -852,7 +852,7 @@ export const useAllOpenOrders = (): {
       };
       getAllOpenOrders();
     }
-  }, [connected, wallet, refresh]);
+  }, [connection, connected, wallet, refresh]);
   return {
     openOrders: openOrders,
     loaded: loaded,
@@ -1042,7 +1042,7 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
       .map((market) => market.address.toBase58());
 
   async function getOpenOrdersForDeprecatedMarkets() {
-    if (!connected) {
+    if (!connected || !wallet) {
       return null;
     }
     if (!marketsList) {
