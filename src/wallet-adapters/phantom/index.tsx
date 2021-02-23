@@ -22,13 +22,26 @@ interface PhantomProvider {
   request: (method: PhantomRequestMethod, params: any) => Promise<any>;
 }
 
+const SUPPORTED_PHANTOM_EVENTS: PhantomEvent[] = ['connect', 'disconnect'];
+
 export class PhantomWalletAdapter
   extends EventEmitter
   implements WalletAdapter {
-  _provider: PhantomProvider | undefined;
   constructor() {
     super();
     this.connect = this.connect.bind(this);
+    window.onload = () => {
+      for (const event of SUPPORTED_PHANTOM_EVENTS) {
+        this._provider?.on(event, (...args) => this.emit(event, ...args));
+      }
+    };
+  }
+
+  private get _provider(): PhantomProvider | undefined {
+    if ((window as any)?.solana?.isPhantom) {
+      return (window as any).solana;
+    }
+    return undefined;
   }
 
   get connected() {
@@ -62,29 +75,21 @@ export class PhantomWalletAdapter
   }
 
   connect() {
-    if (this._provider) {
-      return;
-    }
-
-    if ((window as any)?.solana?.isPhantom) {
-      this._provider = (window as any).solana;
-    } else {
+    if (!this._provider) {
       window.open('https://phantom.app/', '_blank');
       notify({
-        message: 'Phantom Error',
-        description: 'Please install Phantom wallet from Chrome ',
+        message: 'Connection Error',
+        description: 'Please install Phantom wallet',
       });
       return;
     }
 
-    return this._provider?.connect().then(() => this.emit('connect'));
+    return this._provider?.connect();
   }
 
   disconnect() {
     if (this._provider) {
       this._provider.disconnect();
-      this._provider = undefined;
-      this.emit('disconnect');
     }
   }
 }
