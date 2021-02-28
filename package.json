@@ -30,6 +30,7 @@
     "react": "^16.13.1",
     "react-app-polyfill": "^1.0.5",
     "react-copy-to-clipboard": "^5.0.2",
+    "react-csv": "^2.0.3",
     "react-dom": "^16.13.1",
     "react-is": "^17.0.1",
     "react-router": "^5.2.0",

@@ -3,6 +3,7 @@ import OpenOrderTable from './OpenOrderTable';
 import React from 'react';
 import { Tabs, Typography } from 'antd';
 import FillsTable from './FillsTable';
+import TradeExporter from './TradeExporter';
 import FloatingElement from '../layout/FloatingElement';
 import FeesTable from './FeesTable';
 import { useOpenOrders, useBalances, useMarket } from '../../utils/markets';
@@ -39,6 +40,9 @@ export default function Index() {
             <FeesTable />
           </TabPane>
         ) : null}
+        <TabPane tab="Trade Exporter" key="tradeExporter">
+          <TradeExporter />
+        </TabPane>
       </Tabs>
     </FloatingElement>
   );
