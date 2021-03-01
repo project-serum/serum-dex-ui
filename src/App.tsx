@@ -9,7 +9,6 @@ import { Routes } from './routes';
 import { PreferencesProvider } from './utils/preferences';
 
 export default function App() {
-  console.log('got here')
   return (
     <Suspense fallback={() => <Spin size="large" />}>
       <GlobalStyle />

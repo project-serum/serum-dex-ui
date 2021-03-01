@@ -6,10 +6,8 @@ export default class TransactionsApi {
   static async request(path: string, options: any) {
     try {
       const response = await fetch(this.URL + path, options);
-      console.log('raw response', response);
       if (response.ok) {
         const responseJson = await response.json();
-        console.log('response json', responseJson);
         return responseJson;
       }
     } catch (err) {
