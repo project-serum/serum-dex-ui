@@ -77,7 +77,7 @@ export default function TradeExporter() {
                 <CSVLink
                   data={transactionData.data}
                   filename={`serum_trades_${wallet.publicKey.toBase58()}`}
-                  text-decoration="none"
+                  headers={transactionData.columns}
                 >
                   Download CSV
                 </CSVLink>
