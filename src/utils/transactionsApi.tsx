@@ -1,7 +1,7 @@
 import { BonfidaTrade } from './types';
 
 export default class TransactionsApi {
-  static URL: string = 'http://167.172.137.53/';
+  static URL: string = 'https://www.serumtaxtime.com/';
 
   static async request(path: string, options: any) {
     try {
