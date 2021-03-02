@@ -31,6 +31,10 @@ export function PreferencesProvider({ children }) {
     const autoSettle = async () => {
       const markets = (marketList || []).map((m) => m.market);
       try {
+        if (!wallet) {
+          return;
+        }
+
         console.log('Auto settling');
         await settleAllFunds({
           connection,

@@ -65,7 +65,7 @@ function PauseUnpauseTab({ poolInfo }: TabParams) {
   const [submitting, setSubmitting] = useState(false);
 
   async function sendPause() {
-    if (!connected) {
+    if (!connected || !wallet) {
       return;
     }
     setSubmitting(true);
@@ -85,7 +85,7 @@ function PauseUnpauseTab({ poolInfo }: TabParams) {
   }
 
   async function sendUnpause() {
-    if (!connected) {
+    if (!connected || !wallet) {
       return;
     }
     setSubmitting(true);
@@ -130,7 +130,7 @@ function AddAssetTab({ poolInfo }: TabParams) {
         mintAddress,
       );
       const transaction = new Transaction();
-      if (!(await connection.getAccountInfo(vaultAddress))) {
+      if (!(await connection.getAccountInfo(vaultAddress)) && wallet) {
         transaction.add(
           await createAssociatedTokenAccount(
             wallet.publicKey,
@@ -208,6 +208,10 @@ function DepositTab({ poolInfo }: TabParams) {
   const [onSubmit, submitting] = useOnSubmitHandler(
     'depositing to pool',
     async () => {
+      if (!wallet) {
+        throw new Error('Wallet is not connected');
+      }
+
       const mintAddress = new PublicKey(address);
       const vaultAddress = poolInfo.state.assets.find((asset) =>
         asset.mint.equals(mintAddress),
@@ -316,6 +320,10 @@ function WithdrawTab({ poolInfo }: TabParams) {
   const [onSubmit, submitting] = useOnSubmitHandler(
     'withdrawing from pool',
     async () => {
+      if (!wallet) {
+        throw new Error('Wallet is not connected');
+      }
+
       const mintAddress = new PublicKey(address);
       const vaultAddress = poolInfo.state.assets.find((asset) =>
         asset.mint.equals(mintAddress),
@@ -472,7 +480,7 @@ function useOnSubmitHandler(
     }
     setSubmitting(true);
     try {
-      if (!connected) {
+      if (!connected || !wallet) {
         throw new Error('Wallet not connected');
       }
       const [transaction, signers] = await makeTransaction();

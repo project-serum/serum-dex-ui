@@ -6,6 +6,7 @@
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@craco/craco": "^5.6.4",
+    "@ledgerhq/hw-transport-webusb": "^5.41.0",
     "@project-serum/associated-token": "0.1.0",
     "@project-serum/awesome-serum": "1.0.1",
     "@project-serum/pool": "^0.2.0",
@@ -77,6 +78,8 @@
     }
   },
   "devDependencies": {
+    "@types/ledgerhq__hw-transport": "^4.21.3",
+    "@types/ledgerhq__hw-transport-webusb": "^4.70.1",
     "gh-pages": "^3.1.0",
     "git-format-staged": "^2.1.0",
     "husky": "^4.2.5",

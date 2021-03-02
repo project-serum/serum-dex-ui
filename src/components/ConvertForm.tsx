@@ -10,7 +10,8 @@ import {
   getSelectedTokenAccountForMint,
   MarketProvider,
   useBalances,
-  useCustomMarkets, useLocallyStoredFeeDiscountKey,
+  useCustomMarkets,
+  useLocallyStoredFeeDiscountKey,
   useMarket,
   useTokenAccounts,
 } from '../utils/markets';
@@ -23,7 +24,7 @@ import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
 import { SwapOutlined } from '@ant-design/icons';
 import { CustomMarketInfo } from '../utils/types';
-import Wallet from '@project-serum/sol-wallet-adapter';
+import { WalletAdapter } from '../wallet-adapters';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -173,7 +174,7 @@ function ConvertFormSubmit({
   setSize: (newSize: number | undefined) => void;
   fromToken: string;
   toToken: string;
-  wallet: Wallet;
+  wallet?: WalletAdapter;
   customMarkets: CustomMarketInfo[];
 }) {
   const { market } = useMarket();
@@ -181,7 +182,9 @@ function ConvertFormSubmit({
   const balances = useBalances();
   const [fromAmount, setFromAmount] = useState<number | undefined>();
   const [toAmount, setToAmount] = useState<number | undefined>();
-  const { storedFeeDiscountKey: feeDiscountKey } = useLocallyStoredFeeDiscountKey();
+  const {
+    storedFeeDiscountKey: feeDiscountKey,
+  } = useLocallyStoredFeeDiscountKey();
 
   const connection = useConnection();
   const sendConnection = useSendConnection();
@@ -269,6 +272,10 @@ function ConvertFormSubmit({
 
     setIsConverting(true);
     try {
+      if (!wallet) {
+        return null;
+      }
+
       await placeOrder({
         side,
         price: parsedPrice,

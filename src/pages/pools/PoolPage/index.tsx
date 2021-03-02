@@ -49,7 +49,7 @@ export default function PoolPage() {
   );
   const { wallet } = useWallet();
 
-  if (poolInfo && mintInfo) {
+  if (poolInfo && mintInfo && wallet) {
     return (
       <>
         <PageHeader
