@@ -27,7 +27,11 @@ export default function DataTable({
       <Table
         dataSource={dataSource}
         columns={columns}
-        pagination={pagination ? { pagination: true, pageSize } : false}
+        pagination={
+          pagination
+            ? { pagination: true, pageSize, showSizeChanger: false }
+            : false
+        }
         loading={loading}
       />
     </ConfigProvider>
