@@ -25,19 +25,18 @@ export class MathWalletAdapter extends EventEmitter implements WalletAdapter {
   public async signAllTransactions(
     transactions: Transaction[],
   ): Promise<Transaction[]> {
-    const solana = (window as any).solana;
-    if (solana.signAllTransactions) {
-      return solana.signAllTransactions(transactions);
-    } else {
-      const result: Transaction[] = [];
-      for (let i = 0; i < transactions.length; i++) {
-        const transaction = transactions[i];
-        const signed = await solana.signTransaction(transaction);
-        result.push(signed);
-      }
-
-      return result;
+    if (!this._provider) {
+      return transactions;
     }
+
+    return this._provider.signAllTransactions(transactions);
+  }
+
+  private get _provider() {
+    if ((window as any)?.solana?.isMathWallet) {
+      return (window as any).solana;
+    }
+    return undefined;
   }
 
   get publicKey() {
@@ -45,7 +44,11 @@ export class MathWalletAdapter extends EventEmitter implements WalletAdapter {
   }
 
   async signTransaction(transaction: Transaction) {
-    return (window as any).solana.signTransaction(transaction);
+    if (!this._provider) {
+      return transaction;
+    }
+
+    return this._provider.signTransaction(transaction);
   }
 
   connect() {
@@ -53,7 +56,7 @@ export class MathWalletAdapter extends EventEmitter implements WalletAdapter {
       return;
     }
 
-    if ((window as any).solana === undefined) {
+    if (!this._provider) {
       window.open('https://mathwallet.org/', '_blank');
       notify({
         message: 'Math Wallet Error',
@@ -63,7 +66,7 @@ export class MathWalletAdapter extends EventEmitter implements WalletAdapter {
     }
 
     this._onProcess = true;
-    (window as any).solana
+    this._provider
       .getAccount()
       .then((account: any) => {
         this._publicKey = new PublicKey(account);
