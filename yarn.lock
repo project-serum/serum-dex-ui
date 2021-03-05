@@ -1505,10 +1505,10 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@project-serum/serum@^0.13.24":
-  version "0.13.24"
-  resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.24.tgz#42ab28052924c4b754ed078790a192ae23fffab9"
-  integrity sha512-ux2MuO2kGGUV/QYBVx+e3roM/zATI6Fi2ThVaEo4aBdQKosbuNA60uAfSnYK9Du0kz7UjGoZHv2FnkCq8web3A==
+"@project-serum/serum@^0.13.25":
+  version "0.13.25"
+  resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.25.tgz#40cbeaed03bb69e6a8c3e9117359b70ef155042e"
+  integrity sha512-IdK768TwM3tJHDPpt3iJ9AR7sMECrXD5B5i+oZhHR2+06Mun9djx/PtTTVYik161PjJXkuQozfWVk2a003s0CQ==
   dependencies:
     "@solana/web3.js" "^0.90.0"
     bn.js "^5.1.2"
@@ -11024,14 +11024,7 @@ semver@7.0.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
   integrity sha512-+GB6zVA9LWh6zovYQLALHwv5rb2PHGlJi3lfiqIHxR0uuwCgefcOJc59v9fv1w8GbStwxuuqqAjI9NMAOOgq1A==
 
-semver@^7.3.2:
-  version "7.3.4"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.4.tgz#27aaa7d2e4ca76452f98d3add093a72c943edc97"
-  integrity sha512-tCfb2WLjqFAtXn4KEdxIhalnRtoKFN7nAwj0B3ZXCbQloV2tq5eDbcTmT68JJD3nRJq24/XgxtQKFIpQdtvmVw==
-  dependencies:
-    lru-cache "^6.0.0"
-
-semver@^7.3.4:
+semver@^7.3.2, semver@^7.3.4:
   version "7.3.4"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.4.tgz#27aaa7d2e4ca76452f98d3add093a72c943edc97"
   integrity sha512-tCfb2WLjqFAtXn4KEdxIhalnRtoKFN7nAwj0B3ZXCbQloV2tq5eDbcTmT68JJD3nRJq24/XgxtQKFIpQdtvmVw==
