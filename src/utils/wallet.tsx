@@ -16,6 +16,7 @@ import {
   LedgerWalletAdapter,
   SolongWalletAdapter,
   PhantomWalletAdapter,
+  MathWalletAdapter,
 } from '../wallet-adapters';
 
 const ASSET_URL =
@@ -44,6 +45,12 @@ export const WALLET_PROVIDERS = [
     icon: `https://www.phantom.app/img/logo.png`,
     adapter: PhantomWalletAdapter,
   },
+  {
+    name: 'MathWallet',
+    url: 'https://www.mathwallet.org',
+    icon: `${ASSET_URL}/mathwallet.svg`,
+    adapter: MathWalletAdapter,
+  }
 ];
 
 const WalletContext = React.createContext<null | WalletContextValues>(null);
