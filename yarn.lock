@@ -1476,7 +1476,7 @@
   resolved "https://registry.yarnpkg.com/@project-serum/associated-token/-/associated-token-0.1.0.tgz#ee817997c24e1089c5b99e370216ecc2d48e6d8b"
   integrity sha512-sHDKQoT36TZl5aJct/pEbRtLUX6UXwnkGaA/ibHXkvDkQrtHjtkXEkkwmdhNZQsoXkSaUJdK62jh4c/BUMoZbg==
 
-"@project-serum/associated-token@^0.1.1":
+"@project-serum/associated-token@^0.1.0":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@project-serum/associated-token/-/associated-token-0.1.1.tgz#9acf745e84dad21e2ea26e06694704b9d698e532"
   integrity sha512-Zc1wdqragbDiyBVagzIbIsMe37P7fgkArWZPIj+jJjDIoznlmYMK6ASU5mtdDZrPJ7sNABF/lzZ3+jvCCcU+oA==
@@ -1486,7 +1486,7 @@
   resolved "https://registry.yarnpkg.com/@project-serum/awesome-serum/-/awesome-serum-1.0.1.tgz#185a348cb57eb00592aee4f8c730b65cc9ae7a22"
   integrity sha512-WbykMEX2Ja1oeY3n7cVK79XMBxFgWsWxDMxfJ7GL+/88R568vwPvhP57HrBgULZmwu/Zt5CmMWjf6oeD1E621g==
 
-"@project-serum/borsh@^0.0.1-beta.0":
+"@project-serum/borsh@^0.0.1-alpha.0":
   version "0.0.1-beta.0"
   resolved "https://registry.yarnpkg.com/@project-serum/borsh/-/borsh-0.0.1-beta.0.tgz#8ab465ac23e0d840127c7922f8a1a500b50667d5"
   integrity sha512-jBrGi0KBMe1UXkItp1JKR8Qtaal4xPrbkIWKzbglqVLRNnG+DiDWpZk8I9XMrSLiAFYTvQp8MIJmwwoWSyN8yQ==
@@ -1494,21 +1494,21 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@project-serum/pool@^0.2.0":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@project-serum/pool/-/pool-0.2.3.tgz#e72ffde7e16995ee0f8d83c566b615b578b5058e"
-  integrity sha512-fZWMkDTnaGRTkyomzaoEoL6InN9kEOnm1n6woePLC/AH4p/hlSg+nroD9tZdMhK3C9coHqZ1tU19Pn6+3UtEsQ==
+"@project-serum/pool@0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@project-serum/pool/-/pool-0.2.2.tgz#72e9c12bdfac0f03c6598ed4208875369ccc51b8"
+  integrity sha512-3bSJd1ykV18rfFMmE7DxYnB85IGt0QzG6hQwxEdVJkR/WhLZIYlIq7rkteej1sXP19Ow3sx/tB6undg96Tn7sw==
   dependencies:
-    "@project-serum/associated-token" "^0.1.1"
-    "@project-serum/borsh" "^0.0.1-beta.0"
-    "@project-serum/token" "^0.0.1-alpha.2"
+    "@project-serum/associated-token" "^0.1.0"
+    "@project-serum/borsh" "^0.0.1-alpha.0"
+    "@project-serum/serum" "^0.13.8"
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@project-serum/serum@^0.13.24":
-  version "0.13.24"
-  resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.24.tgz#42ab28052924c4b754ed078790a192ae23fffab9"
-  integrity sha512-ux2MuO2kGGUV/QYBVx+e3roM/zATI6Fi2ThVaEo4aBdQKosbuNA60uAfSnYK9Du0kz7UjGoZHv2FnkCq8web3A==
+"@project-serum/serum@^0.13.25", "@project-serum/serum@^0.13.8":
+  version "0.13.25"
+  resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.25.tgz#40cbeaed03bb69e6a8c3e9117359b70ef155042e"
+  integrity sha512-IdK768TwM3tJHDPpt3iJ9AR7sMECrXD5B5i+oZhHR2+06Mun9djx/PtTTVYik161PjJXkuQozfWVk2a003s0CQ==
   dependencies:
     "@solana/web3.js" "^0.90.0"
     bn.js "^5.1.2"
@@ -1521,14 +1521,6 @@
   dependencies:
     bs58 "^4.0.1"
     eventemitter3 "^4.0.4"
-
-"@project-serum/token@^0.0.1-alpha.2":
-  version "0.0.1-alpha.2"
-  resolved "https://registry.yarnpkg.com/@project-serum/token/-/token-0.0.1-alpha.2.tgz#be39947325eb5dc0da1e250faeaebf6d213155d2"
-  integrity sha512-xRBeaozj5gEJwErEGCTVtRa1rSvJsSCxEOPQGF7QaDN9BbLEgnzo4+4Uzw6J7WRdyTHgJ5ZyFaRs2kd7sziziw==
-  dependencies:
-    "@project-serum/borsh" "^0.0.1-beta.0"
-    bn.js "^5.1.3"
 
 "@sheerun/mutationobserver-shim@^0.3.2":
   version "0.3.3"
@@ -11024,14 +11016,7 @@ semver@7.0.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
   integrity sha512-+GB6zVA9LWh6zovYQLALHwv5rb2PHGlJi3lfiqIHxR0uuwCgefcOJc59v9fv1w8GbStwxuuqqAjI9NMAOOgq1A==
 
-semver@^7.3.2:
-  version "7.3.4"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.4.tgz#27aaa7d2e4ca76452f98d3add093a72c943edc97"
-  integrity sha512-tCfb2WLjqFAtXn4KEdxIhalnRtoKFN7nAwj0B3ZXCbQloV2tq5eDbcTmT68JJD3nRJq24/XgxtQKFIpQdtvmVw==
-  dependencies:
-    lru-cache "^6.0.0"
-
-semver@^7.3.4:
+semver@^7.3.2, semver@^7.3.4:
   version "7.3.4"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.4.tgz#27aaa7d2e4ca76452f98d3add093a72c943edc97"
   integrity sha512-tCfb2WLjqFAtXn4KEdxIhalnRtoKFN7nAwj0B3ZXCbQloV2tq5eDbcTmT68JJD3nRJq24/XgxtQKFIpQdtvmVw==
