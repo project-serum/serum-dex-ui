@@ -19,12 +19,14 @@ export default function TradeExporter() {
 
   useEffect(() => {
     (async () => {
-      // if (connected) {
-      const data = await TransactionsApi.getTransactionData(
-        wallet.publicKey.toBase58(),
-      );
-      setTransactionData(data);
-      // }
+      if (connected) {
+        const data = await TransactionsApi.getTransactionData(
+          wallet.publicKey.toBase58(),
+        );
+        setTransactionData(data);
+      } else {
+        setTransactionData({});
+      }
     })();
   }, [wallet, connected]);
 
@@ -76,7 +78,9 @@ export default function TradeExporter() {
               <ExportButton>
                 <CSVLink
                   data={transactionData.data}
-                  filename={`serum_trades_${wallet.publicKey.toBase58()}`}
+                  filename={`serum_trades_${
+                    connected ? wallet.publicKey.toBase58() : ''
+                  }`}
                   headers={transactionData.columns}
                 >
                   Download CSV
