@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ConfigProvider, Table } from 'antd';
 
 export default function DataTable({
@@ -9,6 +9,7 @@ export default function DataTable({
   loading = false,
   pageSize = 10,
 }) {
+  const [currPageSize, setCurrPageSize] = useState(pageSize);
   const customizeRenderEmpty = () => (
     <div
       style={{
@@ -22,6 +23,10 @@ export default function DataTable({
     </div>
   );
 
+  const onShowSizeChange = (current, size) => {
+    setCurrPageSize(size);
+  };
+
   return (
     <ConfigProvider renderEmpty={customizeRenderEmpty}>
       <Table
@@ -29,7 +34,7 @@ export default function DataTable({
         columns={columns}
         pagination={
           pagination
-            ? { pagination: true, pageSize, showSizeChanger: false }
+            ? { pagination: true, pageSize: currPageSize, onShowSizeChange }
             : false
         }
         loading={loading}
