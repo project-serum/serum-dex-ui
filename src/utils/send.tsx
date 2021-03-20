@@ -17,7 +17,7 @@ import BN from 'bn.js';
 import {
   DexInstructions,
   Market,
-  OpenOrders,
+  OpenOrders, parseInstructionErrorResponse,
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
@@ -770,7 +770,14 @@ export async function sendSignedTransaction({
           }
         }
       }
-      throw new Error(JSON.stringify(simulateResult.err));
+      let parsedError;
+      if (typeof simulateResult.err == 'object' && "InstructionError" in simulateResult.err) {
+        const parsedErrorInfo = parseInstructionErrorResponse(signedTransaction, simulateResult.err["InstructionError"]);
+        parsedError = parsedErrorInfo.error;
+      } else {
+        parsedError = JSON.stringify(simulateResult.err);
+      }
+      throw new Error(parsedError);
     }
     throw new Error('Transaction failed');
   } finally {
