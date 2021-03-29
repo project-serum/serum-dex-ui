@@ -129,15 +129,6 @@ export function WalletProvider({ children }) {
       });
 
       wallet.on('disconnect', () => {
-        // TODO MOVE INTO ADAPTER
-        // @ts-ignore
-        if (wallet?._handlerAdded) {
-          // @ts-ignore
-          window.removeEventListener('message', wallet._handleMessage);
-          window.removeEventListener('beforeunload', wallet.disconnect);
-          // @ts-ignore
-          wallet._handlerAdded = false;
-        }
         setConnected(false);
         notify({
           message: 'Wallet update',
