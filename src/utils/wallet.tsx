@@ -78,6 +78,7 @@ export function WalletProvider({ children }) {
   useEffect(() => {
     if (provider) {
       const updateWallet = () => {
+        // @ts-ignore hack to also update wallet synchronously
         wallet = new (provider.adapter || Wallet)(
           providerUrl,
           endpoint,
