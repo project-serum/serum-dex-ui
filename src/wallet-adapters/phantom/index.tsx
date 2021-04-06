@@ -20,9 +20,8 @@ interface PhantomProvider {
   disconnect: () => Promise<void>;
   on: (event: PhantomEvent, handler: (args: any) => void) => void;
   request: (method: PhantomRequestMethod, params: any) => Promise<any>;
+  listeners: (event: PhantomEvent) => (() => void)[];
 }
-
-const SUPPORTED_PHANTOM_EVENTS: PhantomEvent[] = ['connect', 'disconnect'];
 
 export class PhantomWalletAdapter
   extends EventEmitter
@@ -30,11 +29,6 @@ export class PhantomWalletAdapter
   constructor() {
     super();
     this.connect = this.connect.bind(this);
-    window.onload = () => {
-      for (const event of SUPPORTED_PHANTOM_EVENTS) {
-        this._provider?.on(event, (...args) => this.emit(event, ...args));
-      }
-    };
   }
 
   private get _provider(): PhantomProvider | undefined {
@@ -42,6 +36,14 @@ export class PhantomWalletAdapter
       return (window as any).solana;
     }
     return undefined;
+  }
+
+  private _handleConnect = (...args) => {
+    this.emit('connect', ...args);
+  }
+
+  private _handleDisconnect = (...args) => {
+    this.emit('disconnect', ...args);
   }
 
   get connected() {
@@ -83,7 +85,12 @@ export class PhantomWalletAdapter
       });
       return;
     }
-
+    if (!this._provider.listeners('connect').length) {
+      this._provider?.on('connect', this._handleConnect);
+    }
+    if (!this._provider.listeners('disconnect').length) {
+      this._provider?.on('disconnect', this._handleDisconnect);
+    }
     return this._provider?.connect();
   }
 
