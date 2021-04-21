@@ -24,6 +24,7 @@ import {
 import CustomMarketDialog from '../components/CustomMarketDialog';
 import { notify } from '../utils/notifications';
 import { useHistory, useParams } from 'react-router-dom';
+import { nanoid } from 'nanoid';
 
 const { Option, OptGroup } = Select;
 
@@ -250,7 +251,7 @@ function MarketSelector({
           {customMarkets.map(({ address, name }, i) => (
             <Option
               value={address}
-              key={address}
+              key={nanoid()}
               name={name}
               style={{
                 padding: '10px',
@@ -296,7 +297,7 @@ function MarketSelector({
           .map(({ address, name, deprecated }, i) => (
             <Option
               value={address.toBase58()}
-              key={address}
+              key={nanoid()}
               name={name}
               style={{
                 padding: '10px',
