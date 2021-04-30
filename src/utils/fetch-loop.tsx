@@ -261,3 +261,9 @@ export function setCache(
     loop.notifyListeners();
   }
 }
+
+export function getCache(
+  cacheKey: any
+) {
+  return globalCache.get(cacheKey);
+}
