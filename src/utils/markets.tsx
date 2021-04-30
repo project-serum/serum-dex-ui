@@ -1,31 +1,14 @@
-import {
-  decodeEventQueue,
-  Market,
-  MARKETS,
-  OpenOrders,
-  Orderbook,
-  TOKEN_MINTS,
-  TokenInstructions,
-} from '@project-serum/serum';
-import { PublicKey } from '@solana/web3.js';
-import React, { useContext, useEffect, useState } from 'react';
-import {
-  divideBnToNumber,
-  floorToDecimal,
-  getTokenMultiplierFromDecimals,
-  useLocalStorageState,
-} from './utils';
-import { refreshCache, useAsyncData } from './fetch-loop';
-import { useAccountData, useAccountInfo, useConnection } from './connection';
-import { useWallet } from './wallet';
+import {Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions,} from '@project-serum/serum';
+import {Connection, PublicKey} from '@solana/web3.js';
+import React, {useContext, useEffect, useState} from 'react';
+import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState,} from './utils';
+import {getCache, refreshCache, setCache, useAsyncData} from './fetch-loop';
+import {useAccountData, useAccountInfo, useConnection} from './connection';
+import {useWallet} from './wallet';
 import tuple from 'immutable-tuple';
-import { notify } from './notifications';
+import {notify} from './notifications';
 import BN from 'bn.js';
-import {
-  getTokenAccountInfo,
-  parseTokenAccountData,
-  useMintInfos,
-} from './tokens';
+import {getTokenAccountInfo, parseTokenAccountData, useMintInfos,} from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -36,12 +19,10 @@ import {
   OrderWithMarketAndMarketName,
   SelectedTokenAccounts,
   TokenAccount,
-  Trade,
 } from './types';
-import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
-import { Order } from '@project-serum/serum/lib/market';
+import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
+import {Order} from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
-import { sleep } from './utils';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -434,11 +415,39 @@ export function useOpenOrdersAccounts(fast = false) {
       wallet.publicKey,
     );
   }
-  return useAsyncData(
+  return useAsyncData<OpenOrders[] | null>(
     getOpenOrdersAccounts,
     tuple('getOpenOrdersAccounts', wallet, market, connected),
     { refreshInterval: fast ? _FAST_REFRESH_INTERVAL : _SLOW_REFRESH_INTERVAL },
   );
+}
+
+// todo: refresh cache after some time?
+export async function getCachedMarket(connection: Connection, address: PublicKey, programId: PublicKey) {
+  let market;
+  const cacheKey = tuple('getCachedMarket', 'market', address.toString(), connection);
+  if (!getCache(cacheKey)) {
+    market = await Market.load(connection, address, {}, programId)
+    setCache(cacheKey, market)
+  } else {
+    market = getCache(cacheKey);
+  }
+  return market;
+}
+
+export async function getCachedOpenOrderAccounts(connection: Connection, market: Market, owner: PublicKey) {
+  let accounts;
+  const cacheKey = tuple('getCachedOpenOrderAccounts', market.address.toString(), owner.toString(), connection);
+  if (!getCache(cacheKey)) {
+    accounts = await market.findOpenOrdersAccountsForOwner(
+      connection,
+      owner,
+    );
+    setCache(cacheKey, accounts);
+  } else {
+    accounts = getCache(cacheKey);
+  }
+  return accounts;
 }
 
 export function useSelectedOpenOrdersAccount(fast = false) {
@@ -642,63 +651,6 @@ export function useFills(limit = 100) {
       ),
     )
     .map((fill) => ({ ...fill, marketName }));
-}
-
-// TODO: Update to use websocket
-export function useFillsForAllMarkets(limit = 100) {
-  const { connected, wallet } = useWallet();
-
-  const connection = useConnection();
-  const allMarkets = useAllMarkets();
-
-  async function getFillsForAllMarkets() {
-    let fills: Trade[] = [];
-    if (!connected) {
-      return fills;
-    }
-
-    let marketData;
-    for (marketData of allMarkets) {
-      const { market, marketName } = marketData;
-      if (!market || !wallet) {
-        return fills;
-      }
-      const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
-        connection,
-        wallet.publicKey,
-      );
-      const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
-      if (!openOrdersAccount) {
-        return fills;
-      }
-      const eventQueueData = await connection.getAccountInfo(
-        market && market._decoded.eventQueue,
-      );
-      let data = eventQueueData?.data;
-      if (!data) {
-        return fills;
-      }
-      const events = decodeEventQueue(data, limit);
-      const fillsForMarket: Trade[] = events
-        .filter(
-          (event) => event.eventFlags.fill && event.nativeQuantityPaid.gtn(0),
-        )
-        .map(market.parseFillEvent.bind(market));
-      const ownFillsForMarket = fillsForMarket
-        .filter((fill) => fill.openOrders.equals(openOrdersAccount.publicKey))
-        .map((fill) => ({ ...fill, marketName }));
-      fills = fills.concat(ownFillsForMarket);
-    }
-
-    console.log(JSON.stringify(fills));
-    return fills;
-  }
-
-  return useAsyncData(
-    getFillsForAllMarkets,
-    tuple('getFillsForAllMarkets', connected, connection, allMarkets, wallet),
-    { refreshInterval: _FAST_REFRESH_INTERVAL },
-  );
 }
 
 export function useAllOpenOrdersAccounts() {
@@ -1241,4 +1193,9 @@ export function getExpectedFillPrice(
     formattedPrice = totalAvgPrice;
   }
   return formattedPrice;
+}
+
+export function useCurrentlyAutoSettling(): [boolean, (currentlyAutoSettling: boolean) => void] {
+  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(false);
+  return [currentlyAutoSettling, setCurrentlyAutosettling];
 }
