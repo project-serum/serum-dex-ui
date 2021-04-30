@@ -37,8 +37,6 @@ export function PreferencesProvider({ children }) {
         return;
       }
       setCurrentlyAutoSettling(true);
-      // todo: add queue of markets to autosettle from, when user interacts with market add that market to
-      //  front of auto-settle queue
       for (const marketInfo of marketInfoList) {
         try {
           console.log(`Autosettling ${marketInfo.name} ${marketInfo.address.toString()}`);
