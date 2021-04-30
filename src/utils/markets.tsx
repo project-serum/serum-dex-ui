@@ -662,63 +662,6 @@ export function useFills(limit = 100) {
     .map((fill) => ({ ...fill, marketName }));
 }
 
-// TODO: Update to use websocket
-export function useFillsForAllMarkets(limit = 100) {
-  const { connected, wallet } = useWallet();
-
-  const connection = useConnection();
-  const allMarkets = useAllMarkets();
-
-  async function getFillsForAllMarkets() {
-    let fills: Trade[] = [];
-    if (!connected) {
-      return fills;
-    }
-
-    let marketData;
-    for (marketData of allMarkets) {
-      const { market, marketName } = marketData;
-      if (!market || !wallet) {
-        return fills;
-      }
-      const openOrdersAccounts = await market.findOpenOrdersAccountsForOwner(
-        connection,
-        wallet.publicKey,
-      );
-      const openOrdersAccount = openOrdersAccounts && openOrdersAccounts[0];
-      if (!openOrdersAccount) {
-        return fills;
-      }
-      const eventQueueData = await connection.getAccountInfo(
-        market && market._decoded.eventQueue,
-      );
-      let data = eventQueueData?.data;
-      if (!data) {
-        return fills;
-      }
-      const events = decodeEventQueue(data, limit);
-      const fillsForMarket: Trade[] = events
-        .filter(
-          (event) => event.eventFlags.fill && event.nativeQuantityPaid.gtn(0),
-        )
-        .map(market.parseFillEvent.bind(market));
-      const ownFillsForMarket = fillsForMarket
-        .filter((fill) => fill.openOrders.equals(openOrdersAccount.publicKey))
-        .map((fill) => ({ ...fill, marketName }));
-      fills = fills.concat(ownFillsForMarket);
-    }
-
-    console.log(JSON.stringify(fills));
-    return fills;
-  }
-
-  return useAsyncData(
-    getFillsForAllMarkets,
-    tuple('getFillsForAllMarkets', connected, connection, allMarkets, wallet),
-    { refreshInterval: _FAST_REFRESH_INTERVAL },
-  );
-}
-
 export function useAllOpenOrdersAccounts() {
   const { wallet, connected } = useWallet();
   const connection = useConnection();
