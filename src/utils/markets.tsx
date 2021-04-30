@@ -1,12 +1,4 @@
-import {
-  decodeEventQueue,
-  Market,
-  MARKETS,
-  OpenOrders,
-  Orderbook,
-  TOKEN_MINTS,
-  TokenInstructions,
-} from '@project-serum/serum';
+import {Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions,} from '@project-serum/serum';
 import {Connection, PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
 import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState,} from './utils';
@@ -27,7 +19,6 @@ import {
   OrderWithMarketAndMarketName,
   SelectedTokenAccounts,
   TokenAccount,
-  Trade,
 } from './types';
 import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {Order} from '@project-serum/serum/lib/market';

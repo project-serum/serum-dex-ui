@@ -27,6 +27,8 @@ export interface MarketInfo {
   name: string;
   programId: PublicKey;
   deprecated: boolean;
+  quoteMint?: PublicKey;
+  baseMint?: PublicKey;
   quoteLabel?: string;
   baseLabel?: string;
 }
