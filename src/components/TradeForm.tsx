@@ -1,32 +1,27 @@
-import { Button, Input, Radio, Switch, Slider } from 'antd';
-import React, { useState, useEffect } from 'react';
+import {Button, Input, Radio, Slider, Switch} from 'antd';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import {
-  useSelectedBaseCurrencyBalances,
-  useSelectedQuoteCurrencyBalances,
+  useFeeDiscountKeys,
+  useLocallyStoredFeeDiscountKey,
   useMarket,
   useMarkPrice,
-  useSelectedOpenOrdersAccount,
   useSelectedBaseCurrencyAccount,
+  useSelectedBaseCurrencyBalances,
+  useSelectedOpenOrdersAccount,
   useSelectedQuoteCurrencyAccount,
-  useFeeDiscountKeys,
-  useLocallyStoredFeeDiscountKey, getCachedMarket, getCachedOpenOrderAccounts, getSelectedTokenAccountForMint,
+  useSelectedQuoteCurrencyBalances,
 } from '../utils/markets';
-import { useWallet } from '../utils/wallet';
-import { notify } from '../utils/notifications';
-import {
-  getDecimalCount,
-  roundToDecimal,
-  floorToDecimal, sleep, useLocalStorageState,
-} from '../utils/utils';
-import { useSendConnection } from '../utils/connection';
+import {useWallet} from '../utils/wallet';
+import {notify} from '../utils/notifications';
+import {floorToDecimal, getDecimalCount, roundToDecimal, useLocalStorageState,} from '../utils/utils';
+import {useSendConnection} from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import {getUnixTs, placeOrder, settleFunds} from '../utils/send';
-import { SwitchChangeEventHandler } from 'antd/es/switch';
-import { refreshCache } from '../utils/fetch-loop';
+import {SwitchChangeEventHandler} from 'antd/es/switch';
+import {refreshCache} from '../utils/fetch-loop';
 import tuple from 'immutable-tuple';
 import {useInterval} from "../utils/useInterval";
-import {getAssociatedTokenAddress} from "@project-serum/associated-token";
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
