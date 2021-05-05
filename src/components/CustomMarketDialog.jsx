@@ -6,8 +6,14 @@ import { PublicKey } from '@solana/web3.js';
 import { Market, MARKETS, TOKEN_MINTS } from '@project-serum/serum';
 import { useAccountInfo, useConnection } from '../utils/connection';
 import { LoadingOutlined } from '@ant-design/icons';
+import styled from 'styled-components';
 
 const { Text } = Typography;
+
+const MarketWarning = styled(Text)`
+  font-weight: bold;
+  font-size: medium;
+`;
 
 export default function CustomMarketDialog({
   visible,
@@ -195,7 +201,7 @@ export default function CustomMarketDialog({
             />
             {market && !knownBaseCurrency && (
               <div style={{ marginTop: 8 }}>
-                <Text type="warning">Warning: unknown token</Text>
+                <MarketWarning type="danger">Warning: unknown token</MarketWarning>
               </div>
             )}
           </Col>
@@ -208,7 +214,7 @@ export default function CustomMarketDialog({
             />
             {market && !knownQuoteCurrency && (
               <div style={{ marginTop: 8 }}>
-                <Text type="warning">Warning: unknown token</Text>
+                <MarketWarning type="danger">Warning: unknown token</MarketWarning>
               </div>
             )}
           </Col>
