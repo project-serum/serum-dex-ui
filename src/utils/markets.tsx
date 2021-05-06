@@ -1,8 +1,8 @@
 import {Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions,} from '@project-serum/serum';
-import {Connection, PublicKey} from '@solana/web3.js';
+import {PublicKey} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
 import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState,} from './utils';
-import {getCache, refreshCache, setCache, useAsyncData} from './fetch-loop';
+import {refreshCache, useAsyncData} from './fetch-loop';
 import {useAccountData, useAccountInfo, useConnection} from './connection';
 import {useWallet} from './wallet';
 import tuple from 'immutable-tuple';
@@ -420,34 +420,6 @@ export function useOpenOrdersAccounts(fast = false) {
     tuple('getOpenOrdersAccounts', wallet, market, connected),
     { refreshInterval: fast ? _FAST_REFRESH_INTERVAL : _SLOW_REFRESH_INTERVAL },
   );
-}
-
-// todo: refresh cache after some time?
-export async function getCachedMarket(connection: Connection, address: PublicKey, programId: PublicKey) {
-  let market;
-  const cacheKey = tuple('getCachedMarket', 'market', address.toString(), connection);
-  if (!getCache(cacheKey)) {
-    market = await Market.load(connection, address, {}, programId)
-    setCache(cacheKey, market)
-  } else {
-    market = getCache(cacheKey);
-  }
-  return market;
-}
-
-export async function getCachedOpenOrderAccounts(connection: Connection, market: Market, owner: PublicKey) {
-  let accounts;
-  const cacheKey = tuple('getCachedOpenOrderAccounts', market.address.toString(), owner.toString(), connection);
-  if (!getCache(cacheKey)) {
-    accounts = await market.findOpenOrdersAccountsForOwner(
-      connection,
-      owner,
-    );
-    setCache(cacheKey, accounts);
-  } else {
-    accounts = getCache(cacheKey);
-  }
-  return accounts;
 }
 
 export function useSelectedOpenOrdersAccount(fast = false) {
