@@ -1,19 +1,15 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {sleep, useLocalStorageState} from './utils';
 import {useInterval} from './useInterval';
 import {useConnection} from './connection';
 import {useWallet} from './wallet';
 import {
-  getCachedMarket,
-  getCachedOpenOrderAccounts,
-  getSelectedTokenAccountForMint,
-  useCurrentlyAutoSettling,
   useMarketInfos,
   useTokenAccounts,
 } from './markets';
-import {settleFunds} from './send';
+import {settleAllFunds} from './send';
 import {PreferencesContextValues} from './types';
-import {getAssociatedTokenAddress} from "@project-serum/associated-token";
+import {Market} from "@project-serum/serum";
 
 const PreferencesContext = React.createContext<PreferencesContextValues | null>(
   null,
@@ -28,7 +24,11 @@ export function PreferencesProvider({ children }) {
   const [tokenAccounts] = useTokenAccounts();
   const { connected, wallet } = useWallet();
   const marketInfoList = useMarketInfos();
-  const [currentlyAutoSettling, setCurrentlyAutoSettling] = useCurrentlyAutoSettling();
+  const [currentlyFetchingMarkets, setCurrentlyFetchingMarkets] = useState<boolean>(false);
+  const [markets, setMarkets] = useState<Map<string, Market>>(new Map())
+  const addToMarketsMap = (marketId, market) => {
+    setMarkets(prev => new Map(prev).set(marketId, market));
+  }
   const connection = useConnection();
 
   useInterval(() => {
@@ -36,42 +36,58 @@ export function PreferencesProvider({ children }) {
       if (!wallet) {
         return;
       }
-      setCurrentlyAutoSettling(true);
-      for (const marketInfo of marketInfoList) {
-        try {
-          console.log(`Autosettling ${marketInfo.name} ${marketInfo.address.toString()}`);
-          const market = await getCachedMarket(connection, marketInfo.address, marketInfo.programId);
-          const openOrderAccounts = await getCachedOpenOrderAccounts(connection, market, wallet.publicKey);
-          // settle funds into selected token wallets
-          const [baseAssocTokenAddress, quoteAssocTokenAddress] = await Promise.all([
-            getAssociatedTokenAddress(wallet.publicKey, market.baseMintAddress),
-            getAssociatedTokenAddress(wallet.publicKey, market.quoteMintAddress)
-          ]);
-          const baseCurrencyAccount = getSelectedTokenAccountForMint(
-            tokenAccounts, market.baseMintAddress, baseAssocTokenAddress);
-          const quoteCurrencyAccount = getSelectedTokenAccountForMint(
-            tokenAccounts, market.quoteMintAddress, quoteAssocTokenAddress);
-          const openOrders = openOrderAccounts.find(oo => oo.market.equals(marketInfo.address));
-          if (baseCurrencyAccount && quoteCurrencyAccount && openOrders) {
-            await settleFunds({
-              market, openOrders, connection, wallet, baseCurrencyAccount, quoteCurrencyAccount
-            });
-            await sleep(1000);
-          }
-        } catch (e) {
-          console.log('Error auto settling funds: ' + e.message);
-        }
+      try {
+        console.log('Settling funds...');
+        await settleAllFunds({
+          connection,
+          wallet,
+          tokenAccounts: tokenAccounts || [],
+          markets: [...markets.values()],
+        });
+      } catch (e) {
+        console.log('Error auto settling funds: ' + e.message);
+        return;
       }
-      setCurrentlyAutoSettling(false);
+      console.log('Finished settling funds.');
     };
     (
       connected &&
       wallet?.autoApprove &&
       autoSettleEnabled &&
-      !currentlyAutoSettling &&
       autoSettle()
     );
-  }, 60000);
+  }, 20000);
+
+  // warms up the market and open orders cache for auto-settlement
+  useInterval(() => {
+    const fetchMarkets = async () => {
+      if (!wallet) {
+        // only need these markets for auto-settlement, so don't fetch unless we are connected.
+        return;
+      }
+      setCurrentlyFetchingMarkets(true);
+      for (const marketInfo of marketInfoList) {
+        if (markets.has(marketInfo.address.toString())) {
+          continue;
+        }
+        try {
+          const market = await Market.load(connection, marketInfo.address, {}, marketInfo.programId)
+          addToMarketsMap(marketInfo.address.toString(), market);
+          await sleep(1000);
+        } catch (e) {
+          console.log('Error fetching market: ' + e.message);
+        }
+      }
+      setCurrentlyFetchingMarkets(false);
+    }
+    (
+      connected &&
+      wallet?.autoApprove &&
+      autoSettleEnabled &&
+      !currentlyFetchingMarkets &&
+      fetchMarkets()
+    );
+  }, 60000)
 
   return (
     <PreferencesContext.Provider

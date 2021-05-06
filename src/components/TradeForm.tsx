@@ -14,14 +14,13 @@ import {
 } from '../utils/markets';
 import {useWallet} from '../utils/wallet';
 import {notify} from '../utils/notifications';
-import {floorToDecimal, getDecimalCount, roundToDecimal, useLocalStorageState,} from '../utils/utils';
+import {floorToDecimal, getDecimalCount, roundToDecimal,} from '../utils/utils';
 import {useSendConnection} from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
-import {getUnixTs, placeOrder, settleFunds} from '../utils/send';
+import {getUnixTs, placeOrder} from '../utils/send';
 import {SwitchChangeEventHandler} from 'antd/es/switch';
 import {refreshCache} from '../utils/fetch-loop';
 import tuple from 'immutable-tuple';
-import {useInterval} from "../utils/useInterval";
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
@@ -74,10 +73,6 @@ export default function TradeForm({
   const [price, setPrice] = useState<number | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
   const [sizeFraction, setSizeFraction] = useState(0);
-    const [autoSettleEnabled] = useLocalStorageState(
-    'autoSettleEnabled',
-    true,
-  );
 
   const availableQuote =
     openOrdersAccount && market
@@ -132,33 +127,6 @@ export default function TradeForm({
     const id = setInterval(warmUpCache, 30_000);
     return () => clearInterval(id);
   }, [market, sendConnection, wallet, publicKey]);
-
-  useInterval(() => {
-    const autoSettle = async () => {
-      if (!wallet || !market || !openOrdersAccount || !baseCurrencyAccount || !quoteCurrencyAccount) {
-        return;
-      }
-      try {
-        // settle funds into selected token wallets
-        await settleFunds({
-          market,
-          openOrders: openOrdersAccount,
-          connection: sendConnection,
-          wallet,
-          baseCurrencyAccount,
-          quoteCurrencyAccount
-        });
-      } catch (e) {
-        console.log('Error auto settling funds: ' + e.message);
-      }
-    };
-    (
-      connected &&
-      wallet?.autoApprove &&
-      autoSettleEnabled &&
-      autoSettle()
-    );
-  }, 10000);
 
   const onSetBaseSize = (baseSize: number | undefined) => {
     setBaseSize(baseSize);

@@ -72,6 +72,7 @@ export async function settleFunds({
   wallet,
   baseCurrencyAccount,
   quoteCurrencyAccount,
+  sendNotification = true,
 }: {
   market: Market;
   openOrders: OpenOrders;
@@ -79,6 +80,7 @@ export async function settleFunds({
   wallet: WalletAdapter;
   baseCurrencyAccount: TokenAccount;
   quoteCurrencyAccount: TokenAccount;
+  sendNotification?: boolean,
 }): Promise<string | undefined> {
   if (
     !market ||
@@ -87,7 +89,9 @@ export async function settleFunds({
     !openOrders ||
     (!baseCurrencyAccount && !quoteCurrencyAccount)
   ) {
-    notify({ message: 'Not connected' });
+    if (sendNotification) {
+      notify({message: 'Not connected'});
+    }
     return;
   }
 
@@ -163,6 +167,7 @@ export async function settleFunds({
     wallet,
     connection,
     sendingMessage: 'Settling funds...',
+    sendNotification
   });
 }
 
@@ -224,6 +229,10 @@ export async function settleAllFunds({
           // @ts-ignore
           m._decoded?.ownAddress?.equals(openOrdersAccount.market),
         );
+        if (openOrdersAccount.baseTokenFree.isZero() && openOrdersAccount.quoteTokenFree.isZero()) {
+          // nothing to settle for this market.
+          return null;
+        }
         const baseMint = market?.baseMintAddress;
         const quoteMint = market?.quoteMintAddress;
 
@@ -635,6 +644,7 @@ export async function sendTransaction({
   sentMessage = 'Transaction sent',
   successMessage = 'Transaction confirmed',
   timeout = DEFAULT_TIMEOUT,
+  sendNotification = true,
 }: {
   transaction: Transaction;
   wallet: WalletAdapter;
@@ -644,6 +654,7 @@ export async function sendTransaction({
   sentMessage?: string;
   successMessage?: string;
   timeout?: number;
+  sendNotification?: boolean
 }) {
   const signedTransaction = await signTransaction({
     transaction,
@@ -658,6 +669,7 @@ export async function sendTransaction({
     sentMessage,
     successMessage,
     timeout,
+    sendNotification
   });
 }
 
@@ -717,6 +729,7 @@ export async function sendSignedTransaction({
   sentMessage = 'Transaction sent',
   successMessage = 'Transaction confirmed',
   timeout = DEFAULT_TIMEOUT,
+  sendNotification = true,
 }: {
   signedTransaction: Transaction;
   connection: Connection;
@@ -724,17 +737,22 @@ export async function sendSignedTransaction({
   sentMessage?: string;
   successMessage?: string;
   timeout?: number;
+  sendNotification?: boolean
 }): Promise<string> {
   const rawTransaction = signedTransaction.serialize();
   const startTime = getUnixTs();
-  notify({ message: sendingMessage });
+  if (sendNotification){
+    notify({ message: sendingMessage });
+  }
   const txid: TransactionSignature = await connection.sendRawTransaction(
     rawTransaction,
     {
       skipPreflight: true,
     },
   );
-  notify({ message: sentMessage, type: 'success', txid });
+  if (sendNotification) {
+    notify({ message: sentMessage, type: 'success', txid });
+  }
 
   console.log('Started awaiting confirmation for', txid);
 
@@ -783,7 +801,9 @@ export async function sendSignedTransaction({
   } finally {
     done = true;
   }
-  notify({ message: successMessage, type: 'success', txid });
+  if (sendNotification) {
+    notify({ message: successMessage, type: 'success', txid });
+  }
 
   console.log('Latency', txid, getUnixTs() - startTime);
   return txid;

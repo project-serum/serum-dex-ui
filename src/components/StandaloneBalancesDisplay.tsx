@@ -1,5 +1,5 @@
-import { Button, Col, Divider, Popover, Row } from 'antd';
-import React, { useState } from 'react';
+import {Button, Col, Divider, Popover, Row} from 'antd';
+import React, {useState} from 'react';
 import FloatingElement from './layout/FloatingElement';
 import styled from 'styled-components';
 import {
@@ -11,15 +11,17 @@ import {
   useTokenAccounts,
 } from '../utils/markets';
 import DepositDialog from './DepositDialog';
-import { useWallet } from '../utils/wallet';
+import {useWallet} from '../utils/wallet';
 import Link from './Link';
-import { settleFunds } from '../utils/send';
-import { useSendConnection } from '../utils/connection';
-import { notify } from '../utils/notifications';
-import { Balances } from '../utils/types';
+import {settleFunds} from '../utils/send';
+import {useSendConnection} from '../utils/connection';
+import {notify} from '../utils/notifications';
+import {Balances} from '../utils/types';
 import StandaloneTokenAccountsSelect from './StandaloneTokenAccountSelect';
 import LinkAddress from './LinkAddress';
-import { InfoCircleOutlined } from '@ant-design/icons';
+import {InfoCircleOutlined} from '@ant-design/icons';
+import {useInterval} from "../utils/useInterval";
+import {useLocalStorageState} from "../utils/utils";
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -50,6 +52,11 @@ export default function StandaloneBalancesDisplay() {
     balances && balances.find((b) => b.coin === baseCurrency);
   const quoteCurrencyBalances =
     balances && balances.find((b) => b.coin === quoteCurrency);
+  const [autoSettleEnabled] = useLocalStorageState(
+    'autoSettleEnabled',
+    true,
+  );
+  const [lastSettledAt, setLastSettledAt] = useState<number>(0);
 
   async function onSettleFunds() {
     if (!wallet) {
@@ -111,6 +118,42 @@ export default function StandaloneBalancesDisplay() {
       });
     }
   }
+
+  useInterval(() => {
+    const autoSettle = async () => {
+      if (!wallet || !market || !openOrdersAccount || !baseCurrencyAccount || !quoteCurrencyAccount || !autoSettleEnabled) {
+        return;
+      }
+      if (!baseCurrencyBalances?.unsettled && !quoteCurrencyBalances?.unsettled) {
+        return;
+      }
+      if (Date.now() - lastSettledAt < 15000) {
+        return;
+      }
+      try {
+        console.log('Settling funds...');
+        setLastSettledAt(Date.now());
+        await settleFunds({
+          market,
+          openOrders: openOrdersAccount,
+          connection,
+          wallet,
+          baseCurrencyAccount,
+          quoteCurrencyAccount,
+        });
+      } catch (e) {
+        console.log('Error auto settling funds: ' + e.message);
+        return;
+      }
+      console.log('Finished settling funds.');
+    };
+    (
+      connected &&
+      wallet?.autoApprove &&
+      autoSettleEnabled &&
+      autoSettle()
+    );
+  }, 1000);
 
   const formattedBalances: [
     string | undefined,
