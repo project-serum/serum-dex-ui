@@ -40,12 +40,13 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "predeploy": "git pull --ff-only && yarn && yarn build",
-    "deploy": "gh-pages -d build",
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
+    "predeploy": "git pull --ff-only && yarn && yarn build",
+    "deploy": "gh-pages -d build",
+    "deploy:solareum": "yarn run predeploy && surge ./build https://dex.solareum.app",
     "prettier": "prettier --write src"
   },
   "eslintConfig": {
