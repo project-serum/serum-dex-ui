@@ -2,7 +2,7 @@ import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyle = createGlobalStyle`
 html,body{
-  background: #BA28FF;
+  background: #BA2AAF;
 }
 input[type=number]::-webkit-inner-spin-button {
   opacity: 0;
@@ -25,7 +25,7 @@ input[type=number]:focus::-webkit-inner-spin-button {
 }
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #5b5f67;
+  background: #5b5f11;
 }
 .ant-slider-track, .ant-slider:hover .ant-slider-track {
   background-color: #2abdd2;
