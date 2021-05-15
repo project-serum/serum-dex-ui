@@ -340,7 +340,7 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
       </Col>
       <Col flex={'360px'} style={{ height: '100%' }}>
         <Orderbook smallScreen={false} onPrice={onPrice} onSize={onSize} />
-        <TradesTable smallScreen={false} />
+        {/* <TradesTable smallScreen={false} /> */}
       </Col>
       <Col
         flex="400px"
@@ -369,9 +369,9 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
             onSize={onSize}
           />
         </Col>
-        <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
+        {/* <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
           <TradesTable smallScreen={true} />
-        </Col>
+        </Col> */}
         <Col
           flex="400px"
           style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -408,9 +408,9 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <Orderbook smallScreen={true} onPrice={onPrice} onSize={onSize} />
         </Col>
-        <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
+        {/* <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <TradesTable smallScreen={true} />
-        </Col>
+        </Col> */}
       </Row>
       <Row>
         <Col flex="auto">
