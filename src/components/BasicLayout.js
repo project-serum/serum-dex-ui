@@ -2,6 +2,8 @@ import { Layout } from 'antd';
 import React from 'react';
 import { CustomFooter as Footer } from './Footer';
 import TopBar from './TopBar';
+import { HideOnMobile } from './HideOnMobile';
+
 const { Header, Content } = Layout;
 
 export default function BasicLayout({ children }) {
@@ -10,11 +12,15 @@ export default function BasicLayout({ children }) {
       <Layout
         style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}
       >
-        {/* <Header style={{ padding: 0, minHeight: 64, height: 'unset' }}>
-          <TopBar />
-        </Header> */}
+        <HideOnMobile>
+          <Header style={{ padding: 0, minHeight: 64, height: 'unset' }}>
+            <TopBar />
+          </Header>
+        </HideOnMobile>
         <Content style={{ flex: 1 }}>{children}</Content>
-        <Footer />
+        <HideOnMobile>
+          <Footer />
+        </HideOnMobile>
       </Layout>
     </React.Fragment>
   );
