@@ -10,10 +10,22 @@ export default function BasicLayout({ children }) {
   return (
     <React.Fragment>
       <Layout
-        style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}
+        style={{
+          display: 'flex',
+          minHeight: '100vh',
+          flexDirection: 'column',
+          backgroundColor: '#121010',
+        }}
       >
         <HideOnMobile>
-          <Header style={{ padding: 0, minHeight: 64, height: 'unset' }}>
+          <Header
+            style={{
+              padding: 0,
+              minHeight: 64,
+              height: 'unset',
+              backgroundColor: 'black',
+            }}
+          >
             <TopBar />
           </Header>
         </HideOnMobile>
