@@ -1,11 +1,9 @@
 export const helpUrls = {
-  customerSupport: 'https://t.me/ProjectSerum',
-  customerSupportZh: 'https://t.me/ProjectSerum_Chinese',
-  contactEmail: 'mailto:contact@projectserum.com',
-  discord: 'https://discord.gg/EDvudv6',
-  telegram: 'https://t.me/ProjectSerum',
-  github: 'https://github.com/project-serum',
-  projectSerum: 'https://projectserum.com/',
-  developerResources: 'https://projectserum.com/developer-resources',
-  solanaBeach: 'https://solanabeach.io',
+  customerSupport: 'https://twitter.com/CoinKermit',
+  customerSupportZh: 'https://twitter.com/CoinKermitt',
+  contactEmail: 'mailto:contact@kermitoken@gmail.com',
+  twitter: 'https://twitter.com/CoinKermit',
+  discord: 'https://discord.gg/kermit',
+  home: 'https://www.kermitcoin.xyz',
+  subreddit: 'https://www.reddit.com/r/kermitcoin/',
 };
