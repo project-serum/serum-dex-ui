@@ -4,7 +4,7 @@ import styled from 'styled-components';
 const Wrapper = styled.div`
   margin: 5px;
   padding: 20px;
-  background-color: #1a2029;
+  background-color: #0606065c;
 `;
 
 export default function FloatingElement({
