@@ -1,0 +1,26 @@
+[
+  {
+    "name": "COPE/USDC",
+    "address": "7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2",
+    "deprecated": false,
+    "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+  },
+  {
+    "address": "4tSvZvnbyzHXLMTiFonMyxZoHmFqau1XArcRCVHLZ5gX",
+    "deprecated": false,
+    "name": "ETH/USDC",
+    "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+  },
+  {
+    "address": "Ep5kFPdPFvBqxp7Hp9C8WhMJPPidcC1FXXiKAgCfK6vy",
+    "deprecated": false,
+    "name": "KERMIT/USDC",
+    "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+  },
+  {
+    "address": "5WVBCaUPZF4HP3io9Z56N71cPMJt8qh3c4ZwSjRDeuut",
+    "deprecated": false,
+    "name": "CHEEMS/USDC",
+    "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+  }
+]
