@@ -1,0 +1,2 @@
+# Redirects from what the browser requests to what we serve
+/#/market/            /#/market/Ep5kFPdPFvBqxp7Hp9C8WhMJPPidcC1FXXiKAgCfK6vy
