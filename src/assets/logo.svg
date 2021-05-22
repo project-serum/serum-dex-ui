@@ -1,1 +1,31 @@
-<svg enable-background="new 0 0 251 286" viewBox="0 0 251 286" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><linearGradient id="a"><stop offset="0" stop-color="#05aac5"/><stop offset="1" stop-color="#71e0ec"/></linearGradient><linearGradient id="b" gradientUnits="userSpaceOnUse" x1="125.4996" x2="125.4996" xlink:href="#a" y1="234.9332" y2="33.9501"/><linearGradient id="c" gradientUnits="userSpaceOnUse" x1="125.5" x2="125.5" xlink:href="#a" y1="259.8856" y2="17.6906"/><linearGradient id="d" gradientUnits="userSpaceOnUse" x1="125.5" x2="125.5" xlink:href="#a" y1="284.8729" y2=".9991"/><path d="m125.5 234.9c-43.1 0-78.1-35-78.1-78.1 0-41.9 70.7-115.9 73.7-119l3.7-3.9 3.8 3.8c3.1 3.1 75 77.1 75 119 0 43.2-35 78.2-78.1 78.2zm-.6-185.9c-6.2 6.7-19.2 21.2-32.1 38.2-22.9 30.2-35 54.2-35 69.5 0 37.3 30.4 67.7 67.7 67.7s67.7-30.4 67.7-67.7c0-15.3-12.3-39.3-35.6-69.5-13.1-16.9-26.4-31.5-32.7-38.2z" fill="url(#b)"/><path d="m125.5 259.9c-56.9 0-103.1-46.3-103.1-103.1 0-55.6 77.6-133.2 80.9-136.4 2-2 5.4-2 7.4 0s2 5.4 0 7.4c-.8.8-77.8 77.8-77.8 129 0 51.1 41.6 92.7 92.7 92.7s92.7-41.6 92.7-92.7c0-21-13.6-50-39.4-84.1-19.8-26.1-39.7-45.9-39.9-46.1-2.1-2-2.1-5.3 0-7.4 2-2.1 5.3-2.1 7.4 0 3.4 3.3 82.4 81.9 82.4 137.6-.2 56.8-46.4 103.1-103.3 103.1z" fill="url(#c)"/><path d="m125.5 284.9c-69.2 0-125.5-56.3-125.5-125.5 0-28.6 14.4-63.8 42.7-104.5 20.9-30 41.4-51.4 42.3-52.3 2-2.1 5.3-2.1 7.4-.1s2.1 5.3.1 7.4c-.2.2-20.9 21.8-41.3 51.1-26.7 38.3-40.8 72.3-40.8 98.4 0 63.4 51.6 115.1 115.1 115.1s115.1-51.6 115.1-115.1c0-26.1-14.2-60.1-41.1-98.4-20.6-29.3-41.5-50.9-41.7-51.1-2-2.1-2-5.4.1-7.4s5.4-2 7.4.1c3.5 3.6 85.7 89 85.7 156.8 0 69.2-56.3 125.5-125.5 125.5z" fill="url(#d)"/></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 400 400" style="enable-background:new 0 0 400 400;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:url(#SVGID_1_);}
+	.st1{fill:url(#SVGID_2_);}
+</style>
+<image style="overflow:visible;enable-background:new    ;" width="400" height="400" id="Background_copy" xlink:href="506F7EC3472896DB.png" >
+</image>
+<image style="overflow:visible;" width="976" height="976" xlink:href="../Asset 7.png"  transform="matrix(0.4098 0 0 0.4098 0 0)">
+</image>
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="131.9597" y1="266.3987" x2="304.4146" y2="266.3987">
+	<stop  offset="0" style="stop-color:#524B99"/>
+	<stop  offset="0.2461" style="stop-color:#554D9A"/>
+	<stop  offset="0.4295" style="stop-color:#5F529D"/>
+	<stop  offset="0.5927" style="stop-color:#6F5BA2"/>
+	<stop  offset="0.7433" style="stop-color:#8567A9"/>
+	<stop  offset="0.8256" style="stop-color:#9570AE"/>
+</linearGradient>
+<path class="st0" d="M273.5,175H162.8c-17,0-30.8,13.8-30.8,30.8v121.2c0,28.1,34.6,41.5,53.6,20.8l110.8-121.2
+	C314.4,206.8,300.3,175,273.5,175z"/>
+<linearGradient id="SVGID_2_" gradientUnits="userSpaceOnUse" x1="136.1137" y1="165.3748" x2="288.047" y2="83.2892">
+	<stop  offset="0.6091" style="stop-color:#009BBA"/>
+	<stop  offset="0.7303" style="stop-color:#08A1BF"/>
+	<stop  offset="0.9203" style="stop-color:#1FB1CD"/>
+	<stop  offset="1" style="stop-color:#2AB9D4"/>
+</linearGradient>
+<path class="st1" d="M275.2,62.1l-113.8,0c-16.2,0-29.4,13.2-29.4,29.4v120.4c0,26.6,32.5,39.5,50.8,20.2l113.8-120.4
+	C314.3,93,301,62.1,275.2,62.1z"/>
+</svg>
