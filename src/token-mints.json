@@ -1,5 +1,9 @@
 [
   {
+    "address": "7xzovRepzLvXbbpVZLYKzEBhCNgStEv1xpDqf1rMFFKX",
+    "name": "KERMIT"
+  },
+  {
     "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
     "name": "USDC"
   },
@@ -11,10 +15,7 @@
     "address": "2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk",
     "name": "ETH"
   },
-  {
-    "address": "7xzovRepzLvXbbpVZLYKzEBhCNgStEv1xpDqf1rMFFKX",
-    "name": "KERMIT"
-  },
+
   {
     "address": "So11111111111111111111111111111111111111112",
     "name": "SOL"

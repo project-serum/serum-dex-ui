@@ -296,7 +296,7 @@ export function getTradePageUrl(marketAddress?: string) {
     marketAddress =
       marketAddress ||
       DEFAULT_MARKET?.address.toBase58() ||
-      'Ep5kFPdPFvBqxp7Hp9C8WhMJPPidcC1FXXiKAgCfK6vy';
+      'EmyoFKQQyALv7mMDL681vV5oanPsLhFggvgJh5gE29vn';
   }
   return `/market/${marketAddress}`;
 }

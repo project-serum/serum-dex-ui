@@ -1,5 +1,11 @@
 [
   {
+    "address": "EmyoFKQQyALv7mMDL681vV5oanPsLhFggvgJh5gE29vn",
+    "deprecated": false,
+    "name": "KERMIT/USDC",
+    "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+  },
+  {
     "name": "COPE/USDC",
     "address": "6fc7v3PmjZG9Lk2XTot6BywGyYLkBQuzuFKd4FpCsPxk",
     "deprecated": false,
@@ -11,12 +17,7 @@
     "name": "ETH/USDC",
     "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
   },
-  {
-    "address": "Ep5kFPdPFvBqxp7Hp9C8WhMJPPidcC1FXXiKAgCfK6vy",
-    "deprecated": false,
-    "name": "KERMIT/USDC",
-    "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
-  },
+
   {
     "address": "9wFFyRfZBsuAha4YcuxcXLKwMxJR43S7fPfQLusDBzvT",
     "deprecated": false,
