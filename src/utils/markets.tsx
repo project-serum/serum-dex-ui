@@ -289,14 +289,7 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
 
 export function getTradePageUrl(marketAddress?: string) {
   if (!marketAddress) {
-    const saved = localStorage.getItem('marketAddress');
-    if (saved) {
-      marketAddress = JSON.parse(saved);
-    }
-    marketAddress =
-      marketAddress ||
-      DEFAULT_MARKET?.address.toBase58() ||
-      'EmyoFKQQyALv7mMDL681vV5oanPsLhFggvgJh5gE29vn';
+    marketAddress = 'Ep5kFPdPFvBqxp7Hp9C8WhMJPPidcC1FXXiKAgCfK6vy';
   }
   return `/market/${marketAddress}`;
 }
