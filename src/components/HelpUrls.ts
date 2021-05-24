@@ -4,6 +4,6 @@ export const helpUrls = {
   contactEmail: 'mailto:contact@kermitoken@gmail.com',
   twitter: 'https://twitter.com/KermitFinance',
   discord: 'https://discord.gg/kermit',
-  home: 'https://www.kermitcoin.xyz',
+  home: 'https://kermitfinance.com/',
   subreddit: 'https://www.reddit.com/r/kermitcoin/',
 };

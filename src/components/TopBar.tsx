@@ -47,7 +47,7 @@ const EXTERNAL_LINKS = {
   '/developer-resources': 'https://serum-academy.com/en/developer-resources/',
   '/explorer': 'https://explorer.solana.com',
   '/srm-faq': 'https://projectserum.com/srm-faq',
-  '/home': 'https://www.kermitcoin.xyz',
+  '/home': 'https://kermitfinance.com/',
 };
 
 export default function TopBar() {
