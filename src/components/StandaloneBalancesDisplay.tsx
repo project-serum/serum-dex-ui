@@ -118,10 +118,10 @@ export default function StandaloneBalancesDisplay() {
       });
     }
   }
-
+  const AUTO_SETTLE_DISABLED_OVERRIDE = true;
   useInterval(() => {
     const autoSettle = async () => {
-      if (!wallet || !market || !openOrdersAccount || !baseCurrencyAccount || !quoteCurrencyAccount || !autoSettleEnabled) {
+      if (AUTO_SETTLE_DISABLED_OVERRIDE || !wallet || !market || !openOrdersAccount || !baseCurrencyAccount || !quoteCurrencyAccount || !autoSettleEnabled) {
         return;
       }
       if (!baseCurrencyBalances?.unsettled && !quoteCurrencyBalances?.unsettled) {
