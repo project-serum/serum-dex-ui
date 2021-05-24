@@ -22,6 +22,7 @@ import LinkAddress from './LinkAddress';
 import {InfoCircleOutlined} from '@ant-design/icons';
 import {useInterval} from "../utils/useInterval";
 import {useLocalStorageState} from "../utils/utils";
+import { AUTO_SETTLE_DISABLED_OVERRIDE } from "../utils/preferences";
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -118,7 +119,7 @@ export default function StandaloneBalancesDisplay() {
       });
     }
   }
-  const AUTO_SETTLE_DISABLED_OVERRIDE = true;
+
   useInterval(() => {
     const autoSettle = async () => {
       if (AUTO_SETTLE_DISABLED_OVERRIDE || !wallet || !market || !openOrdersAccount || !baseCurrencyAccount || !quoteCurrencyAccount || !autoSettleEnabled) {
