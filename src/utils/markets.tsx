@@ -248,9 +248,45 @@ export function getMarketDetails(
 }
 
 export function useCustomMarkets() {
-  const [customMarkets, setCustomMarkets] = useLocalStorageState<
-    CustomMarketInfo[]
-  >('customMarkets', []);
+  var ropeMarket: CustomMarketInfo = {
+    address: "4Sg1g8U2ZuGnGYxAhc6MmX9MX7yZbrrraPkCQ9MdCPtF",
+    name: "ROPE/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "ROPE"
+  }
+
+  var copeMarket: CustomMarketInfo = {
+    address: "7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2",
+    name: "COPE/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "COPE"
+  };
+  
+  var solapeMarket: CustomMarketInfo = {
+    address: "4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon",
+    name: "SOLAPE/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "SOLAPE"
+  };
+  
+  var fabMarket: CustomMarketInfo = {
+    address: "GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M",
+    name: "FAB/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "FAB"
+  };
+
+  const [customMarkets, setCustomMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', 
+  [
+    ropeMarket,
+    copeMarket,
+    solapeMarket,
+    fabMarket
+  ]);
   return { customMarkets, setCustomMarkets };
 }
 
