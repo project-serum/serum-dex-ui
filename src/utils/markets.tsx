@@ -27,12 +27,63 @@ import BonfidaApi from './bonfidaConnector';
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
 
+export const ropeMarket: MarketInfo = {
+  address: new PublicKey("4Sg1g8U2ZuGnGYxAhc6MmX9MX7yZbrrraPkCQ9MdCPtF"),
+  name: "ROPE/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "ROPE"
+};
+
+export const copeMarket: MarketInfo = {
+  address: new PublicKey("7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2"),
+  name: "COPE/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "COPE"
+};
+
+export const solapeMarket: MarketInfo = {
+  address: new PublicKey("4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon"),
+  name: "SOLAPE/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "SOLAPE"
+};
+
+export const fabMarket: MarketInfo = {
+  address: new PublicKey("GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M"),
+  name: "FAB/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "FAB"
+};
+
+
 export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
   : MARKETS;
 
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
+  USE_MARKETS = [];
+  if (USE_MARKETS.filter(({name}) => (name === "ROPE/USDC")).length === 0) {
+    USE_MARKETS.push(ropeMarket);
+  }
+
+  if (USE_MARKETS.filter(({name}) => (name === "SAMO/USDC")).length === 0) {
+    USE_MARKETS.push(samoMarket);
+  }
+
+  if (USE_MARKETS.filter(({name}) => (name === "TULIP/USDC")).length === 0) {
+    USE_MARKETS.push(tulipMarket);
+  }
+
+  var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
+  return markets;
 }
 
 export function useAllMarkets() {
