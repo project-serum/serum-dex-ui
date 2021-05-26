@@ -70,16 +70,17 @@ export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
 
 export function useMarketsList() {
   USE_MARKETS = [];
+  if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC")).length === 0) {
+    USE_MARKETS.push(fabMarket);
+  }
   if (USE_MARKETS.filter(({name}) => (name === "ROPE/USDC")).length === 0) {
     USE_MARKETS.push(ropeMarket);
   }
-
-  if (USE_MARKETS.filter(({name}) => (name === "SAMO/USDC")).length === 0) {
-    USE_MARKETS.push(samoMarket);
+  if (USE_MARKETS.filter(({name}) => (name === "SOLAPE/USDC")).length === 0) {
+    USE_MARKETS.push(solapeMarket);
   }
-
-  if (USE_MARKETS.filter(({name}) => (name === "TULIP/USDC")).length === 0) {
-    USE_MARKETS.push(tulipMarket);
+  if (USE_MARKETS.filter(({name}) => (name === "COPE/USDC")).length === 0) {
+    USE_MARKETS.push(copeMarket);
   }
 
   var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
