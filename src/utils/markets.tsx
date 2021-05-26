@@ -69,7 +69,7 @@ export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   : MARKETS;
 
 export function useMarketsList() {
-  USE_MARKETS = [];
+  while (USE_MARKETS.length) { USE_MARKETS.pop(); }
   if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC")).length === 0) {
     USE_MARKETS.push(fabMarket);
   }
