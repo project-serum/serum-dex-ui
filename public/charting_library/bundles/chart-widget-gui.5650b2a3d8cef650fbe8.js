@@ -2274,6 +2274,7 @@
                 e++
               ) {
                 var i = document.createElement('div');
+                i.style.display = 'none';
                 i.classList.add(m.title, S[e], 'apply-overflow-tooltip'),
                   (i.dataset.name = 'legend-source-title');
                 var s = this._titlesSpawns[e].value();
