@@ -57,7 +57,6 @@ export default function TradePage() {
       setMarketAddress={setMarketAddress}
     >
       <TradePageInner />
-      <TVChartContainer />
     </MarketProvider>
   );
 }
@@ -337,13 +336,19 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
         flexWrap: 'nowrap',
       }}
     >
-      <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
-        <UserInfoTable />
-      </Col>
       <Col flex={'360px'} style={{ height: '100%' }}>
         <Orderbook smallScreen={false} onPrice={onPrice} onSize={onSize} />
         <TradesTable smallScreen={false} />
       </Col>
+      <Col
+        flex="auto"
+        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+      >
+        <TVChartContainer />
+
+        <UserInfoTable />
+      </Col>
+
       <Col
         flex="400px"
         style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -358,6 +363,11 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
 const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
+      <Row>
+        <Col flex="auto">
+          <TVChartContainer />
+        </Col>
+      </Row>
       <Row
         style={{
           height: '900px',
@@ -395,22 +405,29 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
       <Row>
-        <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
+        <Col
+          xs={24}
+          sm={24}
+          style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+        >
+          <TVChartContainer />
           <TradeForm style={{ flex: 1 }} setChangeOrderRef={onChangeOrderRef} />
         </Col>
-        <Col xs={24} sm={12}>
+        <Col xs={24} sm={24}>
           <StandaloneBalancesDisplay />
         </Col>
       </Row>
       <Row
-        style={{
-          height: '500px',
-        }}
+        style={
+          {
+            // height: '500px',
+          }
+        }
       >
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <Orderbook smallScreen={true} onPrice={onPrice} onSize={onSize} />
         </Col>
-        <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
+        <Col xs={24} sm={12} style={{ height: '500px', display: 'flex' }}>
           <TradesTable smallScreen={true} />
         </Col>
       </Row>

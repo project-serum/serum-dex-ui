@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 var t = function () {
   return (t =
     Object.assign ||
