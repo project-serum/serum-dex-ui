@@ -350,14 +350,6 @@ export function useCustomMarkets() {
     baseLabel: "FTR"
   };
   
-  var ropeMarket: CustomMarketInfo = {
-    address: "4Sg1g8U2ZuGnGYxAhc6MmX9MX7yZbrrraPkCQ9MdCPtF",
-    name: "ROPE/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "ROPE"
-  };
-  
   var xcopeMarket: CustomMarketInfo = {
     address: "7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2",
     name: "xCOPE/USDC",

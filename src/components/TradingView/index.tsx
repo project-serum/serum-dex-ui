@@ -49,50 +49,36 @@ export const TVChartContainer = () => {
   const { market } = useMarket();
 
   React.useEffect(() => {
+    var sym = findTVMarketFromAddress(
+      market?.address.toBase58() || '',
+      ) as string;
+
     const widgetOptions: ChartingLibraryWidgetOptions = {
-      symbol: findTVMarketFromAddress(
-        market?.address.toBase58() || '',
-      ) as string,
-      // BEWARE: no trailing slash is expected in feed URL
-      // tslint:disable-next-line:no-any
-      datafeed: new (window as any).Datafeeds.UDFCompatibleDatafeed(
-        defaultProps.datafeedUrl,
-      ),
-      interval: defaultProps.interval as ChartingLibraryWidgetOptions['interval'],
-      container_id: defaultProps.containerId as ChartingLibraryWidgetOptions['container_id'],
-      library_path: defaultProps.libraryPath as string,
-      locale: 'en',
-      disabled_features: ['use_localstorage_for_settings'],
-      enabled_features: ['study_templates'],
-      load_last_chart: true,
-      client_id: defaultProps.clientId,
-      user_id: defaultProps.userId,
-      fullscreen: defaultProps.fullscreen,
-      autosize: defaultProps.autosize,
-      studies_overrides: defaultProps.studiesOverrides,
-      theme: 'Dark',
-    };
-
-    const tvWidget = new widget(widgetOptions);
-    tvWidgetRef.current = tvWidget;
-
-    tvWidget.onChartReady(() => {
-      tvWidget.headerReady().then(() => {
-        const button = tvWidget.createButton();
-        button.setAttribute('title', 'Click to show a notification popup');
-        button.classList.add('apply-common-tooltip');
-        button.addEventListener('click', () =>
-          tvWidget.showNoticeDialog({
-            title: 'Notification',
-            body: 'TradingView Charting Library API works correctly',
-            callback: () => {
-              console.log('It works!!');
-            },
-          }),
-        );
-        button.innerHTML = 'Check API';
-      });
-    });
+        symbol: sym,
+        // BEWARE: no trailing slash is expected in feed URL
+        // tslint:disable-next-line:no-any
+        datafeed: new (window as any).Datafeeds.UDFCompatibleDatafeed(
+          defaultProps.datafeedUrl,
+          ),
+          interval: defaultProps.interval as ChartingLibraryWidgetOptions['interval'],
+          container_id: defaultProps.containerId as ChartingLibraryWidgetOptions['container_id'],
+          library_path: defaultProps.libraryPath as string,
+          locale: 'en',
+          disabled_features: ['use_localstorage_for_settings'],
+          enabled_features: ['study_templates'],
+          load_last_chart: true,
+          client_id: defaultProps.clientId,
+          user_id: defaultProps.userId,
+          fullscreen: defaultProps.fullscreen,
+          autosize: defaultProps.autosize,
+          studies_overrides: defaultProps.studiesOverrides,
+          theme: 'Dark',
+        };
+        
+        const tvWidget = new widget(widgetOptions);
+        tvWidgetRef.current = tvWidget;
+        
+        // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market]);
 
   return <div id={defaultProps.containerId} className="tradingview-chart" />;
