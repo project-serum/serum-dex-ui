@@ -80,7 +80,7 @@ export function useMarketsList() {
     USE_MARKETS.push(solapeMarket);
   }
   if (USE_MARKETS.filter(({name}) => (name === "xCOPE/USDC")).length === 0) {
-    USE_MARKETS.push(copeMarket);
+    USE_MARKETS.push(xcopeMarket);
   }
 
   var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
@@ -256,12 +256,12 @@ export function useCustomMarkets() {
     baseLabel: "ROPE"
   }
 
-  var copeMarket: CustomMarketInfo = {
+  var xcopeMarket: CustomMarketInfo = {
     address: "7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2",
-    name: "COPE/USDC",
+    name: "xCOPE/USDC",
     programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
     quoteLabel: "USDC",
-    baseLabel: "COPE"
+    baseLabel: "xCOPE"
   };
   
   var solapeMarket: CustomMarketInfo = {
@@ -283,7 +283,7 @@ export function useCustomMarkets() {
   const [customMarkets, setCustomMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', 
   [
     ropeMarket,
-    copeMarket,
+    xcopeMarket,
     solapeMarket,
     fabMarket
   ]);
