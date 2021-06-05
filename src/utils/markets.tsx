@@ -36,13 +36,13 @@ export const ropeMarket: MarketInfo = {
   baseLabel: "ROPE"
 };
 
-export const copeMarket: MarketInfo = {
+export const xcopeMarket: MarketInfo = {
   address: new PublicKey("7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2"),
-  name: "COPE/USDC",
+  name: "xCOPE/USDC",
   programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
   deprecated: false,
   quoteLabel: "USDC",
-  baseLabel: "COPE"
+  baseLabel: "xCOPE"
 };
 
 export const solapeMarket: MarketInfo = {
@@ -79,7 +79,7 @@ export function useMarketsList() {
   if (USE_MARKETS.filter(({name}) => (name === "SOLAPE/USDC")).length === 0) {
     USE_MARKETS.push(solapeMarket);
   }
-  if (USE_MARKETS.filter(({name}) => (name === "COPE/USDC")).length === 0) {
+  if (USE_MARKETS.filter(({name}) => (name === "xCOPE/USDC")).length === 0) {
     USE_MARKETS.push(copeMarket);
   }
 
@@ -211,7 +211,7 @@ const _SLOW_REFRESH_INTERVAL = 5 * 1000;
 const _FAST_REFRESH_INTERVAL = 1000;
 
 export const DEFAULT_MARKET = USE_MARKETS.find(
-  ({ name, deprecated }) => name === 'SRM/USDT' && !deprecated,
+  ({ name, deprecated }) => name === 'FAB/USDT' && !deprecated,
 );
 
 export function getMarketDetails(
