@@ -27,6 +27,15 @@ import BonfidaApi from './bonfidaConnector';
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
 
+export const ftrMarket: MarketInfo = {
+  address: new PublicKey("4JP75nztBEo5rYhW1LTQyc4qfjPB33jMWEUvp2DGrQQR"),
+  name: "FTR/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "FTR"
+};
+
 export const ropeMarket: MarketInfo = {
   address: new PublicKey("4Sg1g8U2ZuGnGYxAhc6MmX9MX7yZbrrraPkCQ9MdCPtF"),
   name: "ROPE/USDC",
@@ -63,6 +72,61 @@ export const fabMarket: MarketInfo = {
   baseLabel: "FAB"
 };
 
+export const copeMarket: MarketInfo = {
+  address: new PublicKey("6fc7v3PmjZG9Lk2XTot6BywGyYLkBQuzuFKd4FpCsPxk"),
+  name: "COPE/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "COPE"
+};
+
+export const sailMarket: MarketInfo = {
+  address: new PublicKey("6hwK66FfUdyhncdQVxWFPRqY8y6usEvzekUaqtpKEKLr"),
+  name: "SAIL/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "SAIL"
+};
+
+export const samoMarket: MarketInfo = {
+  address: new PublicKey("FR3SPJmgfRSKKQ2ysUZBu7vJLpzTixXnjzb84bY3Diif"),
+  name: "SAMO/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "SAMO"
+};
+
+export const kinMarket: MarketInfo = {
+  address: new PublicKey("Bn6NPyr6UzrFAwC4WmvPvDr2Vm8XSUnFykM2aQroedgn"),
+  name: "KIN/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "KIN"
+};
+
+export const tulipMarket: MarketInfo = {
+  address: new PublicKey("8GufnKq7YnXKhnB3WNhgy5PzU9uvHbaaRrZWQK6ixPxW"),
+  name: "TULIP/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "TULIP"
+};
+
+export const frogMarket: MarketInfo = {
+  address: new PublicKey("2Si6XDdpv5zcvYna221eZZrsjsp5xeYoz9W1TVdMdbnt"),
+  name: "FROG/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "FROG"
+};
+
+
 
 export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
@@ -81,6 +145,28 @@ export function useMarketsList() {
   }
   if (USE_MARKETS.filter(({name}) => (name === "xCOPE/USDC")).length === 0) {
     USE_MARKETS.push(xcopeMarket);
+  }
+  if (USE_MARKETS.filter(({name}) => (name === "FTR/USDC")).length === 0) {
+    USE_MARKETS.push(ftrMarket);
+  }
+
+  if (USE_MARKETS.filter(({name}) => (name === "COPE/USDC")).length === 0) {
+    USE_MARKETS.push(copeMarket);
+  }
+  if (USE_MARKETS.filter(({name}) => (name === "SAMO/USDC")).length === 0) {
+    USE_MARKETS.push(samoMarket);
+  }
+  if (USE_MARKETS.filter(({name}) => (name === "SAIL/USDC")).length === 0) {
+    USE_MARKETS.push(sailMarket);
+  }
+  if (USE_MARKETS.filter(({name}) => (name === "KIN/USDC")).length === 0) {
+    USE_MARKETS.push(kinMarket);
+  }
+  if (USE_MARKETS.filter(({name}) => (name === "TULIP/USDC")).length === 0) {
+    USE_MARKETS.push(tulipMarket);
+  }
+  if (USE_MARKETS.filter(({name}) => (name === "FROG/USDC")).length === 0) {
+    USE_MARKETS.push(frogMarket);
   }
 
   var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
@@ -211,7 +297,7 @@ const _SLOW_REFRESH_INTERVAL = 5 * 1000;
 const _FAST_REFRESH_INTERVAL = 1000;
 
 export const DEFAULT_MARKET = USE_MARKETS.find(
-  ({ name, deprecated }) => name === 'FAB/USDT' && !deprecated,
+  ({ name, deprecated }) => name === 'FAB/USDC' && !deprecated,
 );
 
 export function getMarketDetails(
@@ -256,6 +342,22 @@ export function useCustomMarkets() {
     baseLabel: "ROPE"
   }
 
+  var ftrMarket: CustomMarketInfo = {
+    address: "4JP75nztBEo5rYhW1LTQyc4qfjPB33jMWEUvp2DGrQQR",
+    name: "FTR/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "FTR"
+  };
+  
+  var ropeMarket: CustomMarketInfo = {
+    address: "4Sg1g8U2ZuGnGYxAhc6MmX9MX7yZbrrraPkCQ9MdCPtF",
+    name: "ROPE/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "ROPE"
+  };
+  
   var xcopeMarket: CustomMarketInfo = {
     address: "7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2",
     name: "xCOPE/USDC",
@@ -279,13 +381,68 @@ export function useCustomMarkets() {
     quoteLabel: "USDC",
     baseLabel: "FAB"
   };
+  
+  var copeMarket: CustomMarketInfo = {
+    address: "6fc7v3PmjZG9Lk2XTot6BywGyYLkBQuzuFKd4FpCsPxk",
+    name: "COPE/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "COPE"
+  };
+  
+  var sailMarket: CustomMarketInfo = {
+    address: "6hwK66FfUdyhncdQVxWFPRqY8y6usEvzekUaqtpKEKLr",
+    name: "SAIL/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "SAIL"
+  };
+  
+  var samoMarket: CustomMarketInfo = {
+    address: "FR3SPJmgfRSKKQ2ysUZBu7vJLpzTixXnjzb84bY3Diif",
+    name: "SAMO/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "SAMO"
+  };
+  
+  var kinMarket: CustomMarketInfo = {
+    address: "Bn6NPyr6UzrFAwC4WmvPvDr2Vm8XSUnFykM2aQroedgn",
+    name: "KIN/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "KIN"
+  };
+  
+  var tulipMarket: CustomMarketInfo = {
+    address: "8GufnKq7YnXKhnB3WNhgy5PzU9uvHbaaRrZWQK6ixPxW",
+    name: "TULIP/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "TULIP"
+  };
+  
+  var frogMarket: CustomMarketInfo = {
+    address: "2Si6XDdpv5zcvYna221eZZrsjsp5xeYoz9W1TVdMdbnt",
+    name: "FROG/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "FROG"
+  };
 
   const [customMarkets, setCustomMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', 
   [
+    fabMarket, 
     ropeMarket,
-    xcopeMarket,
+    copeMarket,
     solapeMarket,
-    fabMarket
+    ftrMarket,
+    xcopeMarket,
+    sailMarket,
+    samoMarket,
+    kinMarket,
+    tulipMarket,
+    frogMarket
   ]);
   return { customMarkets, setCustomMarkets };
 }
@@ -361,6 +518,8 @@ export function getTradePageUrl(marketAddress?: string) {
     const saved = localStorage.getItem('marketAddress');
     if (saved) {
       marketAddress = JSON.parse(saved);
+    } else {
+      marketAddress = "GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M";
     }
     marketAddress = marketAddress || DEFAULT_MARKET?.address.toBase58() || '';
   }

@@ -174,11 +174,6 @@ export default function TopBar() {
               CONVERT
             </Menu.Item>
           )}
-          {(!searchFocussed || location.pathname === '/list-new-market') && (
-            <Menu.Item key="/list-new-market" style={{ margin: '0 10px' }}>
-              ADD MARKET
-            </Menu.Item>
-          )}
           {!searchFocussed && (
             <Menu.SubMenu
               title="LEARN"

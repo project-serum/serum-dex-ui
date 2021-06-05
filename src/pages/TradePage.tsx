@@ -25,6 +25,7 @@ import CustomMarketDialog from '../components/CustomMarketDialog';
 import { notify } from '../utils/notifications';
 import { useHistory, useParams } from 'react-router-dom';
 import { nanoid } from 'nanoid';
+import { TVChartContainer } from '../components/TradingView';
 
 const { Option, OptGroup } = Select;
 
@@ -329,6 +330,14 @@ const DeprecatedMarketsPage = ({ switchToLiveMarkets }) => {
 
 const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
+    <>
+    <Row>
+      <Col xs={24} sm={24} style={{ height: '100%', display: 'flex', minHeight: '400px' }}>
+        <div style={{ width: '-webkit-fill-available', display: 'flex' }}>
+          <TVChartContainer />
+        </div>
+      </Col>
+    </Row>
     <Row
       style={{
         minHeight: '900px',
@@ -350,12 +359,20 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
         <StandaloneBalancesDisplay />
       </Col>
     </Row>
+    </>
   );
 };
 
 const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
+      <Row>
+        <Col xs={24} sm={24} style={{ height: '100%', display: 'flex', minHeight: '400px' }}>
+          <div style={{ width: '-webkit-fill-available', display: 'flex' }}>
+            <TVChartContainer />
+          </div>
+        </Col>
+      </Row>
       <Row
         style={{
           height: '900px',
@@ -392,6 +409,13 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
 const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
+      <Row>
+        <Col xs={24} sm={24} style={{ height: '100%', display: 'flex', minHeight: '300px' }}>
+          <div style={{ width: '-webkit-fill-available', display: 'flex' }}>
+            <TVChartContainer />
+          </div>
+        </Col>
+      </Row>
       <Row>
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <TradeForm style={{ flex: 1 }} setChangeOrderRef={onChangeOrderRef} />

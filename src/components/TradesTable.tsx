@@ -24,7 +24,7 @@ export default function PublicTrades({ smallScreen }) {
         smallScreen
           ? { flex: 1 }
           : {
-              marginTop: '10px',
+              marginTop: '5px',
               minHeight: '270px',
               maxHeight: 'calc(100vh - 700px)',
             }
