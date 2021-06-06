@@ -126,6 +126,15 @@ export const frogMarket: MarketInfo = {
   baseLabel: "FROG"
 };
 
+export const cheemsMarket: MarketInfo = {
+  address: new PublicKey("5WVBCaUPZF4HP3io9Z56N71cPMJt8qh3c4ZwSjRDeuut"),
+  name: "CHEEMS/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "CHEEMS"
+};
+
 
 
 export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
@@ -167,6 +176,9 @@ export function useMarketsList() {
   }
   if (USE_MARKETS.filter(({name}) => (name === "FROG/USDC")).length === 0) {
     USE_MARKETS.push(frogMarket);
+  }
+  if (USE_MARKETS.filter(({name}) => (name === "CHEEMS/USDC")).length === 0) {
+    USE_MARKETS.push(cheemsMarket);
   }
 
   var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
@@ -422,6 +434,14 @@ export function useCustomMarkets() {
     baseLabel: "FROG"
   };
 
+  var cheemsMarket: CustomMarketInfo = {
+    address: "5WVBCaUPZF4HP3io9Z56N71cPMJt8qh3c4ZwSjRDeuut",
+    name: "CHEEMS/USDC",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "CHEEMS"
+  };
+
   const [customMarkets, setCustomMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', 
   [
     fabMarket, 
@@ -434,6 +454,7 @@ export function useCustomMarkets() {
     samoMarket,
     kinMarket,
     tulipMarket,
+    cheemsMarket,
     frogMarket
   ]);
   return { customMarkets, setCustomMarkets };
