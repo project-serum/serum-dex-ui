@@ -112,7 +112,7 @@ function BalanceItem({ mint, publicKey, isPoolToken }: BalanceItemProps) {
       <Button
         type="link"
         icon={<LinkOutlined />}
-        href={'https://explorer.solana.com/address/' + publicKey.toBase58()}
+        href={'https://solscan.io/address/' + publicKey.toBase58()}
         target="_blank"
         rel="noopener noreferrer"
       />
