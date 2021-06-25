@@ -50,30 +50,30 @@ export default function BalancesTable({
   const columns = [
     showMarket
       ? {
-          title: 'Market',
+          title: 'Рынок',
           dataIndex: 'marketName',
           key: 'marketName',
         }
       : null,
     {
-      title: 'Coin',
+      title: 'Коин',
       dataIndex: 'coin',
       key: 'coin',
     },
     hideWalletBalance
       ? null
       : {
-          title: 'Wallet Balance',
+          title: 'Баланс кошелька',
           dataIndex: 'wallet',
           key: 'wallet',
         },
     {
-      title: 'Orders',
+      title: 'Ордера',
       dataIndex: 'orders',
       key: 'orders',
     },
     {
-      title: 'Unsettled',
+      title: 'Невыведенный',
       dataIndex: 'unsettled',
       key: 'unsettled',
     },
@@ -86,7 +86,7 @@ export default function BalancesTable({
             style={{ marginRight: 12 }}
             onClick={() => onSettleFunds(market, openOrders)}
           >
-            Settle {marketName}
+            Расчет {marketName}
           </Button>
         </div>
       ),

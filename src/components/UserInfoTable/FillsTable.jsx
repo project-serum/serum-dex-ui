@@ -10,7 +10,7 @@ export default function FillsTable() {
 
   const columns = [
     {
-      title: 'Market',
+      title: 'Рынок',
       dataIndex: 'marketName',
       key: 'marketName',
     },
@@ -28,22 +28,22 @@ export default function FillsTable() {
       ),
     },
     {
-      title: `Size`,
+      title: `Размер`,
       dataIndex: 'size',
       key: 'size',
     },
     {
-      title: `Price`,
+      title: `Цена`,
       dataIndex: 'price',
       key: 'price',
     },
     {
-      title: `Liquidity`,
+      title: `Ликвидность`,
       dataIndex: 'liquidity',
       key: 'liquidity',
     },
     {
-      title: quoteCurrency ? `Fees (${quoteCurrency})` : 'Fees',
+      title: quoteCurrency ? `Сборы (${quoteCurrency})` : 'Fees',
       dataIndex: 'feeCost',
       key: 'feeCost',
     },
@@ -52,7 +52,7 @@ export default function FillsTable() {
   const dataSource = (fills || []).map((fill) => ({
     ...fill,
     key: `${fill.orderId}${fill.side}`,
-    liquidity: fill.eventFlags.maker ? 'Maker' : 'Taker',
+    liquidity: fill.eventFlags.maker ? 'Мейкер' : 'Тейкер',
   }));
 
   return (

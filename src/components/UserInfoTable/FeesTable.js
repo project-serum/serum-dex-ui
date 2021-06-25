@@ -10,7 +10,7 @@ export default function FeesTable() {
 
   const columns = [
     {
-      title: 'Fee Tier',
+      title: 'Комиссия',
       dataIndex: 'feeTier',
       key: 'feeTier',
       render: (feeTier, row) => (
@@ -19,7 +19,7 @@ export default function FeesTable() {
           {row.index === 0 ? (
             <div style={{ marginLeft: 10 }}>
               <Tag color={'#41C77A'} style={{ fontWeight: 700 }}>
-                Selected
+                Выбрано
               </Tag>
             </div>
           ) : null}
@@ -27,32 +27,32 @@ export default function FeesTable() {
       ),
     },
     {
-      title: 'Taker',
+      title: 'Тейкер',
       dataIndex: 'taker',
       key: 'taker',
       render: (feeTier, row) =>
         percentFormat.format(getFeeRates(row.feeTier).taker),
     },
     {
-      title: 'Maker',
+      title: 'Мейкер',
       dataIndex: 'maker',
       key: 'maker',
       render: (feeTier, row) =>
         percentFormat.format(getFeeRates(row.feeTier).maker),
     },
     {
-      title: `Public Key`,
+      title: `Публ. ключ`,
       dataIndex: 'pubkey',
       key: 'pubkey',
       render: (pubkey) => pubkey.toBase58(),
     },
     {
-      title: `Balance`,
+      title: `Баланс`,
       dataIndex: 'balance',
       key: 'balance',
     },
     {
-      title: `Mint`,
+      title: `Мон. двор`,
       dataIndex: 'mint',
       key: 'mint',
       render: (_, row) =>
@@ -85,9 +85,7 @@ export default function FeesTable() {
       </Row>
       <Row style={{ marginTop: 8 }}>
         <Col>
-          <Typography>
-            Holding SRM or MSRM makes you eligible for fee discounts:
-          </Typography>
+          <Typography>Наличие SRM дает Вам право на скидки:</Typography>
           <FeeScheduleTable />
         </Col>
       </Row>
@@ -120,26 +118,26 @@ function FeeScheduleTable() {
   ];
   const columns = [
     {
-      title: 'Fee Tier',
+      title: 'Комиссия',
       dataIndex: 'feeTier',
       key: 'feeTier',
     },
     {
-      title: 'Taker',
+      title: 'Тейкер',
       dataIndex: 'taker',
       key: 'taker',
       render: (feeTier, row) =>
         percentFormat.format(getFeeRates(row.feeTier).taker),
     },
     {
-      title: 'Maker',
+      title: 'Мейкер',
       dataIndex: 'maker',
       key: 'maker',
       render: (feeTier, row) =>
         percentFormat.format(getFeeRates(row.feeTier).maker),
     },
     {
-      title: 'Requirements',
+      title: 'Требования',
       dataIndex: 'requirements',
       key: 'requirements',
       render: (_, row) => (

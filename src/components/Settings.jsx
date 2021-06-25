@@ -15,10 +15,11 @@ export default function Settings({ autoApprove }) {
         checked={autoApprove && autoSettleEnabled}
         onChange={setAutoSettleEnabled}
       />{' '}
-      Auto settle
+      Авто-вывод
       {!autoApprove && (
         <Paragraph style={{ color: 'rgba(255,255,255,0.5)', marginTop: 10 }}>
-          To use auto settle, first enable auto approval in your wallet
+          Чтобы использовать автоматический расчет, сначала включите
+          автоматическое одобрение в своем кошельке.
         </Paragraph>
       )}
     </div>

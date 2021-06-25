@@ -111,13 +111,13 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
         smallScreen ? { flex: 1 } : { height: '500px', overflow: 'hidden' }
       }
     >
-      <Title>Orderbook</Title>
+      <Title>Книга ордеров</Title>
       <SizeTitle>
         <Col span={12} style={{ textAlign: 'left' }}>
-          Size ({baseCurrency})
+          Размер ({baseCurrency})
         </Col>
         <Col span={12} style={{ textAlign: 'right' }}>
-          Price ({quoteCurrency})
+          Цена ({quoteCurrency})
         </Col>
       </SizeTitle>
       {orderbookData?.asks.map(({ price, size, sizePercent }) => (

@@ -17,8 +17,8 @@ export default class ErrorBoundary extends Component {
       return (
         <div>
           <div>
-            <Title level={2}>Something went wrong.</Title>
-            <Title level={4}>Please try again later.</Title>
+            <Title level={2}>Что-то пошло не так.</Title>
+            <Title level={4}>Пожалуйста, повторите попытку позже.</Title>
           </div>
         </div>
       );

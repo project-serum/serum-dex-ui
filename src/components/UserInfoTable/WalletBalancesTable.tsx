@@ -37,7 +37,7 @@ export default function WalletBalancesTable({
     try {
       if (!wallet) {
         notify({
-          message: 'Wallet not connected',
+          message: 'Кошелек не подключен',
           description: 'Wallet not connected',
           type: 'error',
         });
@@ -46,7 +46,7 @@ export default function WalletBalancesTable({
 
       if (!tokenAccounts || !tokenAccountsConnected) {
         notify({
-          message: 'Error settling funds',
+          message: 'Ошибка при зачислении средств',
           description: 'TokenAccounts not connected',
           type: 'error',
         });
@@ -54,7 +54,7 @@ export default function WalletBalancesTable({
       }
       if (!allMarkets || !allMarketsConnected) {
         notify({
-          message: 'Error settling funds',
+          message: 'Ошибка при зачислении средств',
           description: 'Markets not connected',
           type: 'error',
         });
@@ -69,7 +69,7 @@ export default function WalletBalancesTable({
       });
     } catch (e) {
       notify({
-        message: 'Error settling funds',
+        message: 'Ошибка при зачислении средств',
         description: e.message,
         type: 'error',
       });
@@ -80,7 +80,7 @@ export default function WalletBalancesTable({
 
   const columns = [
     {
-      title: 'Coin',
+      title: 'Коин',
       key: 'coin',
       width: '20%',
       render: (walletBalance) => (
@@ -97,25 +97,25 @@ export default function WalletBalancesTable({
       ),
     },
     {
-      title: 'Wallet Balance',
+      title: 'Баланс кошелька',
       dataIndex: 'walletBalance',
       key: 'walletBalance',
       width: '20%',
     },
     {
-      title: 'Open orders total balances',
+      title: 'Итоговые остатки откр. ордеров',
       dataIndex: 'openOrdersTotal',
       key: 'openOrdersTotal',
       width: '20%',
     },
     {
-      title: 'Unsettled balances',
+      title: 'Невыведенный остаток',
       dataIndex: 'openOrdersFree',
       key: 'openOrdersFree',
       width: '20%',
     },
     {
-      title: 'Selected token account',
+      title: 'Выбранная учетная запись токена',
       key: 'selectTokenAccount',
       width: '20%',
       render: (walletBalance) => (
@@ -140,7 +140,7 @@ export default function WalletBalancesTable({
       />
       {connected && (
         <Button onClick={onSettleFunds} loading={settlingFunds}>
-          Settle all funds
+          Рассчитать все средства
         </Button>
       )}
     </React.Fragment>

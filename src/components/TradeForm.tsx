@@ -295,7 +295,7 @@ export default function TradeForm({
               borderColor: side === 'buy' ? '#02bf76' : '',
             }}
           >
-            BUY
+            КУПИТЬ
           </Radio.Button>
           <Radio.Button
             value="sell"
@@ -306,12 +306,12 @@ export default function TradeForm({
               borderColor: side === 'sell' ? '#F23B69' : '',
             }}
           >
-            SELL
+            ПРОДАТЬ
           </Radio.Button>
         </Radio.Group>
         <Input
           style={{ textAlign: 'right', paddingBottom: 8 }}
-          addonBefore={<div style={{ width: '30px' }}>Price</div>}
+          addonBefore={<div style={{ width: '35px' }}>Цена</div>}
           suffix={
             <span style={{ fontSize: 10, opacity: 0.5 }}>{quoteCurrency}</span>
           }
@@ -323,7 +323,7 @@ export default function TradeForm({
         <Input.Group compact style={{ paddingBottom: 8 }}>
           <Input
             style={{ width: 'calc(50% + 30px)', textAlign: 'right' }}
-            addonBefore={<div style={{ width: '30px' }}>Size</div>}
+            addonBefore={<div style={{ width: '35px' }}>Колич.</div>}
             suffix={
               <span style={{ fontSize: 10, opacity: 0.5 }}>{baseCurrency}</span>
             }
@@ -371,7 +371,7 @@ export default function TradeForm({
           size="large"
           loading={submitting}
         >
-          Buy {baseCurrency}
+          Купить {baseCurrency}
         </BuyButton>
       ) : (
         <SellButton
@@ -382,7 +382,7 @@ export default function TradeForm({
           size="large"
           loading={submitting}
         >
-          Sell {baseCurrency}
+          Продать {baseCurrency}
         </SellButton>
       )}
     </FloatingElement>

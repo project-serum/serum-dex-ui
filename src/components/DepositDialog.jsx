@@ -39,20 +39,20 @@ export default function DepositDialog({ onClose, baseOrQuote }) {
       onCancel={onClose}
     >
       <div style={{ paddingTop: '20px' }}>
-        <p style={{ color: 'white' }}>Mint address:</p>
+        <p style={{ color: 'white' }}>Адрес монетного двора:</p>
         <p style={{ color: 'rgba(255,255,255,0.5)' }}>{coinMint.toBase58()}</p>
         <div>
-          <p style={{ color: 'white' }}>SPL Deposit address:</p>
+          <p style={{ color: 'white' }}>Адрес депозита SPL:</p>
           <p style={{ color: 'rgba(255,255,255,0.5)' }}>
             {account ? (
               account.pubkey.toBase58()
             ) : (
               <>
-                Visit{' '}
+                Перейдите на{' '}
                 <Link external to={providerUrl}>
                   {providerName}
                 </Link>{' '}
-                to create an account for this mint
+                чтобы создать учетную запись для этого монетного двора.
               </>
             )}
           </p>
