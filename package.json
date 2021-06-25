@@ -2,7 +2,7 @@
   "name": "serum-dex-ui",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://dex.projectserum.com/",
+  "homepage": "http://localhost:3000/",
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@craco/craco": "^5.6.4",
