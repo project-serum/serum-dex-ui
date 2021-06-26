@@ -142,7 +142,7 @@ export default function TopBar() {
       <Wrapper>
         <LogoWrapper onClick={() => history.push(tradePageUrl)}>
           <img src={logo} alt="" />
-          {'JOHAR'}
+          {'WOLF-DEX'}
         </LogoWrapper>
         <Menu
           mode="horizontal"
@@ -159,7 +159,7 @@ export default function TopBar() {
           <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
             ТОРГОВЛЯ
           </Menu.Item>
-          {connected && (!searchFocussed || location.pathname === '/balances') && (
+          {/* {connected && (!searchFocussed || location.pathname === '/balances') && (
             <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
               БАЛАНСЫ
             </Menu.Item>
@@ -168,12 +168,7 @@ export default function TopBar() {
             <Menu.Item key="/orders" style={{ margin: '0 10px' }}>
               ОРДЕРА
             </Menu.Item>
-          )}
-          {connected && (!searchFocussed || location.pathname === '/convert') && (
-            <Menu.Item key="/convert" style={{ margin: '0 10px' }}>
-              КОНВЕРТИРОВАТЬ
-            </Menu.Item>
-          )}
+          )} */}
         </Menu>
         <div
           style={{
