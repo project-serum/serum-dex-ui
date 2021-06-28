@@ -2,7 +2,7 @@
   "name": "wolf-dex",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://localhost:3000/",
+  "homepage": "https://wolf-dex.ru/",
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@craco/craco": "^5.6.4",
