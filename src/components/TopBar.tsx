@@ -141,8 +141,8 @@ export default function TopBar() {
       />
       <Wrapper>
         <LogoWrapper onClick={() => history.push(tradePageUrl)}>
-          <img src={logo} alt="" />
-          {'SERUM'}
+        <img src={"https://i.ibb.co/Y3xNRBh/HAMS.png" } alt="" /> 
+          {' HAMS DEX'}
         </LogoWrapper>
         <Menu
           mode="horizontal"
