@@ -30,7 +30,7 @@ const Wrapper = styled.div`
 const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
-  color: #2abdd2;
+  color: #ffffff;
   font-weight: bold;
   cursor: pointer;
   img {
@@ -159,17 +159,6 @@ export default function TopBar() {
           <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
             TRADE
           </Menu.Item>
-          {!searchFocussed && (
-            <Menu.Item key="/swap" style={{ margin: '0 10px' }}>
-              <a
-                href={EXTERNAL_LINKS['/swap']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                SWAP
-              </a>
-            </Menu.Item>
-          )}
           {connected && (!searchFocussed || location.pathname === '/balances') && (
             <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
               BALANCES
@@ -183,11 +172,6 @@ export default function TopBar() {
           {connected && (!searchFocussed || location.pathname === '/convert') && (
             <Menu.Item key="/convert" style={{ margin: '0 10px' }}>
               CONVERT
-            </Menu.Item>
-          )}
-          {(!searchFocussed || location.pathname === '/list-new-market') && (
-            <Menu.Item key="/list-new-market" style={{ margin: '0 10px' }}>
-              ADD MARKET
             </Menu.Item>
           )}
           {!searchFocussed && (
@@ -207,33 +191,6 @@ export default function TopBar() {
                   Adding a market
                 </a>
               </Menu.Item>
-              <Menu.Item key="/wallet-support">
-                <a
-                  href={EXTERNAL_LINKS['/wallet-support']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Supported wallets
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/dex-list">
-                <a
-                  href={EXTERNAL_LINKS['/dex-list']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  DEX list
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/developer-resources">
-                <a
-                  href={EXTERNAL_LINKS['/developer-resources']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Developer resources
-                </a>
-              </Menu.Item>
               <Menu.Item key="/explorer">
                 <a
                   href={EXTERNAL_LINKS['/explorer']}
@@ -241,15 +198,6 @@ export default function TopBar() {
                   rel="noopener noreferrer"
                 >
                   Solana block explorer
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/srm-faq">
-                <a
-                  href={EXTERNAL_LINKS['/srm-faq']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  SRM FAQ
                 </a>
               </Menu.Item>
             </Menu.SubMenu>
