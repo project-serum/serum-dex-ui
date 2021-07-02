@@ -3,7 +3,9 @@ import { Button, Col, Popover, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
+import { TVChartContainer } from '../../src/components/TradingView'
 import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
+import FloatingElement from '../components/layout/FloatingElement';
 import {
   getMarketInfos,
   getTradePageUrl,
@@ -25,7 +27,6 @@ import CustomMarketDialog from '../components/CustomMarketDialog';
 import { notify } from '../utils/notifications';
 import { useHistory, useParams } from 'react-router-dom';
 import { nanoid } from 'nanoid';
-import { TVChartContainer } from '../components/TradingView';
 
 const { Option, OptGroup } = Select;
 
@@ -336,18 +337,18 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
         flexWrap: 'nowrap',
       }}
     >
-      <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
+      <Col flex="auto" style={{ height: '500px', display: 'flex', flexDirection: 'column' }}>
+        <FloatingElement style={{ flex: 1, minHeight: '500px', padding: 0, overflow: 'hidden' }}>
+          <TVChartContainer />
+        </FloatingElement>
         <UserInfoTable />
       </Col>
-      <Col flex={'360px'} style={{ height: '100%' }}>
+      <Col flex={'350px'} style={{ height: '110%' }}>
         <Orderbook smallScreen={false} onPrice={onPrice} onSize={onSize} />
         <TradesTable smallScreen={false} />
       </Col>
-      <Col
-        flex="400px"
-        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-      >
-        <TradeForm setChangeOrderRef={onChangeOrderRef} />
+      <Col flex="420px" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <TradeForm setChangeOrderRef={onChangeOrderRef} style={{ minHeight: 300 }} />
         <StandaloneBalancesDisplay />
       </Col>
     </Row>
@@ -357,6 +358,19 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
 const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
+      <Row>
+        <Col flex="auto" style={{ height: '325px', display: 'flex', flexDirection: 'column' }}>
+          <FloatingElement style={{ flex: 1, Height: '100%', padding: 0, overflow: 'hidden' }}>
+            <TVChartContainer />
+            </FloatingElement>
+        </Col>
+        <Col
+          flex="470px"
+          style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+        >
+          <TradeForm setChangeOrderRef={onChangeOrderRef} />
+        </Col>
+      </Row>
       <Row
         style={{
           height: '900px',
@@ -373,11 +387,7 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
         <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
           <TradesTable smallScreen={true} />
         </Col>
-        <Col
-          flex="400px"
-          style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-        >
-          <TradeForm setChangeOrderRef={onChangeOrderRef} />
+        <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
           <StandaloneBalancesDisplay />
         </Col>
       </Row>
@@ -394,6 +404,13 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
       <Row>
+        <Col flex="auto" style={{ height: '445px', display: 'flex', flexDirection: 'column' }}>
+        <FloatingElement style={{ flex: 1, Height: '100%', padding: 0, overflow: 'hidden' }}>
+            <TVChartContainer />
+            </FloatingElement>
+        </Col>
+      </Row>
+      <Row>
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <TradeForm style={{ flex: 1 }} setChangeOrderRef={onChangeOrderRef} />
         </Col>
@@ -409,8 +426,10 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <Orderbook smallScreen={true} onPrice={onPrice} onSize={onSize} />
         </Col>
+      </Row>
+      <Row>
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
-          <TradesTable smallScreen={true} />
+            <TradesTable smallScreen={true} />
         </Col>
       </Row>
       <Row>
