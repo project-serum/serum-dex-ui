@@ -27,12 +27,17 @@ import BonfidaApi from './bonfidaConnector';
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
 
-export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
+const ALL_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
   : MARKETS;
 
+export const USE_MARKETS: MarketInfo[] = [ ...ALL_MARKETS];
+
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
+  return USE_MARKETS.filter(({ name, deprecated }) => {
+    let excludedMarkets = process.env.REACT_APP_EXCLUDE_MARKETS?.split(',');
+    return !deprecated && !excludedMarkets?.includes(name);
+  });
 }
 
 export function useAllMarkets() {
@@ -59,6 +64,11 @@ export function useAllMarkets() {
             programId: marketInfo.programId,
           };
         } catch (e) {
+          notify({
+            message: 'Error loading all market',
+            description: e.message,
+            type: 'error',
+          });
           return null;
         }
       }),
