@@ -9,6 +9,7 @@ import { useSendConnection } from '../../utils/connection';
 import { useWallet } from '../../utils/wallet';
 import { settleFunds } from '../../utils/send';
 import { notify } from '../../utils/notifications';
+import { useReferrer } from '../../utils/referrer';
 
 export default function BalancesTable({
   balances,
@@ -19,6 +20,7 @@ export default function BalancesTable({
   const [accounts] = useTokenAccounts();
   const connection = useSendConnection();
   const { wallet } = useWallet();
+  const { usdcRef, usdtRef } = useReferrer();
 
   async function onSettleFunds(market, openOrders) {
     try {
@@ -35,6 +37,8 @@ export default function BalancesTable({
           accounts,
           market?.quoteMintAddress,
         ),
+        usdcRef,
+        usdtRef,
       });
     } catch (e) {
       notify({
