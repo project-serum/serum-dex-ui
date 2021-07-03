@@ -412,7 +412,7 @@ export interface ChartingLibraryWidgetConstructor {
 }
 export interface ChartingLibraryWidgetOptions {
 	/** @deprecated */
-	container_id?: string;
+	container_id: string;
 	datafeed: IBasicDataFeed | (IBasicDataFeed & IDatafeedQuotesApi);
 	interval: ResolutionString;
 	symbol?: string;
@@ -428,7 +428,6 @@ export interface ChartingLibraryWidgetOptions {
 	locale: LanguageCode;
 	numeric_formatting?: NumericFormattingParams;
 	saved_data?: object;
-	saved_data_meta_info?: SavedStateMetaInfo;
 	studies_access?: AccessList;
 	study_count_limit?: number;
 	symbol_search_request_delay?: number;
@@ -455,7 +454,7 @@ export interface ChartingLibraryWidgetOptions {
 	settings_adapter?: ISettingsAdapter;
 	theme?: ThemeName;
 	compare_symbols?: CompareSymbol[];
-	custom_indicators_getter?: (PineJS: PineJS) => Promise<readonly CustomIndicator[]>;
+	custom_indicators_getter?: (PineJS: PineJS) => Promise<ReadonlyArray<CustomIndicator>>;
 }
 export interface ClientSnapshotOptions {
 	backgroundColor: string;
