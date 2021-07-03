@@ -13,7 +13,6 @@ import {
   Transaction,
   TransactionSignature,
 } from '@solana/web3.js';
-import { Token, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import BN from 'bn.js';
 import {
   DexInstructions,
@@ -39,28 +38,30 @@ export async function createTokenAccountTransaction({
   mintPublicKey: PublicKey;
 }): Promise<{
   transaction: Transaction;
+  signer: Account;
   newAccountPubkey: PublicKey;
 }> {
-  const ata = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    mintPublicKey,
-    wallet.publicKey,
-  );
+  const newAccount = new Account();
   const transaction = new Transaction();
+  const instruction = SystemProgram.createAccount({
+    fromPubkey: wallet.publicKey,
+    newAccountPubkey: newAccount.publicKey,
+    lamports: await connection.getMinimumBalanceForRentExemption(165),
+    space: 165,
+    programId: TokenInstructions.TOKEN_PROGRAM_ID,
+  });
+  transaction.add(instruction);
   transaction.add(
-    Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      mintPublicKey,
-      ata,
-      wallet.publicKey,
-      wallet.publicKey,
-    ),
+    TokenInstructions.initializeAccount({
+      account: newAccount.publicKey,
+      mint: mintPublicKey,
+      owner: wallet.publicKey,
+    }),
   );
   return {
     transaction,
-    newAccountPubkey: ata,
+    signer: newAccount,
+    newAccountPubkey: newAccount.publicKey,
   };
 }
 
@@ -95,6 +96,7 @@ export async function settleFunds({
   }
 
   let createAccountTransaction: Transaction | undefined;
+  let createAccountSigner: Account | undefined;
   let baseCurrencyAccountPubkey = baseCurrencyAccount?.pubkey;
   let quoteCurrencyAccountPubkey = quoteCurrencyAccount?.pubkey;
 
@@ -106,6 +108,7 @@ export async function settleFunds({
     });
     baseCurrencyAccountPubkey = result?.newAccountPubkey;
     createAccountTransaction = result?.transaction;
+    createAccountSigner = result?.signer;
   }
   if (!quoteCurrencyAccountPubkey) {
     const result = await createTokenAccountTransaction({
@@ -115,6 +118,7 @@ export async function settleFunds({
     });
     quoteCurrencyAccountPubkey = result?.newAccountPubkey;
     createAccountTransaction = result?.transaction;
+    createAccountSigner = result?.signer;
   }
   let referrerQuoteWallet: PublicKey | null = null;
   if (market.supportsReferralFees) {
@@ -153,10 +157,13 @@ export async function settleFunds({
     createAccountTransaction,
     settleFundsTransaction,
   ]);
+  let signers = createAccountSigner
+    ? [...settleFundsSigners, createAccountSigner]
+    : settleFundsSigners;
 
   return await sendTransaction({
     transaction,
-    signers: settleFundsSigners,
+    signers,
     wallet,
     connection,
     sendingMessage: 'Settling funds...',
@@ -400,6 +407,7 @@ export async function placeOrder({
   if (!baseCurrencyAccount) {
     const {
       transaction: createAccountTransaction,
+      signer: createAccountSigners,
       newAccountPubkey,
     } = await createTokenAccountTransaction({
       connection,
@@ -407,11 +415,13 @@ export async function placeOrder({
       mintPublicKey: market.baseMintAddress,
     });
     transaction.add(createAccountTransaction);
+    signers.push(createAccountSigners);
     baseCurrencyAccount = newAccountPubkey;
   }
   if (!quoteCurrencyAccount) {
     const {
       transaction: createAccountTransaction,
+      signer: createAccountSigners,
       newAccountPubkey,
     } = await createTokenAccountTransaction({
       connection,
@@ -419,6 +429,7 @@ export async function placeOrder({
       mintPublicKey: market.quoteMintAddress,
     });
     transaction.add(createAccountTransaction);
+    signers.push(createAccountSigners);
     quoteCurrencyAccount = newAccountPubkey;
   }
 

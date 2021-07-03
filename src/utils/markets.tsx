@@ -24,7 +24,7 @@ import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {Order} from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
 
-// Used in debugging, should be false in production//
+// Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
 
 export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
@@ -130,7 +130,7 @@ export function useUnmigratedOpenOrdersAccounts() {
     // Maybe sort
     return deprecatedOpenOrdersAccounts;
   }
-  
+
   const cacheKey = tuple(
     'getUnmigratedOpenOrdersAccounts',
     connection,
@@ -304,7 +304,6 @@ export function useMarkPrice() {
   const [orderbook] = useOrderbook();
   const trades = useTrades();
 
-  
   useEffect(() => {
     let bb = orderbook?.bids?.length > 0 && Number(orderbook.bids[0][0]);
     let ba = orderbook?.asks?.length > 0 && Number(orderbook.asks[0][0]);

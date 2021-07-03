@@ -1,25 +1,29 @@
-import {Button, Input, Radio, Slider, Switch} from 'antd';
-import React, {useEffect, useState} from 'react';
+import { Button, Input, Radio, Switch, Slider } from 'antd';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
-  useFeeDiscountKeys,
-  useLocallyStoredFeeDiscountKey,
+  useSelectedBaseCurrencyBalances,
+  useSelectedQuoteCurrencyBalances,
   useMarket,
   useMarkPrice,
-  useSelectedBaseCurrencyAccount,
-  useSelectedBaseCurrencyBalances,
   useSelectedOpenOrdersAccount,
+  useSelectedBaseCurrencyAccount,
   useSelectedQuoteCurrencyAccount,
-  useSelectedQuoteCurrencyBalances,
+  useFeeDiscountKeys,
+  useLocallyStoredFeeDiscountKey,
 } from '../utils/markets';
-import {useWallet} from '../utils/wallet';
-import {notify} from '../utils/notifications';
-import {floorToDecimal, getDecimalCount, roundToDecimal,} from '../utils/utils';
-import {useSendConnection} from '../utils/connection';
+import { useWallet } from '../utils/wallet';
+import { notify } from '../utils/notifications';
+import {
+  getDecimalCount,
+  roundToDecimal,
+  floorToDecimal,
+} from '../utils/utils';
+import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
-import {getUnixTs, placeOrder} from '../utils/send';
-import {SwitchChangeEventHandler} from 'antd/es/switch';
-import {refreshCache} from '../utils/fetch-loop';
+import { getUnixTs, placeOrder } from '../utils/send';
+import { SwitchChangeEventHandler } from 'antd/es/switch';
+import { refreshCache } from '../utils/fetch-loop';
 import tuple from 'immutable-tuple';
 
 const SellButton = styled(Button)`

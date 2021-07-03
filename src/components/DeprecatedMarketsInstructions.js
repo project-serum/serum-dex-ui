@@ -33,9 +33,10 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
         Migrate new markets
       </Title>
       <Typography>
-        Markets on older versions of the DEX or using Wrapped USDT are now deprecated. To migrate over
-        to the new markets, please cancel your orders and settle your funds on old markets. To convert
-        from Wrapped USDT to Native USDT use sollet.io.
+        Markets on older versions of the DEX or using Wrapped USDT are now
+        deprecated. To migrate over to the new markets, please cancel your
+        orders and settle your funds on old markets. To convert from Wrapped
+        USDT to Native USDT use sollet.io.
       </Typography>
       <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
         <Button onClick={() => refresh(true)}>
