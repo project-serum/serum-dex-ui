@@ -6,5 +6,5 @@ export const findTVMarketFromAddress = (marketAddressString: string) => {
       return market.name;
     }
   });
-  return 'SRM/USDC';
+  return 'BTC/USDC';
 };
