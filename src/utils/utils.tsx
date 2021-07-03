@@ -104,7 +104,7 @@ export function useLocalStorageStringState(
       } else {
         localStorage.setItem(key, newState);
       }
-      localStorageListeners[key].forEach((listener) =>
+      localStorageListeners[key]?.forEach((listener) =>
         listener(key + '\n' + newState),
       );
     },

@@ -2,6 +2,7 @@ import React from 'react';
 import { Layout, Row, Col, Grid } from 'antd';
 import Link from './Link';
 import { helpUrls } from './HelpUrls';
+import { useReferrer } from '../utils/referrer';
 const { Footer } = Layout;
 const { useBreakpoint } = Grid;
 
@@ -19,15 +20,18 @@ const footerElements = [
 
 export const CustomFooter = () => {
   const smallScreen = !useBreakpoint().lg;
-
+  const { refCode, allowRefLink } = useReferrer();
   return (
     <Footer
       style={{
-        height: '45px',
+        height: '55px',
         paddingBottom: 10,
         paddingTop: 10,
       }}
     >
+      {refCode && allowRefLink && (
+        <Row justify="center">Your referrer is {refCode}</Row>
+      )}
       <Row align="middle" gutter={[16, 4]}>
         {!smallScreen && (
           <>
