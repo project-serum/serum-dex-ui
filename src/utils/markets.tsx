@@ -31,7 +31,32 @@ const ALL_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
   : MARKETS;
 
-export const USE_MARKETS: MarketInfo[] = [ ...ALL_MARKETS];
+const samo: MarketInfo = {
+  address: new PublicKey("FR3SPJmgfRSKKQ2ysUZBu7vJLpzTixXnjzb84bY3Diif"),
+  name: "SAMO/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "SAMO/USDC",
+  baseLabel: "SAMO"
+}
+const ino: MarketInfo = {
+  address: new PublicKey("HyERWE8TEQmDX157oLEpwaTc59ECzmvjUgZhZ2RNtNdn"),
+  name: "INO/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "INO/USDC",
+  baseLabel: "INO"
+}
+const shbl: MarketInfo = {
+  address: new PublicKey("9G2bAA5Uv8JyPZteuP73GJLUGg5CMbhMLCRSBUBLoXyt"),
+  name: "SHBL/USDC",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "SHBL/USDC",
+  baseLabel: "SHBL"
+}
+
+export const USE_MARKETS: MarketInfo[] = [samo, ino, shbl, ...ALL_MARKETS];
 
 export function useMarketsList() {
   return USE_MARKETS.filter(({ name, deprecated }) => {
