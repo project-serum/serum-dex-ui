@@ -6,5 +6,4 @@ export const findTVMarketFromAddress = (marketAddressString: string) => {
       return market.name;
     }
   }
-  return 'HAMS/USDC';
 };
