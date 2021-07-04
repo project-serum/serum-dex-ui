@@ -40,7 +40,7 @@ const LogoWrapper = styled.div`
 `;
 
 const EXTERNAL_LINKS = {
-  '/learn': 'https://serum-academy.com/en/serum-dex/',
+  '/learn': 'https://docs.projectserum.com/trade-on-serum-dex/trade-on-serum-dex-1',
   '/add-market': 'https://serum-academy.com/en/add-market/',
   '/wallet-support': 'https://serum-academy.com/en/wallet-support',
   '/dex-list': 'https://serum-academy.com/en/dex-list/',
