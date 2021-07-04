@@ -20,6 +20,10 @@ import { Balances } from '../utils/types';
 import StandaloneTokenAccountsSelect from './StandaloneTokenAccountSelect';
 import LinkAddress from './LinkAddress';
 import { InfoCircleOutlined } from '@ant-design/icons';
+import { useInterval } from '../utils/useInterval';
+import { useLocalStorageState } from '../utils/utils';
+import { AUTO_SETTLE_DISABLED_OVERRIDE } from '../utils/preferences';
+import { useReferrer } from '../utils/referrer';
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -50,7 +54,9 @@ export default function StandaloneBalancesDisplay() {
     balances && balances.find((b) => b.coin === baseCurrency);
   const quoteCurrencyBalances =
     balances && balances.find((b) => b.coin === quoteCurrency);
-
+  const [autoSettleEnabled] = useLocalStorageState('autoSettleEnabled', true);
+  const [lastSettledAt, setLastSettledAt] = useState<number>(0);
+  const { usdcRef, usdtRef } = useReferrer();
   async function onSettleFunds() {
     if (!wallet) {
       notify({
@@ -102,6 +108,8 @@ export default function StandaloneBalancesDisplay() {
         wallet,
         baseCurrencyAccount,
         quoteCurrencyAccount,
+        usdcRef,
+        usdtRef,
       });
     } catch (e) {
       notify({
@@ -111,6 +119,50 @@ export default function StandaloneBalancesDisplay() {
       });
     }
   }
+
+  useInterval(() => {
+    const autoSettle = async () => {
+      if (
+        AUTO_SETTLE_DISABLED_OVERRIDE ||
+        !wallet ||
+        !market ||
+        !openOrdersAccount ||
+        !baseCurrencyAccount ||
+        !quoteCurrencyAccount ||
+        !autoSettleEnabled
+      ) {
+        return;
+      }
+      if (
+        !baseCurrencyBalances?.unsettled &&
+        !quoteCurrencyBalances?.unsettled
+      ) {
+        return;
+      }
+      if (Date.now() - lastSettledAt < 15000) {
+        return;
+      }
+      try {
+        console.log('Settling funds...');
+        setLastSettledAt(Date.now());
+        await settleFunds({
+          market,
+          openOrders: openOrdersAccount,
+          connection,
+          wallet,
+          baseCurrencyAccount,
+          quoteCurrencyAccount,
+          usdcRef,
+          usdtRef,
+        });
+      } catch (e) {
+        console.log('Error auto settling funds: ' + e.message);
+        return;
+      }
+      console.log('Finished settling funds.');
+    };
+    connected && wallet?.autoApprove && autoSettleEnabled && autoSettle();
+  }, 1000);
 
   const formattedBalances: [
     string | undefined,

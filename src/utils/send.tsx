@@ -13,11 +13,17 @@ import {
   Transaction,
   TransactionSignature,
 } from '@solana/web3.js';
+import {
+  Token,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
 import BN from 'bn.js';
 import {
   DexInstructions,
   Market,
-  OpenOrders, parseInstructionErrorResponse,
+  OpenOrders,
+  parseInstructionErrorResponse,
   TOKEN_MINTS,
   TokenInstructions,
 } from '@project-serum/serum';
@@ -73,6 +79,8 @@ export async function settleFunds({
   baseCurrencyAccount,
   quoteCurrencyAccount,
   sendNotification = true,
+  usdcRef = undefined,
+  usdtRef = undefined,
 }: {
   market: Market;
   openOrders: OpenOrders;
@@ -80,7 +88,9 @@ export async function settleFunds({
   wallet: WalletAdapter;
   baseCurrencyAccount: TokenAccount;
   quoteCurrencyAccount: TokenAccount;
-  sendNotification?: boolean,
+  sendNotification?: boolean;
+  usdcRef?: PublicKey;
+  usdtRef?: PublicKey;
 }): Promise<string | undefined> {
   if (
     !market ||
@@ -90,7 +100,7 @@ export async function settleFunds({
     (!baseCurrencyAccount && !quoteCurrencyAccount)
   ) {
     if (sendNotification) {
-      notify({message: 'Not connected'});
+      notify({ message: 'Not connected' });
     }
     return;
   }
@@ -167,7 +177,7 @@ export async function settleFunds({
     wallet,
     connection,
     sendingMessage: 'Settling funds...',
-    sendNotification
+    sendNotification,
   });
 }
 
@@ -229,7 +239,10 @@ export async function settleAllFunds({
           // @ts-ignore
           m._decoded?.ownAddress?.equals(openOrdersAccount.market),
         );
-        if (openOrdersAccount.baseTokenFree.isZero() && openOrdersAccount.quoteTokenFree.isZero()) {
+        if (
+          openOrdersAccount.baseTokenFree.isZero() &&
+          openOrdersAccount.quoteTokenFree.isZero()
+        ) {
           // nothing to settle for this market.
           return null;
         }
@@ -654,7 +667,7 @@ export async function sendTransaction({
   sentMessage?: string;
   successMessage?: string;
   timeout?: number;
-  sendNotification?: boolean
+  sendNotification?: boolean;
 }) {
   const signedTransaction = await signTransaction({
     transaction,
@@ -669,7 +682,7 @@ export async function sendTransaction({
     sentMessage,
     successMessage,
     timeout,
-    sendNotification
+    sendNotification,
   });
 }
 
@@ -737,11 +750,11 @@ export async function sendSignedTransaction({
   sentMessage?: string;
   successMessage?: string;
   timeout?: number;
-  sendNotification?: boolean
+  sendNotification?: boolean;
 }): Promise<string> {
   const rawTransaction = signedTransaction.serialize();
   const startTime = getUnixTs();
-  if (sendNotification){
+  if (sendNotification) {
     notify({ message: sendingMessage });
   }
   const txid: TransactionSignature = await connection.sendRawTransaction(
@@ -789,8 +802,14 @@ export async function sendSignedTransaction({
         }
       }
       let parsedError;
-      if (typeof simulateResult.err == 'object' && "InstructionError" in simulateResult.err) {
-        const parsedErrorInfo = parseInstructionErrorResponse(signedTransaction, simulateResult.err["InstructionError"]);
+      if (
+        typeof simulateResult.err == 'object' &&
+        'InstructionError' in simulateResult.err
+      ) {
+        const parsedErrorInfo = parseInstructionErrorResponse(
+          signedTransaction,
+          simulateResult.err['InstructionError'],
+        );
         parsedError = parsedErrorInfo.error;
       } else {
         parsedError = JSON.stringify(simulateResult.err);
