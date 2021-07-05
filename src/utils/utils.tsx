@@ -162,3 +162,24 @@ export function isEqual(obj1, obj2, keys) {
   }
   return true;
 }
+
+export function flatten(obj, { prefix = '', restrictTo }) {
+  let restrict = restrictTo;
+  if (restrict) {
+    restrict = restrict.filter((k) => obj.hasOwnProperty(k));
+  }
+  const result = {};
+  (function recurse(obj, current, keys) {
+    (keys || Object.keys(obj)).forEach((key) => {
+      const value = obj[key];
+      const newKey = current ? current + '.' + key : key; // joined key with dot
+      if (value && typeof value === 'object') {
+        // @ts-ignore
+        recurse(value, newKey); // nested object
+      } else {
+        result[newKey] = value;
+      }
+    });
+  })(obj, prefix, restrict);
+  return result;
+}
