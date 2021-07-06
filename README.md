@@ -27,25 +27,6 @@ It is possible to add OHLCV candles built from on chain data using [Bonfida's AP
 - Copy `charting_library` folder from https://github.com/tradingview/charting_library/ to `/public` and to `/src` folders.
 - Copy `datafeeds` folder from https://github.com/tradingview/charting_library/ to `/public`.
 
-3. Import `TVChartContainer` from `/src/components/TradingView` and add it to your `TradePage.tsx`. The TradingView widget will work out of the box using [Bonfida's](https://bonfida.com) datafeed.
-
-4. Remove the following from the `tsconfig.json`
-
-```json
-"./src/components/TradingView/index.tsx"
-```
-
-5. Uncomment the following in `public/index.html`
-
-```
-<script src="%PUBLIC_URL%/datafeeds/udf/dist/polyfills.js"></script>
-<script src="%PUBLIC_URL%/datafeeds/udf/dist/bundle.js">
-```
-
-<p align="center">
-<img height="300" src="https://i.imgur.com/UyFKmTv.png">
-</p>
-
 ---
 
 See the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started) for other commands and options.
