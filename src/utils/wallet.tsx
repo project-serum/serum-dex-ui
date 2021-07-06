@@ -51,6 +51,11 @@ export const WALLET_PROVIDERS = [
     icon: `${ASSET_URL}/mathwallet.svg`,
     adapter: MathWalletAdapter,
   },
+  {
+    name: 'Zelcore',
+    url: 'https://link.zelcore.io',
+    icon: `${ASSET_URL}/zelcore.svg`,
+  },
 ];
 
 const WalletContext = React.createContext<null | WalletContextValues>(null);
