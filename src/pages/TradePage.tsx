@@ -3,16 +3,16 @@ import { Button, Col, Popover, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
-import { TVChartContainer } from '../../src/components/TradingView'
-import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
+import { TVChartContainer } from '../../src/components/TradingView';
 import FloatingElement from '../components/layout/FloatingElement';
-
+import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
 import {
   getMarketInfos,
   getTradePageUrl,
   MarketProvider,
   useMarket,
   useMarketsList,
+  useMarkPrice,
   useUnmigratedDeprecatedMarkets,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
@@ -20,6 +20,7 @@ import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
 import DeprecatedMarketsInstructions from '../components/DeprecatedMarketsInstructions';
 import {
+  CalculatorFilled,
   DeleteOutlined,
   InfoCircleOutlined,
   PlusCircleOutlined,
@@ -72,6 +73,7 @@ function TradePageInner() {
     setMarketAddress,
   } = useMarket();
   const markets = useMarketsList();
+  const markPrice = useMarkPrice();
   const [handleDeprecated, setHandleDeprecated] = useState(false);
   const [addMarketVisible, setAddMarketVisible] = useState(false);
   const deprecatedMarkets = useUnmigratedDeprecatedMarkets();
@@ -81,8 +83,8 @@ function TradePageInner() {
   });
 
   useEffect(() => {
-    document.title = marketName ? `${marketName} — HAMS Dex` : 'HAMS Dex';
-  }, [marketName]);
+    document.title = marketName && markPrice ? `${markPrice} — ${marketName} — HAMS Dex` : 'HAMS Dex';
+  }, [marketName, markPrice]);
 
   const changeOrderRef = useRef<
     ({ size, price }: { size?: number; price?: number }) => void
