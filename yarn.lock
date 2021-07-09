@@ -1519,10 +1519,10 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@project-serum/serum@^0.13.43":
-  version "0.13.43"
-  resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.43.tgz#eef25f279e1c28a4464d832af8728ca6e98df5b8"
-  integrity sha512-CFpynbbNVsoNHj6L/HCrHpCMm7Nyr8MAjqEnY9xF4WUCHov6/8u3phfqstk2+qJEfbGQttT1fuMj2M328Cu7BA==
+"@project-serum/serum@^0.13.45":
+  version "0.13.45"
+  resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.45.tgz#a735ebaba355dfb08003fb14375b46f53c9472ba"
+  integrity sha512-f3aAKE9LXxLHJ8cX7Rkzs3IDglo4+/GHRGP5grxn9ujx9XkPwbQpUbZYV7oyQwP8tHHZQBXUw0ThHXvR2MhlNg==
   dependencies:
     "@solana/web3.js" "^0.90.0"
     bn.js "^5.1.2"
