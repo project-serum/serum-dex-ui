@@ -187,6 +187,9 @@ export function useMarketsList() {
   if (USE_MARKETS.filter(({name}) => (name === "CHEEMS/USDC")).length === 0) {
     USE_MARKETS.push(cheemsMarket);
   }
+  if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC (new)")).length === 0) {
+    USE_MARKETS.push(fabNewMarket);
+  }
 
   var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
   return markets;
