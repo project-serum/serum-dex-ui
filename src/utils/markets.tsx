@@ -135,7 +135,14 @@ export const cheemsMarket: MarketInfo = {
   baseLabel: "CHEEMS"
 };
 
-
+export const fabNewMarket: MarketInfo = {
+  address: new PublicKey("Cud48DK2qoxsWNzQeTL5D8sAiHsGwG8Ev1VMNcYLayxt"),
+  name: "FAB/USDC (new)",
+  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+  deprecated: false,
+  quoteLabel: "USDC",
+  baseLabel: "FAB"
+};
 
 export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
