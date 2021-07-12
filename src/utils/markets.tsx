@@ -65,7 +65,7 @@ export const solapeMarket: MarketInfo = {
 
 export const fabMarket: MarketInfo = {
   address: new PublicKey("GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M"),
-  name: "FAB/USDC",
+  name: "FAB/USDC (old)",
   programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
   deprecated: false,
   quoteLabel: "USDC",
@@ -137,7 +137,7 @@ export const cheemsMarket: MarketInfo = {
 
 export const fabNewMarket: MarketInfo = {
   address: new PublicKey("Cud48DK2qoxsWNzQeTL5D8sAiHsGwG8Ev1VMNcYLayxt"),
-  name: "FAB/USDC (new)",
+  name: "FAB/USDC",
   programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
   deprecated: false,
   quoteLabel: "USDC",
@@ -151,9 +151,6 @@ export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
 export function useMarketsList() {
   while (USE_MARKETS.length) { USE_MARKETS.pop(); }
   if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC")).length === 0) {
-    USE_MARKETS.push(fabMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC (new)")).length === 0) {
     USE_MARKETS.push(fabNewMarket);
   }
   if (USE_MARKETS.filter(({name}) => (name === "ROPE/USDC")).length === 0) {
@@ -190,7 +187,10 @@ export function useMarketsList() {
   if (USE_MARKETS.filter(({name}) => (name === "CHEEMS/USDC")).length === 0) {
     USE_MARKETS.push(cheemsMarket);
   }
-
+  if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC (old)")).length === 0) {
+    USE_MARKETS.push(fabMarket);
+  }
+  
   var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
   return markets;
 }
@@ -390,7 +390,7 @@ export function useCustomMarkets() {
   
   var fabMarket: CustomMarketInfo = {
     address: "GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M",
-    name: "FAB/USDC",
+    name: "FAB/USDC (old)",
     programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
     quoteLabel: "USDC",
     baseLabel: "FAB"
@@ -454,15 +454,14 @@ export function useCustomMarkets() {
   
   var fabNewMarket: CustomMarketInfo = {
     address: "Cud48DK2qoxsWNzQeTL5D8sAiHsGwG8Ev1VMNcYLayxt",
-    name: "FAB/USDC (new)",
+    name: "FAB/USDC",
     programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
     quoteLabel: "USDC",
     baseLabel: "FAB"
   };
 
   const [customMarkets, setCustomMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', 
-  [
-    fabMarket, 
+  [ 
     fabNewMarket,
     ropeMarket,
     copeMarket,
@@ -474,7 +473,8 @@ export function useCustomMarkets() {
     kinMarket,
     tulipMarket,
     cheemsMarket,
-    frogMarket
+    frogMarket,
+    fabMarket
   ]);
   return { customMarkets, setCustomMarkets };
 }
