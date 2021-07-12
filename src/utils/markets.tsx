@@ -153,6 +153,9 @@ export function useMarketsList() {
   if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC")).length === 0) {
     USE_MARKETS.push(fabMarket);
   }
+  if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC (new)")).length === 0) {
+    USE_MARKETS.push(fabNewMarket);
+  }
   if (USE_MARKETS.filter(({name}) => (name === "ROPE/USDC")).length === 0) {
     USE_MARKETS.push(ropeMarket);
   }
@@ -186,9 +189,6 @@ export function useMarketsList() {
   }
   if (USE_MARKETS.filter(({name}) => (name === "CHEEMS/USDC")).length === 0) {
     USE_MARKETS.push(cheemsMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC (new)")).length === 0) {
-    USE_MARKETS.push(fabNewMarket);
   }
 
   var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
@@ -451,10 +451,19 @@ export function useCustomMarkets() {
     quoteLabel: "USDC",
     baseLabel: "CHEEMS"
   };
+  
+  var fabNewMarket: CustomMarketInfo = {
+    address: "Cud48DK2qoxsWNzQeTL5D8sAiHsGwG8Ev1VMNcYLayxt",
+    name: "FAB/USDC (new)",
+    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+    quoteLabel: "USDC",
+    baseLabel: "FAB"
+  };
 
   const [customMarkets, setCustomMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', 
   [
     fabMarket, 
+    fabNewMarket,
     ropeMarket,
     copeMarket,
     solapeMarket,
