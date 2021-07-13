@@ -10,7 +10,7 @@ export default function FeesTable() {
 
   const columns = [
     {
-      title: 'Fee Tier',
+      title: 'Уровень комиссии',
       dataIndex: 'feeTier',
       key: 'feeTier',
       render: (feeTier, row) => (
@@ -27,32 +27,32 @@ export default function FeesTable() {
       ),
     },
     {
-      title: 'Taker',
+      title: 'Тейкер',
       dataIndex: 'taker',
       key: 'taker',
       render: (feeTier, row) =>
         percentFormat.format(getFeeRates(row.feeTier).taker),
     },
     {
-      title: 'Maker',
+      title: 'Мейкер',
       dataIndex: 'maker',
       key: 'maker',
       render: (feeTier, row) =>
         percentFormat.format(getFeeRates(row.feeTier).maker),
     },
     {
-      title: `Public Key`,
+      title: `Публ. ключ`,
       dataIndex: 'pubkey',
       key: 'pubkey',
       render: (pubkey) => pubkey.toBase58(),
     },
     {
-      title: `Balance`,
+      title: `Баланс`,
       dataIndex: 'balance',
       key: 'balance',
     },
     {
-      title: `Mint`,
+      title: `Монет. двор`,
       dataIndex: 'mint',
       key: 'mint',
       render: (_, row) =>
@@ -86,7 +86,7 @@ export default function FeesTable() {
       <Row style={{ marginTop: 8 }}>
         <Col>
           <Typography>
-            Holding SRM or MSRM makes you eligible for fee discounts:
+            Наличие SRM или MSRM дает вам право на скидки:
           </Typography>
           <FeeScheduleTable />
         </Col>
@@ -120,26 +120,26 @@ function FeeScheduleTable() {
   ];
   const columns = [
     {
-      title: 'Fee Tier',
+      title: 'Уровень комиссии',
       dataIndex: 'feeTier',
       key: 'feeTier',
     },
     {
-      title: 'Taker',
+      title: 'Тейкер',
       dataIndex: 'taker',
       key: 'taker',
       render: (feeTier, row) =>
         percentFormat.format(getFeeRates(row.feeTier).taker),
     },
     {
-      title: 'Maker',
+      title: 'Мейкер',
       dataIndex: 'maker',
       key: 'maker',
       render: (feeTier, row) =>
         percentFormat.format(getFeeRates(row.feeTier).maker),
     },
     {
-      title: 'Requirements',
+      title: 'Требования',
       dataIndex: 'requirements',
       key: 'requirements',
       render: (_, row) => (

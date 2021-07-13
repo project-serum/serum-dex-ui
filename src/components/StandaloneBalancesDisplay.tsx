@@ -218,7 +218,7 @@ export default function StandaloneBalancesDisplay() {
               justify="space-between"
               style={{ paddingBottom: 12 }}
             >
-              <Col>Wallet balance:</Col>
+              <Col>Баланс кошелька:</Col>
               <Col>{balances && balances.wallet}</Col>
             </RowBox>
             <RowBox
@@ -226,7 +226,7 @@ export default function StandaloneBalancesDisplay() {
               justify="space-between"
               style={{ paddingBottom: 12 }}
             >
-              <Col>Unsettled balance:</Col>
+              <Col>Вывести:</Col>
               <Col>{balances && balances.unsettled}</Col>
             </RowBox>
             <RowBox align="middle" justify="space-around">
@@ -236,17 +236,17 @@ export default function StandaloneBalancesDisplay() {
                   size="large"
                   onClick={() => setBaseOrQuote(baseOrQuote)}
                 >
-                  Deposit
+                  Пополнить
                 </ActionButton>
               </Col>
               <Col style={{ width: 150 }}>
                 <ActionButton block size="large" onClick={onSettleFunds}>
-                  Settle
+                  Вывести
                 </ActionButton>
               </Col>
             </RowBox>
             <Tip>
-              All deposits go to your{' '}
+            Все депозиты поступают на ваш{' '}
               <Link external to={providerUrl}>
                 {providerName}
               </Link>{' '}

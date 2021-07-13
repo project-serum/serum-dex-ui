@@ -16,26 +16,27 @@ export default function Index() {
     <FloatingElement style={{ flex: 1, paddingTop: 20 }}>
       <Typography>
         <Paragraph style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Make sure to go to Balances and click Settle to send out your funds.
+          Обязательно перейдите в раздел «Балансы» и нажмите «Расчет», чтобы
+          получить свои средства.
         </Paragraph>
         <Paragraph style={{ color: 'rgba(255,255,255,0.5)' }}>
-          To fund your wallet, <a href="https://www.sollet.io">sollet.io</a>.
-          You can get SOL from FTX, Binance, BitMax, and others. You can get
-          other tokens from FTX.{' '}
+          Чтобы пополнить свой кошелек,{' '}
+          <a href="https://www.sollet.io">sollet.io</a>. Вы можете получить USDT
+          от Binance, BitMax и других бирж.{' '}
         </Paragraph>
       </Typography>
       <Tabs defaultActiveKey="orders">
-        <TabPane tab="Open Orders" key="orders">
+        <TabPane tab="Открытые ордера" key="orders">
           <OpenOrdersTab />
         </TabPane>
-        <TabPane tab="Recent Trade History" key="fills">
+        <TabPane tab="Торговая история" key="fills">
           <FillsTable />
         </TabPane>
-        <TabPane tab="Balances" key="balances">
+        <TabPane tab="Балансы" key="balances">
           <BalancesTab />
         </TabPane>
         {market && market.supportsSrmFeeDiscounts ? (
-          <TabPane tab="Fee discounts" key="fees">
+          <TabPane tab="Скидки на комиссию" key="fees">
             <FeesTable />
           </TabPane>
         ) : null}

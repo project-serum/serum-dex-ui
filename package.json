@@ -1,8 +1,8 @@
 {
-  "name": "serum-dex-ui",
+  "name": "wolf-dex",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://dex.projectserum.com/",
+  "homepage": "https://wolf-dex.ru/",
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@craco/craco": "^5.6.4",

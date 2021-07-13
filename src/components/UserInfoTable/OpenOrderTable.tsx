@@ -67,14 +67,14 @@ export default function OpenOrderTable({
 
   const columns = [
     {
-      title: 'Market',
+      title: 'Рынок',
       dataIndex: 'marketName',
       key: 'marketName',
       filters: marketFilter ? marketFilters : undefined,
       onFilter: (value, record) => record.marketName.indexOf(value) === 0,
     },
     {
-      title: 'Side',
+      title: 'Сторона',
       dataIndex: 'side',
       key: 'side',
       render: (side) => (
@@ -97,14 +97,14 @@ export default function OpenOrderTable({
       showSorterTooltip: false,
     },
     {
-      title: 'Size',
+      title: 'Размер',
       dataIndex: 'size',
       key: 'size',
       sorter: (a, b) => b.size - a.size,
       showSorterTooltip: false,
     },
     {
-      title: 'Price',
+      title: 'Цена',
       dataIndex: 'price',
       key: 'price',
       sorter: (a, b) => b.price - a.price,

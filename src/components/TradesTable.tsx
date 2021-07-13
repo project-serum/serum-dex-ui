@@ -30,14 +30,14 @@ export default function PublicTrades({ smallScreen }) {
             }
       }
     >
-      <Title>Recent Market trades</Title>
+      <Title>Рыночные торги</Title>
       <SizeTitle>
-        <Col span={8}>Price ({quoteCurrency}) </Col>
+        <Col span={8}>Цена ({quoteCurrency}) </Col>
         <Col span={8} style={{ textAlign: 'right' }}>
           Size ({baseCurrency})
         </Col>
         <Col span={8} style={{ textAlign: 'right' }}>
-          Time
+          Время
         </Col>
       </SizeTitle>
       {!!trades && loaded && (

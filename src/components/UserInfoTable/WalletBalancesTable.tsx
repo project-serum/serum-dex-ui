@@ -80,7 +80,7 @@ export default function WalletBalancesTable({
 
   const columns = [
     {
-      title: 'Coin',
+      title: 'Токен',
       key: 'coin',
       width: '20%',
       render: (walletBalance) => (
