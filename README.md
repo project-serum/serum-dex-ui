@@ -33,7 +33,7 @@ See the [Create React App documentation](https://facebook.github.io/create-react
 
 ---
 
-See [A technical introduction to the Serum DEX](https://projectserum.com/blog/serum-dex-introduction) to learn more about the Serum DEX.
+See [A technical introduction to the Serum DEX](https://projectserum.medium.com) to learn more about the Serum DEX.
 
 See [serum-js](https://github.com/project-serum/serum-js) for DEX client-side code. Serum DEX UI uses this library.
 
