@@ -68,7 +68,7 @@ export const TVChartContainer = () => {
       symbol:
         USE_MARKETS.find(
           (m) => m.address.toBase58() === market?.publicKey.toBase58(),
-        )?.name || 'SRM/USDC',
+        )?.name || 'NAXAR/USDT',
       // BEWARE: no trailing slash is expected in feed URL
       // tslint:disable-next-line:no-any
       // @ts-ignore

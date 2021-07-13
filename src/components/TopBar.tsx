@@ -154,9 +154,7 @@ export default function TopBar() {
             flex: 1,
           }}
         >
-          <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
-            ТОРГОВЛЯ
-          </Menu.Item>
+
         </Menu>
         <div
           style={{
