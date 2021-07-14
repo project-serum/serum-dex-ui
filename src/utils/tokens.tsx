@@ -121,6 +121,33 @@ export async function getOwnedTokenAccounts(
     });
 }
 
+export async function getMultipleTokenAccountInfo(
+  connection: Connection,
+  ownerAddress: PublicKey,
+) {
+  let [splAccounts, account] = await Promise.all([
+    getOwnedTokenAccounts(connection, ownerAddress),
+    connection.getAccountInfo(ownerAddress),
+  ]);
+  let accounts = splAccounts.map(value => {
+    return value.publicKey;
+  });
+  let response = await getMultipleSolanaAccounts(connection, accounts);
+  const parsedAccounts: TokenAccount[] = Object.entries(response.value).map(([pubKey, accountInfo]) => {
+      return {
+        pubkey: new PublicKey(pubKey),
+        account: accountInfo,
+        effectiveMint: parseTokenAccountData(accountInfo!.data).mint,
+      };
+    }
+  );
+  return parsedAccounts.concat({
+    pubkey: ownerAddress,
+    account,
+    effectiveMint: WRAPPED_SOL_MINT,
+  });
+}
+
 export async function getTokenAccountInfo(
   connection: Connection,
   ownerAddress: PublicKey,
