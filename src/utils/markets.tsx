@@ -8,7 +8,7 @@ import {useWallet} from './wallet';
 import tuple from 'immutable-tuple';
 import {notify} from './notifications';
 import BN from 'bn.js';
-import { getMultipleTokenAccountInfo, parseTokenAccountData, useMintInfos } from './tokens';
+import { getTokenAccountInfo, parseTokenAccountData, useMintInfos } from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -440,7 +440,7 @@ export function useTokenAccounts(): [
     if (!connected || !wallet) {
       return null;
     }
-    return await getMultipleTokenAccountInfo(connection, wallet.publicKey);
+    return await getTokenAccountInfo(connection, wallet.publicKey);
   }
   return useAsyncData(
     getTokenAccounts,
