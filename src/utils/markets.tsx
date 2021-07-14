@@ -23,6 +23,7 @@ import {
 import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {Order} from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
+import {getMultipleAccountsInBatches} from './send';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -35,6 +36,71 @@ export function useMarketsList() {
   return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
 }
 
+export async function getAllMarketData(connection, customMarkets): Promise<Array<{
+  market: Market;
+  marketName: string;
+  programId: PublicKey;
+} | null>> {
+  const marketInfos: MarketInfo[] = await getMarketInfos(customMarkets);
+  const marketInfoMap: Map<string, MarketInfo> = new Map(marketInfos.map(market => [market.address.toBase58(), market]));
+  const marketAddresses: PublicKey[] = marketInfos.map((marketInfo) => {
+    return marketInfo.address;
+  })
+  let marketAccountInfoResponses = await getMultipleAccountsInBatches(connection, marketAddresses);
+  let marketInfoMintData = new Map();
+  let mintAddresses: PublicKey[] = [];
+  marketAccountInfoResponses.forEach(([pubKey, accountInfo]) => {
+    let programId = marketInfoMap.get(pubKey)!.programId;
+    const decoded = Market.getLayout(programId!).decode(accountInfo!.data);
+    marketInfoMintData.set(programId, {
+      baseMint: decoded.baseMint,
+      quoteMint: decoded.quoteMint,
+      decoded: decoded
+    })
+    mintAddresses.push(decoded.baseMint, decoded.quoteMint);
+  })
+
+  let mintAccountInfoResponses = await getMultipleAccountsInBatches(connection, mintAddresses);
+  let mintAcountInfoMap = new Map();
+  mintAccountInfoResponses.forEach(([pubKey, mintAccountInfo]) => {
+    mintAcountInfoMap.set(new PublicKey(pubKey), mintAccountInfo);
+  })
+  return marketAccountInfoResponses.map(([pubKey, accountInfo]) => {
+    let marketAddress = new PublicKey(pubKey);
+    let programId = marketInfoMap.get(pubKey)!.programId;
+    try {
+      if (!programId.equals(accountInfo!.owner)) {
+        throw new Error('Address not owned by program: ' + accountInfo?.owner.toBase58());
+      }
+      const marketInfo = marketInfoMintData.get(programId);
+      if (
+        !marketInfo.decoded.accountFlags.initialized ||
+        !marketInfo.decoded.accountFlags.market ||
+        !marketInfo.decoded.ownAddress.equals(marketAddress)
+      ) {
+        throw new Error('Invalid market');
+      }
+      return {
+        market: new Market(
+          marketInfo.decoded,
+          mintAcountInfoMap.get(marketInfo.baseMint),
+          mintAcountInfoMap.get(marketInfo.quoteMint),
+          {},
+          programId!),
+        marketName: marketInfoMap.get(pubKey)!.name,
+        programId: programId,
+      };
+    } catch (e) {
+      notify({
+        message: 'Error loading all market',
+        description: e.message,
+        type: 'error',
+      });
+      return null;
+    }
+  })
+}
+
 export function useAllMarkets() {
   const connection = useConnection();
   const { customMarkets } = useCustomMarkets();
@@ -44,30 +110,7 @@ export function useAllMarkets() {
       market: Market;
       marketName: string;
       programId: PublicKey;
-    } | null> = await Promise.all(
-      getMarketInfos(customMarkets).map(async (marketInfo) => {
-        try {
-          const market = await Market.load(
-            connection,
-            marketInfo.address,
-            {},
-            marketInfo.programId,
-          );
-          return {
-            market,
-            marketName: marketInfo.name,
-            programId: marketInfo.programId,
-          };
-        } catch (e) {
-          notify({
-            message: 'Error loading all market',
-            description: e.message,
-            type: 'error',
-          });
-          return null;
-        }
-      }),
-    );
+    } | null> = await getAllMarketData(connection, customMarkets);
     return markets.filter(
       (m): m is { market: Market; marketName: string; programId: PublicKey } =>
         !!m,
