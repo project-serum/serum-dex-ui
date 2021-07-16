@@ -927,7 +927,7 @@ const AccountInfoResult = struct({
 export async function getMultipleAccountsInBatches(
   connection: Connection,
   publicKeys: PublicKey[],
-) {
+): Promise<[string, AccountInfo<Buffer> | null][]> {
   let marketAddressChucks = new Array<PublicKey[]>();
   while (publicKeys.length > 0) {
     marketAddressChucks.push(publicKeys.splice(0,100));

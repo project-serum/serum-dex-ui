@@ -5,7 +5,7 @@ import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {TokenAccount} from './types';
 import {TOKEN_MINTS} from '@project-serum/serum';
 import {useAllMarkets, useCustomMarkets, useTokenAccounts} from './markets';
-import {getMultipleSolanaAccounts} from './send';
+import { getMultipleAccountsInBatches } from './send';
 import {useConnection} from './connection';
 import {useAsyncData} from './fetch-loop';
 import tuple from 'immutable-tuple';
@@ -191,9 +191,9 @@ export function useMintInfos(): [
   );
 
   const getAllMintInfo = async () => {
-    const mintInfos = await getMultipleSolanaAccounts(connection, uniqueMints);
+    const mintInfos = Object.fromEntries(await getMultipleAccountsInBatches(connection, uniqueMints));
     return Object.fromEntries(
-      Object.entries(mintInfos.value).map(([key, accountInfo]) => [
+      Object.entries(mintInfos).map(([key, accountInfo]) => [
         key,
         accountInfo && parseTokenMintData(accountInfo.data),
       ]),
