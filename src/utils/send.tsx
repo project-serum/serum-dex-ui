@@ -32,7 +32,7 @@ import { Order } from '@project-serum/serum/lib/market';
 import { Buffer } from 'buffer';
 import assert from 'assert';
 import { struct } from 'superstruct';
-import { WalletAdapter } from '../wallet-adapters';
+import { BloctoWalletAdapter, WalletAdapter } from '../wallet-adapters';
 
 export async function createTokenAccountTransaction({
   connection,
@@ -649,21 +649,37 @@ export async function sendTransaction({
   timeout?: number;
   sendNotification?: boolean;
 }) {
-  const signedTransaction = await signTransaction({
-    transaction,
-    wallet,
-    signers,
-    connection,
-  });
-  return await sendSignedTransaction({
-    signedTransaction,
-    connection,
-    sendingMessage,
-    sentMessage,
-    successMessage,
-    timeout,
-    sendNotification,
-  });
+  if (BloctoWalletAdapter) {
+    const signedTransaction = await covertToProgramWalletTransaction({
+      transaction,
+      wallet,
+      signers,
+      connection
+    });
+    return await sendSignedTransaction({
+      signedTransaction,
+      connection,
+      sendingMessage,
+      sentMessage,
+      successMessage,
+      timeout,
+    });
+  } else {
+    const signedTransaction = await signTransaction({
+      transaction,
+      wallet,
+      signers,
+      connection,
+    });
+    return await sendSignedTransaction({
+      signedTransaction,
+      connection,
+      sendingMessage,
+      sentMessage,
+      successMessage,
+      timeout,
+    });
+  }
 }
 
 export async function signTransaction({
@@ -685,6 +701,29 @@ export async function signTransaction({
     transaction.partialSign(...signers);
   }
   return await wallet.signTransaction(transaction);
+}
+
+async function covertToProgramWalletTransaction({
+  transaction,
+  wallet,
+  signers = [],
+  connection,
+
+}: {
+  transaction: Transaction,
+  wallet: any,
+  signers: Array<Account>;
+  connection: Connection,
+}) {
+  transaction.recentBlockhash = (
+    await connection.getRecentBlockhash("max")
+  ).blockhash;
+  transaction.feePayer = wallet.publicKey;
+  if (signers.length > 0) {
+    transaction = await wallet.convertToProgramWalletTransaction(transaction);
+    transaction.partialSign(...signers);
+  }
+  return transaction;
 }
 
 export async function signTransactions({

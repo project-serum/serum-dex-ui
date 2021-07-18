@@ -15,9 +15,11 @@ import {
   WalletAdapter,
   LedgerWalletAdapter,
   PhantomWalletAdapter,
+  BloctoWalletAdapter,
   SolletExtensionAdapter,
   MathWalletAdapter,
 } from '../wallet-adapters';
+import blocto from "../assets/wallets/blocto.png";
 
 const ASSET_URL =
   'https://cdn.jsdelivr.net/gh/solana-labs/oyster@main/assets/wallets';
@@ -44,6 +46,12 @@ export const WALLET_PROVIDERS = [
     url: 'https://www.phantom.app',
     icon: `https://www.phantom.app/img/logo.png`,
     adapter: PhantomWalletAdapter,
+  },
+  {
+    name: "Blocto",
+    url: "https://blocto.portto.io//",
+    icon: blocto,
+    adapter: BloctoWalletAdapter,
   },
   {
     name: 'MathWallet',
