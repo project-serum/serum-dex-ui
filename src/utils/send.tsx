@@ -32,7 +32,7 @@ import { Order } from '@project-serum/serum/lib/market';
 import { Buffer } from 'buffer';
 import assert from 'assert';
 import { struct } from 'superstruct';
-import { BloctoWalletAdapter, WalletAdapter } from '../wallet-adapters';
+import { WalletAdapter } from '../wallet-adapters';
 
 export async function createTokenAccountTransaction({
   connection,
@@ -649,7 +649,7 @@ export async function sendTransaction({
   timeout?: number;
   sendNotification?: boolean;
 }) {
-  if (BloctoWalletAdapter) {
+  if (typeof wallet['isProgramWallet'] == 'function') {
     const signedTransaction = await covertToProgramWalletTransaction({
       transaction,
       wallet,
