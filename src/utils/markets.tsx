@@ -551,7 +551,7 @@ export function getTradePageUrl(marketAddress?: string) {
     if (saved) {
       marketAddress = JSON.parse(saved);
     } else {
-      marketAddress = "GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M";
+      marketAddress = "Cud48DK2qoxsWNzQeTL5D8sAiHsGwG8Ev1VMNcYLayxt";
     }
     marketAddress = marketAddress || DEFAULT_MARKET?.address.toBase58() || '';
   }
