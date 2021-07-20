@@ -10,7 +10,7 @@
     "@project-serum/associated-token": "0.1.0",
     "@project-serum/awesome-serum": "1.0.1",
     "@project-serum/pool": "0.2.2",
-    "@project-serum/serum": "^0.13.45",
+    "@project-serum/serum": "^0.13.52",
     "@project-serum/sol-wallet-adapter": "^0.2.0",
     "@solana/spl-name-service": "^0.1.2",
     "@solana/spl-token": "^0.1.6",
