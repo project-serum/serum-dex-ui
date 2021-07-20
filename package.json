@@ -40,6 +40,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
     "styled-components": "^5.1.1",
+    "superstruct": "0.8.3",
     "typescript": "^3.9.7"
   },
   "scripts": {
