@@ -30,6 +30,8 @@ export default function BalancesPage() {
     return balances;
   });
 
+  data.sort((a, b) => (a.walletBalance > b.walletBalance) ? -1 : 1);
+
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
       <Tabs defaultActiveKey="walletBalances">
