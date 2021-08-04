@@ -96,8 +96,8 @@ export default function TopBar() {
     try {
       const connection = new Connection(info.endpoint, 'recent');
       connection
-        .getEpochInfo()
-        .then((result) => {
+        .getBlockTime(0)
+        .then(() => {
           setTestingConnection(true);
           console.log(`testing connection to ${info.endpoint}`);
           const newCustomEndpoints = [
