@@ -14,7 +14,7 @@
     "@project-serum/sol-wallet-adapter": "^0.2.0",
     "@solana/spl-name-service": "^0.1.2",
     "@solana/spl-token": "^0.1.6",
-    "@solana/web3.js": "0.86.1",
+    "@solana/web3.js": "^1.22.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
