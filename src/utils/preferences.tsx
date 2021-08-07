@@ -11,6 +11,8 @@ import {settleAllFunds} from './send';
 import {PreferencesContextValues} from './types';
 import {Market} from "@project-serum/serum";
 
+export const AUTO_SETTLE_DISABLED_OVERRIDE = true;
+
 const PreferencesContext = React.createContext<PreferencesContextValues | null>(
   null,
 );
@@ -33,6 +35,9 @@ export function PreferencesProvider({ children }) {
 
   useInterval(() => {
     const autoSettle = async () => {
+			if (AUTO_SETTLE_DISABLED_OVERRIDE) {
+				return;
+			}
       if (!wallet) {
         return;
       }

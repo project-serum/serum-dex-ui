@@ -4,7 +4,7 @@ An implementation of a UI for the Serum DEX.
 
 ### Running the UI
 
-Run `yarn` to install dependencies, then run `yarn start` to start a development server or `yarn build` to create a production build that can be served by a static file server.
+Run `yarn` to install dependencies, then run `yarn start` to start a development server or `yarn build` to create a production build that can be served by a static file server. Note that prior to compiling you need to add charts yourself (see below).
 
 ### Collect referral fees
 
@@ -18,7 +18,7 @@ NOTE: remember to re-build your app before deploying for your referral addresses
 
 ### Add Trading View charts
 
-It is possible to add OHLCV candles built from on chain data using [Bonfida's API](https://docs.bonfida.com). Here is how to do it:
+It is now required to add OHLCV candles built from on chain data using [Bonfida's API](https://docs.bonfida.com). Here is how to do it:
 
 1. Get access to the [TradingView Charting Library](https://github.com/tradingview/charting_library/) repository. This is a **private repository** and it will **return a 404 if you don't have access to it**. To get access to the repository please refer to [TradingView's website](https://www.tradingview.com/HTML5-stock-forex-bitcoin-charting-library/)
 
@@ -27,32 +27,13 @@ It is possible to add OHLCV candles built from on chain data using [Bonfida's AP
 - Copy `charting_library` folder from https://github.com/tradingview/charting_library/ to `/public` and to `/src` folders.
 - Copy `datafeeds` folder from https://github.com/tradingview/charting_library/ to `/public`.
 
-3. Import `TVChartContainer` from `/src/components/TradingView` and add it to your `TradePage.tsx`. The TradingView widget will work out of the box using [Bonfida's](https://bonfida.com) datafeed.
-
-4. Remove the following from the `tsconfig.json`
-
-```json
-"./src/components/TradingView/index.tsx"
-```
-
-5. Uncomment the following in `public/index.html`
-
-```
-<script src="%PUBLIC_URL%/datafeeds/udf/dist/polyfills.js"></script>
-<script src="%PUBLIC_URL%/datafeeds/udf/dist/bundle.js">
-```
-
-<p align="center">
-<img height="300" src="https://i.imgur.com/UyFKmTv.png">
-</p>
-
 ---
 
 See the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started) for other commands and options.
 
 ---
 
-See [A technical introduction to the Serum DEX](https://projectserum.com/blog/serum-dex-introduction) to learn more about the Serum DEX.
+See [A technical introduction to the Serum DEX](https://docs.google.com/document/d/1isGJES4jzQutI0GtQGuqtrBUqeHxl_xJNXdtOv4SdII/view) to learn more about the Serum DEX.
 
 See [serum-js](https://github.com/project-serum/serum-js) for DEX client-side code. Serum DEX UI uses this library.
 

@@ -10,7 +10,7 @@ const appsAndTokens = apps.concat(
   TOKEN_MINTS.map((mint) => {
     return {
       name: `${mint.name} SPL`,
-      url: `https://explorer.solana.com/address/${mint.address.toBase58()}`,
+      url: `https://solscan.io/address/${mint.address.toBase58()}`,
       description: `${mint.name} SPL token`,
       icon: '',
       tags: [

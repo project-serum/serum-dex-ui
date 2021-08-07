@@ -25,3 +25,9 @@ yarn-error.log*
 .idea
 
 .env
+
+
+# TV 
+public/charting_library
+src/charting_library
+public/datafeeds

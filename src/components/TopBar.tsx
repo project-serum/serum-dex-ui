@@ -40,14 +40,13 @@ const LogoWrapper = styled.div`
 `;
 
 const EXTERNAL_LINKS = {
-  '/learn': 'https://serum-academy.com/en/serum-dex/',
+  '/learn': 'https://docs.projectserum.com/trade-on-serum-dex/trade-on-serum-dex-1',
   '/add-market': 'https://serum-academy.com/en/add-market/',
   '/wallet-support': 'https://serum-academy.com/en/wallet-support',
   '/dex-list': 'https://serum-academy.com/en/dex-list/',
   '/developer-resources': 'https://serum-academy.com/en/developer-resources/',
-  '/explorer': 'https://explorer.solana.com',
+  '/explorer': 'https://solscan.io',
   '/srm-faq': 'https://projectserum.com/srm-faq',
-  '/swap': 'https://swap.projectserum.com',
 };
 
 export default function TopBar() {
@@ -97,8 +96,8 @@ export default function TopBar() {
     try {
       const connection = new Connection(info.endpoint, 'recent');
       connection
-        .getEpochInfo()
-        .then((result) => {
+        .getBlockTime(0)
+        .then(() => {
           setTestingConnection(true);
           console.log(`testing connection to ${info.endpoint}`);
           const newCustomEndpoints = [
@@ -159,17 +158,6 @@ export default function TopBar() {
           <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
             TRADE
           </Menu.Item>
-          {!searchFocussed && (
-            <Menu.Item key="/swap" style={{ margin: '0 10px' }}>
-              <a
-                href={EXTERNAL_LINKS['/swap']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                SWAP
-              </a>
-            </Menu.Item>
-          )}
           {connected && (!searchFocussed || location.pathname === '/balances') && (
             <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
               BALANCES
