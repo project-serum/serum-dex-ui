@@ -2,25 +2,25 @@ import React from 'react';
 import { Layout, Row, Col, Grid } from 'antd';
 import Link from './Link';
 import { helpUrls } from './HelpUrls';
-import { useReferrer } from '../utils/referrer';
+//import { useReferrer } from '../utils/referrer';
 const { Footer } = Layout;
 const { useBreakpoint } = Grid;
 
 const footerElements = [
-  {
-    description: 'Serum Developer Resources',
-    link: helpUrls.developerResources,
-  },
+  // {
+  //   description: 'Serum Developer Resources',
+  //   link: helpUrls.developerResources,
+  // },
   { description: 'Discord', link: helpUrls.discord },
   { description: 'Telegram', link: helpUrls.telegram },
-  { description: 'GitHub', link: helpUrls.github },
-  { description: 'Project Serum', link: helpUrls.projectSerum },
-  { description: 'Solana Network', link: helpUrls.solanaBeach },
+ // { description: 'GitHub', link: helpUrls.github },
+  { description: 'Bole Website', link: helpUrls.bole },
+ // { description: 'Solana Network', link: helpUrls.solanaBeach },
 ];
 
 export const CustomFooter = () => {
   const smallScreen = !useBreakpoint().lg;
-  const { refCode, allowRefLink } = useReferrer();
+ // const { refCode, allowRefLink } = useReferrer();
   return (
     <Footer
       style={{
@@ -29,9 +29,9 @@ export const CustomFooter = () => {
         paddingTop: 10,
       }}
     >
-      {refCode && allowRefLink && (
+      {/* {refCode && allowRefLink && (
         <Row justify="center">Your referrer is {refCode}</Row>
-      )}
+      )} */}
       <Row align="middle" gutter={[16, 4]}>
         {!smallScreen && (
           <>

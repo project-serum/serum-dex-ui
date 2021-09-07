@@ -30,7 +30,8 @@ const Wrapper = styled.div`
 const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
-  color: #2abdd2;
+  color: #fbac46
+;
   font-weight: bold;
   cursor: pointer;
   img {
@@ -142,7 +143,7 @@ export default function TopBar() {
       <Wrapper>
         <LogoWrapper onClick={() => history.push(tradePageUrl)}>
           <img src={logo} alt="" />
-          {'SERUM'}
+          {'BOLE'}
         </LogoWrapper>
         <Menu
           mode="horizontal"
@@ -159,7 +160,7 @@ export default function TopBar() {
           <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
             TRADE
           </Menu.Item>
-          {!searchFocussed && (
+          {/* {!searchFocussed && (
             <Menu.Item key="/swap" style={{ margin: '0 10px' }}>
               <a
                 href={EXTERNAL_LINKS['/swap']}
@@ -169,7 +170,7 @@ export default function TopBar() {
                 SWAP
               </a>
             </Menu.Item>
-          )}
+          )} */}
           {connected && (!searchFocussed || location.pathname === '/balances') && (
             <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
               BALANCES
@@ -180,17 +181,17 @@ export default function TopBar() {
               ORDERS
             </Menu.Item>
           )}
-          {connected && (!searchFocussed || location.pathname === '/convert') && (
+          {/* {connected && (!searchFocussed || location.pathname === '/convert') && (
             <Menu.Item key="/convert" style={{ margin: '0 10px' }}>
               CONVERT
             </Menu.Item>
-          )}
-          {(!searchFocussed || location.pathname === '/list-new-market') && (
+          )} */}
+          {/* {(!searchFocussed || location.pathname === '/list-new-market') && (
             <Menu.Item key="/list-new-market" style={{ margin: '0 10px' }}>
               ADD MARKET
             </Menu.Item>
-          )}
-          {!searchFocussed && (
+          )} */}
+          {/* {!searchFocussed && (
             <Menu.SubMenu
               title="LEARN"
               onTitleClick={() =>
@@ -253,7 +254,7 @@ export default function TopBar() {
                 </a>
               </Menu.Item>
             </Menu.SubMenu>
-          )}
+          )} */}
         </Menu>
         <div
           style={{
@@ -277,7 +278,7 @@ export default function TopBar() {
           >
             <Col>
               <PlusCircleOutlined
-                style={{ color: '#2abdd2' }}
+                style={{ color: '#f1ad5c'}}
                 onClick={() => setAddEndpointVisible(true)}
               />
             </Col>
@@ -288,7 +289,7 @@ export default function TopBar() {
                 title="URL"
                 trigger="hover"
               >
-                <InfoCircleOutlined style={{ color: '#2abdd2' }} />
+                <InfoCircleOutlined style={{ color: '#f1ad5c' }} />
               </Popover>
             </Col>
             <Col>

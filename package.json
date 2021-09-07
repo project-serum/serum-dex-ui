@@ -1,8 +1,8 @@
 {
-  "name": "serum-dex-ui",
+  "name": "bole-dex",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://dex.projectserum.com/",
+  "homepage": "https://emma66886.github.io/serum-dex-ui",
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@craco/craco": "^5.6.4",
