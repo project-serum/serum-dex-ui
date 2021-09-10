@@ -343,9 +343,9 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
       }}
     >
       <Col flex="auto" style={{ height: '50vh' }}>
-        <Row style={{ height: '100%' }}>
+        {/* <Row style={{ height: '100%' }}>
           <TVChartContainer />
-        </Row>
+        </Row> */}
         <Row style={{ height: '70%' }}>
           <UserInfoTable />
         </Row>
@@ -369,9 +369,9 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
 const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
-      <Row style={{ height: '30vh' }}>
+      {/* <Row style={{ height: '30vh' }}>
         <TVChartContainer />
-      </Row>
+      </Row> */}
       <Row
         style={{
           height: '900px',
@@ -408,9 +408,9 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
 const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
-      <Row style={{ height: '50vh' }}>
+      {/* <Row style={{ height: '50vh' }}>
         <TVChartContainer />
-      </Row>
+      </Row> */}
       <Row>
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
           <TradeForm style={{ flex: 1 }} setChangeOrderRef={onChangeOrderRef} />
