@@ -86,7 +86,7 @@ export default function WalletBalancesTable({
       render: (walletBalance) => (
         <Row align="middle">
           <a
-            href={`https://explorer.solana.com/address/${walletBalance.mint}`}
+            href={`https://solscan.io/address/${walletBalance.mint}`}
             target={'_blank'}
             rel="noopener noreferrer"
           >

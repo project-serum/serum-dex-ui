@@ -17,7 +17,7 @@ export default function LinkAddress({
       <Button
         type="link"
         icon={<LinkOutlined />}
-        href={'https://explorer.solana.com/address/' + address}
+        href={'https://solscan.io/address/' + address}
         target="_blank"
         rel="noopener noreferrer"
         style={{ cursor: 'pointer' }}

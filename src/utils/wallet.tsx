@@ -17,6 +17,7 @@ import {
   PhantomWalletAdapter,
   SolletExtensionAdapter,
   MathWalletAdapter,
+  SolflareExtensionWalletAdapter,
 } from '../wallet-adapters';
 
 const ASSET_URL =
@@ -38,6 +39,17 @@ export const WALLET_PROVIDERS = [
     url: 'https://www.ledger.com',
     icon: `${ASSET_URL}/ledger.svg`,
     adapter: LedgerWalletAdapter,
+  },
+  {
+    name: 'Solflare',
+    url: 'https://solflare.com/access-wallet',
+    icon: `${ASSET_URL}/solflare.svg`,
+  },
+  {
+    name: 'Solflare Extension',
+    url: 'https://solflare.com',
+    icon: `${ASSET_URL}/solflare.svg`,
+    adapter: SolflareExtensionWalletAdapter,
   },
   {
     name: 'Phantom',

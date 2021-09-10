@@ -19,7 +19,7 @@ export function notify({
     description = (
       <Link
         external
-        to={'https://explorer.solana.com/tx/' + txid}
+        to={'https://solscan.io/tx/' + txid}
         style={{ color: '#0000ff' }}
       >
         View transaction {txid.slice(0, 8)}...{txid.slice(txid.length - 8)}
