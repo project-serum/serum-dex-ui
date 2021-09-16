@@ -25,12 +25,16 @@ import CustomMarketDialog from '../components/CustomMarketDialog';
 import { notify } from '../utils/notifications';
 import { useHistory, useParams } from 'react-router-dom';
 import { nanoid } from 'nanoid';
+import { Thread } from '@dialect/chat';
+import FloatingElement from '../components/layout/FloatingElement';
+import '@dialect/chat/lib/index.css';
+import { useWallet } from '../utils/wallet';
 
-import { TVChartContainer } from '../components/TradingView';
+// import { TVChartContainer } from '../components/TradingView';
 // Use following stub for quick setup without the TradingView private dependency
-// function TVChartContainer() {
-//   return <></>
-// }
+function TVChartContainer() {
+  return <></>;
+}
 
 const { Option, OptGroup } = Select;
 
@@ -354,11 +358,26 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
         <TradesTable smallScreen={false} />
       </Col>
       <Col
-        flex="400px"
+        flex="360px"
         style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
       >
         <TradeForm setChangeOrderRef={onChangeOrderRef} />
         <StandaloneBalancesDisplay />
+      </Col>
+      <Col
+        flex="360px"
+        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+      >
+        <FloatingElement
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '500px',
+            maxWidth: '360px',
+          }}
+        >
+          <Thread wallet={wallet} />
+        </FloatingElement>
       </Col>
     </Row>
   );

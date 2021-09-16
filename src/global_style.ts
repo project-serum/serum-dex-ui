@@ -88,4 +88,12 @@ input[type=number]:focus::-webkit-inner-spin-button {
   -moz-animation: highlight 0.5s ease 0s 1 alternate ;
   -webkit-animation: highlight 0.5s ease 0s 1 alternate;
   animation: highlight 0.5s ease 0s 1 alternate;
-}`;
+}
+// TODO: move to Thread component as css in js or plain css and remove, temp hack
+.DialectThread *::-webkit-scrollbar {
+  display: none;
+}
+.DialectThread {
+  height: 500px;
+}
+`;
