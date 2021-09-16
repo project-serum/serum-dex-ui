@@ -17,6 +17,7 @@ import {
   PhantomWalletAdapter,
   SolletExtensionAdapter,
   MathWalletAdapter,
+  BitKeepWalletAdapter,
   SolflareExtensionWalletAdapter,
 } from '../wallet-adapters';
 
@@ -62,6 +63,12 @@ export const WALLET_PROVIDERS = [
     url: 'https://www.mathwallet.org',
     icon: `${ASSET_URL}/mathwallet.svg`,
     adapter: MathWalletAdapter,
+  },
+  {
+    name: 'BitKeep',
+    url: 'https://bitkeep.com',
+    icon: `${ASSET_URL}/bitkeep.svg`,
+    adapter: BitKeepWalletAdapter,
   },
 ];
 
