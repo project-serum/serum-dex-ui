@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 function e(t, i) {
   const n = Object.assign({}, t);
   for (const o in i)
