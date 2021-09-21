@@ -7,7 +7,15 @@ const { Footer } = Layout;
 const { useBreakpoint } = Grid;
 
 const footerElements = [
-  { description: 'Interstellar Alliance Discord', link: helpUrls.discord },
+  {
+    description: 'Serum Developer Resources',
+    link: helpUrls.developerResources,
+  },
+  { description: 'Discord', link: helpUrls.discord },
+  { description: 'Telegram', link: helpUrls.telegram },
+  { description: 'GitHub', link: helpUrls.github },
+  { description: 'Project Serum', link: helpUrls.projectSerum },
+  { description: 'Solana Network', link: helpUrls.solanaBeach },
 ];
 
 export const CustomFooter = () => {
@@ -16,7 +24,7 @@ export const CustomFooter = () => {
   return (
     <Footer
       style={{
-        minHeight: '55px',
+        height: '55px',
         paddingBottom: 10,
         paddingTop: 10,
       }}
@@ -41,13 +49,6 @@ export const CustomFooter = () => {
         )}
         <Col flex="auto">{/*  <DexProgramSelector />*/}</Col>
       </Row>
-      {/*<Row justify="center">*/}
-      {/*  <span style={{*/}
-      {/*    textAlign: 'center',*/}
-      {/*    fontSize: 'small',*/}
-      {/*    padding: '10px 80px',*/}
-      {/*  }}><strong>Disclaimer: </strong>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed commodo libero quam, in lacinia elit semper eu. Integer nec augue et risus euismod tincidunt. Cras enim neque, pellentesque quis tellus vitae, rutrum tincidunt tortor. Quisque fringilla ex et augue lobortis, eget sodales lacus elementum.</span>*/}
-      {/*</Row>*/}
     </Footer>
   );
 };
