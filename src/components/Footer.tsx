@@ -41,13 +41,13 @@ export const CustomFooter = () => {
         )}
         <Col flex="auto">{/*  <DexProgramSelector />*/}</Col>
       </Row>
-      {/*<Row justify="center">*/}
-      {/*  <span style={{*/}
-      {/*    textAlign: 'center',*/}
-      {/*    fontSize: 'small',*/}
-      {/*    padding: '10px 80px',*/}
-      {/*  }}><strong>Disclaimer: </strong>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed commodo libero quam, in lacinia elit semper eu. Integer nec augue et risus euismod tincidunt. Cras enim neque, pellentesque quis tellus vitae, rutrum tincidunt tortor. Quisque fringilla ex et augue lobortis, eget sodales lacus elementum.</span>*/}
-      {/*</Row>*/}
+      <Row justify="center">
+        <span style={{
+          textAlign: 'center',
+          fontSize: 'small',
+          padding: '10px 80px',
+        }}><strong>Disclaimer: </strong>StarAtlas.exchange is an unofficial site and is not affiliated nor endorsed by Automata S.A. This site is in beta, use at your own risk. It does not custody funds, but is simply a front-end for Serum's global liquidity pool.</span>
+      </Row>
     </Footer>
   );
 };
