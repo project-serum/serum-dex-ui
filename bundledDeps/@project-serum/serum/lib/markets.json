@@ -111,7 +111,7 @@
     {
         "address": "GSzxxsnVeTGmCLJ84y2dQeBoBVW1Su8bTqR7bJyDxjxn",
         "deprecated": false,
-        "name": "CEMPOP",
+        "name": "CEMOP",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
@@ -255,7 +255,7 @@
     {
         "address": "2z52mwzBPqA2jGf8jJhCQijHTJ1EUEscX5Mz718SBvmM",
         "deprecated": false,
-        "name": "OJ",
+        "name": "OPALJ",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
@@ -273,31 +273,31 @@
     {
         "address": "2qU6MtkBS4NQhzx7FQyxS7qfsjU3ZdbLVyUFjea3KBV2",
         "deprecated": false,
-        "name": "OT",
+        "name": "OGKATP",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
         "address": "6ybME9qMbXgLs3PLWvEv8uyL2LWnUZUz7CYGE4m8kEFm",
         "deprecated": false,
-        "name": "CCH",
+        "name": "CALCH",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
         "address": "BeqGJwPnRb3fJwhSrfhzgUYKqegUtGtvXajTYzEpgGYr",
         "deprecated": false,
-        "name": "FB",
+        "name": "FBLBPL",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
         "address": "AT1AoPoFU8WZkW8AnpQsSpUDaRyymvLPvG7k2kGZSwZr",
         "deprecated": false,
-        "name": "VOP",
+        "name": "VZUSOP",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
         "address": "2W6ff8LajAwekXVxDARGQ9QFNcRbxmJPE2p3eNsGR7Qu",
         "deprecated": false,
-        "name": "OJJ",
+        "name": "OPALJJ",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
