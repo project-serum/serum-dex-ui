@@ -309,7 +309,7 @@
     {
         "address": "5YHdWMXtAvEuUDZgsXNxvHAAKwuNu9Dq4DDWU8268qqr",
         "deprecated": false,
-        "name": "PX4NSB",
+        "name": "PX4SNB",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
@@ -333,7 +333,7 @@
     {
         "address": "BdivWfkYfE9XPVzpeeYZ6xZqv5p6jiYym5mU22Rfscd5",
         "deprecated": false,
-        "name": "OJWS",
+        "name": "OJSW",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
@@ -369,31 +369,31 @@
     {
         "address": "4AhBa7rJg1ryedTYyKdRmaFZMkotSEbjENRnAtBuaA3k",
         "deprecated": false,
-        "name": "CLAIM5",
+        "name": "STAKE5",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
         "address": "Gu9ZNcmd6wTKuLh88dVM64WZ3EZT5T6DfbUvu1hpc8Ju",
         "deprecated": false,
-        "name": "CLAIM4",
+        "name": "STAKE4",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
         "address": "AwmsP69aHDU9ZqUhX98xo9oX1GWCyoNaDmrSCqyZd98k",
         "deprecated": false,
-        "name": "CLAIM3",
+        "name": "STAKE3",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
         "address": "4m18ExgKckX8eVty96yX7rfUtXs8AZN31iM6mVKDRdBp",
         "deprecated": false,
-        "name": "CLAIM2",
+        "name": "STAKE2",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
         "address": "A4MZ55qsrBTerqWHMa5o36RpAXycNnoZKbQ4y1fkg3SA",
         "deprecated": false,
-        "name": "CLAIM1",
+        "name": "STAKE1",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     },
     {
