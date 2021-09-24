@@ -160,7 +160,10 @@ export default function TopBar() {
             TRADE
           </Menu.Item>
 
-
+          <Menu.SubMenu title="TOKENS">
+              <Menu.Item key="Di66GTLsV64JgCCYGVcY21RZ173BHkjJVgPyezNN7P1K">Star Atlas | ATLAS </Menu.Item>
+              <Menu.Item key="HxFLKUAmAMLz1jtT3hbvCMELwH5H9tpM2QugP8sKyfhW">Star Atlas DAO | POLIS </Menu.Item>
+          </Menu.SubMenu>
           <Menu.SubMenu title="COLLECTIBLE">
             <Menu.ItemGroup title="POSTER">
               <Menu.Item key="HdvXMScwAQQh9pEvLZjuaaeJcLTmixxYoMFefeqHFn2E">Om Photoli | OMPH</Menu.Item>

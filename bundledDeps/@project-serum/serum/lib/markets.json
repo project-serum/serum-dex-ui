@@ -1,5 +1,35 @@
 [
     {
+        "address": "Di66GTLsV64JgCCYGVcY21RZ173BHkjJVgPyezNN7P1K",
+        "deprecated": false,
+        "name": "ATLAS",
+        "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+    },
+    {
+        "address": "HxFLKUAmAMLz1jtT3hbvCMELwH5H9tpM2QugP8sKyfhW",
+        "deprecated": false,
+        "name": "POLIS",
+        "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+    },
+    {
+        "address": "4WckBAhK5YK78sZaYgiLAYZYgyhNkMN1JXkjRwWuyAg6",
+        "deprecated": false,
+        "name": "PILOT",
+        "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+    },
+    {
+        "address": "5QsRgRyvrhvePAtwBMZNPSmVwZR5vKkga3n31HxS4P3L",
+        "deprecated": false,
+        "name": "CAPN",
+        "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+    },
+    {
+        "address": "7bPXjodb2c4ZfBPL9QxyFF2JbErB67Rdbpd41ChpDSof",
+        "deprecated": false,
+        "name": "PASS",
+        "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+    },
+    {
         "address": "AYXTVttPfhYmn3jryX5XbRjwPK2m9445mbN2iLyRD6nq",
         "deprecated": false,
         "name": "DOI",
