@@ -1,4 +1,4 @@
-import {Button, Input, Radio, Slider, Switch} from 'antd';
+import {Button, Input, Radio, Slider, Switch, Tooltip} from 'antd';
 import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import {
@@ -363,16 +363,18 @@ export default function TradeForm({
         </div>
       </div>
       {side === 'buy' ? (
-        <BuyButton
-          disabled={!price || !baseSize}
-          onClick={onSubmit}
-          block
-          type="primary"
-          size="large"
-          loading={submitting}
-        >
-          Buy {baseCurrency}
-        </BuyButton>
+        <Tooltip title="Don't forget to add 0.22% trade fee for taker orders.">
+          <BuyButton
+              disabled={!price || !baseSize}
+              onClick={onSubmit}
+              block
+              type="primary"
+              size="large"
+              loading={submitting}
+          >
+            Buy {baseCurrency}
+          </BuyButton>
+        </Tooltip>
       ) : (
         <SellButton
           disabled={!price || !baseSize}
@@ -388,3 +390,4 @@ export default function TradeForm({
     </FloatingElement>
   );
 }
+

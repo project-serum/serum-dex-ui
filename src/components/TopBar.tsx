@@ -30,7 +30,8 @@ const Wrapper = styled.div`
 const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
-  color: #2abdd2;
+  color: #99CCFF;
+  font-size: 1.25rem;
   font-weight: bold;
   cursor: pointer;
   img {
@@ -152,6 +153,7 @@ export default function TopBar() {
             borderBottom: 'none',
             backgroundColor: 'transparent',
             display: 'flex',
+            justifyContent: 'space-around',
             alignItems: 'flex-end',
             flex: 1,
           }}
@@ -329,7 +331,7 @@ export default function TopBar() {
           >
             <Col>
               <PlusCircleOutlined
-                style={{ color: '#2abdd2' }}
+                style={{ color: '#99CCFF' }}
                 onClick={() => setAddEndpointVisible(true)}
               />
             </Col>
@@ -340,7 +342,7 @@ export default function TopBar() {
                 title="URL"
                 trigger="hover"
               >
-                <InfoCircleOutlined style={{ color: '#2abdd2' }} />
+                <InfoCircleOutlined style={{ color: '#99CCFF' }} />
               </Popover>
             </Col>
             <Col>

@@ -31,7 +31,7 @@ export const CustomFooter = () => {
             {footerElements.map((elem, index) => {
               return (
                 <Col key={index + ''}>
-                  <Link external to={elem.link}>
+                  <Link external to={elem.link} style={{ color: '#99CCFF'}}>
                     {elem.description}
                   </Link>
                 </Col>
@@ -46,7 +46,7 @@ export const CustomFooter = () => {
           textAlign: 'center',
           fontSize: 'small',
           padding: '10px 80px',
-        }}><strong>Disclaimer: </strong>StarAtlas.exchange is an unofficial site and is not affiliated nor endorsed by Automata S.A. This site is in beta, use at your own risk. It does not custody funds, but is simply a front-end for Serum's global liquidity pool.</span>
+        }}><strong>Disclaimer: </strong>StarAtlas.exchange is an unofficial site and is not affiliated nor endorsed by Automata S.A. This site is in beta, use at your own risk.</span>
       </Row>
     </Footer>
   );

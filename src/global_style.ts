@@ -55,7 +55,7 @@ input[type=number]:focus::-webkit-inner-spin-button {
   border-top: 1px solid #434a59 !important;
 }
 .ant-layout {
-    background: #11161D
+    background: linear-gradient(to top, #99CCFF, #040823);
   }
   .ant-table {
     background: #212734;
@@ -70,6 +70,22 @@ input[type=number]:focus::-webkit-inner-spin-button {
 }
 .ant-modal-content {
   background-color: #212734;
+}
+
+.lofBQV {
+    background-color: rgba(9,19,35, 0.86);
+    border-radius: 3px;
+    box-shadow: 1px 3px 6px #222111;
+}
+
+.anticon {
+    color: #99CCFF;
+}
+
+.ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-item-selected {
+    color: #83d5e4;
+    border-bottom: 2px solid #99CCFF;
+    
 }
 
 @-webkit-keyframes highlight {
