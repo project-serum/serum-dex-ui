@@ -502,5 +502,17 @@
         "deprecated": false,
         "name": "FM-T3FAB",
         "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+    },
+    {
+        "address": "CWn74XJsh98zWVYWtzqn1dGuz96KFxb18pYQQfECuCzA",
+        "deprecated": false,
+        "name": "PF4",
+        "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+    },
+    {
+        "address": "9VvHp11hiCPQT2GMMVvmyWPTEzJ1Ey3kqAGA5VsxQwjB",
+        "deprecated": false,
+        "name": "FBLEGR",
+        "programId": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
     }
 ]
