@@ -268,6 +268,7 @@ export default function TopBar() {
               <Menu.Item key="AT1AoPoFU8WZkW8AnpQsSpUDaRyymvLPvG7k2kGZSwZr">VZUS opod | VZUSOP</Menu.Item>
               <Menu.Item key="BeqGJwPnRb3fJwhSrfhzgUYKqegUtGtvXajTYzEpgGYr">Fimbul BYOS Packlite | FBLBPL</Menu.Item>
               <Menu.Item key="6ybME9qMbXgLs3PLWvEv8uyL2LWnUZUz7CYGE4m8kEFm">Calico Compakt Hero | CALCH</Menu.Item>
+              <Menu.Item key="CWn74XJsh98zWVYWtzqn1dGuz96KFxb18pYQQfECuCzA">Pearce F4 | PF4</Menu.Item>
             </Menu.ItemGroup>
             <Menu.ItemGroup title="SKIN">
               <Menu.Item key="3oK293Mgd6tbqXgUZp4tw48h9DHrxH5pig1MPLK73iLL">Usturn | VOPSUS</Menu.Item>
@@ -282,6 +283,7 @@ export default function TopBar() {
             </Menu.ItemGroup>
             <Menu.ItemGroup title="LARGE">
               <Menu.Item key="2qU6MtkBS4NQhzx7FQyxS7qfsjU3ZdbLVyUFjea3KBV2">Ogrika Thripid | OGKATP</Menu.Item>
+              <Menu.Item key="9VvHp11hiCPQT2GMMVvmyWPTEzJ1Ey3kqAGA5VsxQwjB">Fimbul ECOS Greenader | FBLEGR</Menu.Item>
             </Menu.ItemGroup>
             <Menu.ItemGroup title="X-SMALL">
               <Menu.Item key="2W6ff8LajAwekXVxDARGQ9QFNcRbxmJPE2p3eNsGR7Qu">Opal Jetjet | OPALJJ</Menu.Item>
