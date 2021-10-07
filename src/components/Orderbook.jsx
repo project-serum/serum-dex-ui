@@ -44,7 +44,19 @@ const Price = styled.div`
   color: white;
 `;
 
-export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
+export default function Orderbook({
+  smallScreen,
+  depth = 99,
+  onPrice,
+  onSize,
+}) {
+  const markRef = useRef(null);
+  const executeScroll = () =>
+    (markRef.current.parentNode.scrollTop = markRef.current.offsetTop / 2);
+
+  useEffect(() => {
+    executeScroll();
+  });
   const markPrice = useMarkPrice();
   const [orderbook] = useOrderbook();
   const { baseCurrency, quoteCurrency } = useMarket();
@@ -106,11 +118,7 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
   }
 
   return (
-    <FloatingElement
-      style={
-        smallScreen ? { flex: 1 } : { height: '500px', overflow: 'hidden' }
-      }
-    >
+    <FloatingElement style={smallScreen ? { flex: 1 } : { height: '500px' }}>
       <Title>Orderbook</Title>
       <SizeTitle>
         <Col span={12} style={{ textAlign: 'left' }}>
@@ -120,29 +128,40 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
           Price ({quoteCurrency})
         </Col>
       </SizeTitle>
-      {orderbookData?.asks.map(({ price, size, sizePercent }) => (
-        <OrderbookRow
-          key={price + ''}
-          price={price}
-          size={size}
-          side={'sell'}
-          sizePercent={sizePercent}
-          onPriceClick={() => onPrice(price)}
-          onSizeClick={() => onSize(size)}
-        />
-      ))}
-      <MarkPriceComponent markPrice={markPrice} />
-      {orderbookData?.bids.map(({ price, size, sizePercent }) => (
-        <OrderbookRow
-          key={price + ''}
-          price={price}
-          size={size}
-          side={'buy'}
-          sizePercent={sizePercent}
-          onPriceClick={() => onPrice(price)}
-          onSizeClick={() => onSize(size)}
-        />
-      ))}
+      <div
+        style={{
+          marginRight: '-20px',
+          paddingRight: '5px',
+          overflowY: 'scroll',
+          maxHeight: smallScreen ? 'calc(100% - 75px)' : '400px',
+        }}
+      >
+        {orderbookData?.asks.map(({ price, size, sizePercent }) => (
+          <OrderbookRow
+            key={price + ''}
+            price={price}
+            size={size}
+            side={'sell'}
+            sizePercent={sizePercent}
+            onPriceClick={() => onPrice(price)}
+            onSizeClick={() => onSize(size)}
+          />
+        ))}
+        <div ref={markRef}>
+          <MarkPriceComponent markPrice={markPrice} />
+        </div>
+        {orderbookData?.bids.map(({ price, size, sizePercent }) => (
+          <OrderbookRow
+            key={price + ''}
+            price={price}
+            size={size}
+            side={'buy'}
+            sizePercent={sizePercent}
+            onPriceClick={() => onPrice(price)}
+            onSizeClick={() => onSize(size)}
+          />
+        ))}
+      </div>
     </FloatingElement>
   );
 }
