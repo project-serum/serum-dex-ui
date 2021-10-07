@@ -20,10 +20,6 @@ import AppSearch from './AppSearch';
 import { getTradePageUrl } from '../utils/markets';
 
 const Wrapper = styled.div`
-<<<<<<< HEAD
-=======
-  //background-color: #0d1017;
->>>>>>> f35f60df67144aca1987dcc85c7a0b91ea0a320d
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
