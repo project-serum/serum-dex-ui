@@ -12,24 +12,8 @@
     "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
   },
   {
-  "name": "PILOT",
-  "address": "BswdGxfurGpSKPPhHUP6d9uzdY3bAG8o3CJnFUQLanzw"
-  },
-  {
-    "name": "CAPN",
-    "address": "HzeBiGCyGESHS3d5ndQmvz7q7Nz8Py6PV5xFjRL4cQGk"
-  },
-  {
     "name": "PASS",
     "address": "9iHQcYQR3qfqUh1HsTvRu2K1QZSCW3M6DXCY7HcwFGJn"
-  },
-  {
-    "name": "FM-T3ANI",
-    "address": "2YFmgNYGKLGTofn24mG2gPbGoKAfcH5SsfvNwXo1Hcsq"
-  },
-  {
-    "name": "FM-T3ATLAS",
-    "address": "56M4yyHAwz3Ro8SezkrQ3ph2ayR8sScSy7mqjHQwMS87"
   },
   {
     "name": "DOI",
@@ -296,6 +280,10 @@
     "address": "77GQVKfHFRJJuMXsWSHsM8acMZvouZ352EEMfRdoKRZP"
   },
   {
+    "name": "FM-T3ANI",
+    "address": "2YFmgNYGKLGTofn24mG2gPbGoKAfcH5SsfvNwXo1Hcsq"
+  },
+  {
     "name": "FM-T3FTX",
     "address": "43shunGxqAydDfcHadZzs9j9JHVCEYixPnSMFHpqwc3k"
   },
@@ -318,6 +306,10 @@
   {
     "name": "FM-T3RAY",
     "address": "3Sg2QjXxJMpgiaf2VWU5dDWfWt1NVETtxVrZ26NuFpx9"
+  },
+  {
+    "name": "FM-T3ATLAS",
+    "address": "56M4yyHAwz3Ro8SezkrQ3ph2ayR8sScSy7mqjHQwMS87"
   },
   {
     "name": "FM-T3SOL",
@@ -346,5 +338,13 @@
   {
     "name": "FBLEGR",
     "address": "FpwV1Da6BZJnYPr1JSLUm14UwBmZHA7J5WLY4TXgbde8"
+  },
+  {
+    "name": "CMHMSB",
+    "address": "BswdGxfurGpSKPPhHUP6d9uzdY3bAG8o3CJnFUQLanzw"
+  },
+  {
+    "name": "CMHFAT",
+    "address": "HzeBiGCyGESHS3d5ndQmvz7q7Nz8Py6PV5xFjRL4cQGk"
   }
 ]
