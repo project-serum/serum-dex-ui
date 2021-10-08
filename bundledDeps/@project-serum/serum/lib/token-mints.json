@@ -1,18 +1,18 @@
 [
   {
-    "symbol": "POLIS",
+    "name": "POLIS",
     "address": "poLisWXnNRwC6oBu1vHiuKQzFjGL4XDSu4g9qjz9qVk"
   },
   {
-    "symbol": "ATLAS",
+    "name": "ATLAS",
     "address": "ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx"
   },
   {
-    "symbol": "USDC",
+    "name": "USDC",
     "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
   },
   {
-    "symbol": "PASS",
+    "name": "PASS",
     "address": "9iHQcYQR3qfqUh1HsTvRu2K1QZSCW3M6DXCY7HcwFGJn"
   },
   {
