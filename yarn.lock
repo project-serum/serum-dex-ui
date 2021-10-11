@@ -1547,21 +1547,23 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
+"@project-serum/serum@^0.13.58":
+  version "0.13.58"
+  resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.58.tgz#0f4aaa98f28c1220f8131052cd33b36d43430266"
+  integrity sha512-g8PNsFiJ3qTGu5B1qHdGIfmXovka3DpC9cMhyYzdKKX3WqdpzHrwKYO/ZuqH+JBp+dGfjYTxRLQ3dNTxYWohHA==
+  dependencies:
+    "@project-serum/anchor" "^0.11.1"
+    "@solana/spl-token" "^0.1.6"
+    "@solana/web3.js" "^1.21.0"
+    bn.js "^5.1.2"
+    buffer-layout "^1.2.0"
+
 "@project-serum/serum@^0.13.8":
   version "0.13.25"
   resolved "https://registry.yarnpkg.com/@project-serum/serum/-/serum-0.13.25.tgz#40cbeaed03bb69e6a8c3e9117359b70ef155042e"
   integrity sha512-IdK768TwM3tJHDPpt3iJ9AR7sMECrXD5B5i+oZhHR2+06Mun9djx/PtTTVYik161PjJXkuQozfWVk2a003s0CQ==
   dependencies:
     "@solana/web3.js" "^0.90.0"
-    bn.js "^5.1.2"
-    buffer-layout "^1.2.0"
-
-"@project-serum/serum@file:./bundledDeps/@project-serum/serum":
-  version "0.13.58"
-  dependencies:
-    "@project-serum/anchor" "^0.11.1"
-    "@solana/spl-token" "^0.1.6"
-    "@solana/web3.js" "^1.21.0"
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
@@ -3498,9 +3500,9 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30001035, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001181:
-  version "1.0.30001259"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001259.tgz"
-  integrity sha512-V7mQTFhjITxuk9zBpI6nYsiTXhcPe05l+364nZjK7MFK/E7ibvYBSAXr4YcA6oPR8j3ZLM/LN+lUqUVAQEUZFg==
+  version "1.0.30001191"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001191.tgz#bacb432b6701f690c8c5f7c680166b9a9f0843d9"
+  integrity sha512-xJJqzyd+7GCJXkcoBiQ1GuxEiOBCLQ0aVW9HMekifZsAVGdj5eJ4mFB9fEhSHipq9IOk/QXFJUiIr9lZT+EsGw==
 
 capture-exit@^2.0.0:
   version "2.0.0"
