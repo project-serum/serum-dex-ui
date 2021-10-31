@@ -79,6 +79,7 @@ export async function settleFunds({
   sendNotification = true,
   usdcRef = undefined,
   usdtRef = undefined,
+  atlasRef = undefined,
 }: {
   market: Market;
   openOrders: OpenOrders;
@@ -89,6 +90,7 @@ export async function settleFunds({
   sendNotification?: boolean;
   usdcRef?: PublicKey;
   usdtRef?: PublicKey;
+  atlasRef?: PublicKey;
 }): Promise<string | undefined> {
   if (
     !market ||
@@ -129,6 +131,7 @@ export async function settleFunds({
   if (market.supportsReferralFees) {
     const usdt = TOKEN_MINTS.find(({ name }) => name === 'USDT');
     const usdc = TOKEN_MINTS.find(({ name }) => name === 'USDC');
+    const atlas = TOKEN_MINTS.find(({ name }) => name === 'ATLAS');
     if (usdtRef && usdt && market.quoteMintAddress.equals(usdt.address)) {
       referrerQuoteWallet = usdtRef;
     } else if (
@@ -137,6 +140,10 @@ export async function settleFunds({
       market.quoteMintAddress.equals(usdc.address)
     ) {
       referrerQuoteWallet = usdcRef;
+    } else if (
+        atlasRef && atlas && market.quoteMintAddress.equals(atlas.address)
+    ) {
+      referrerQuoteWallet = atlasRef;
     }
   }
   const {

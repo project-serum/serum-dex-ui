@@ -56,7 +56,7 @@ export default function StandaloneBalancesDisplay() {
     balances && balances.find((b) => b.coin === quoteCurrency);
   const [autoSettleEnabled] = useLocalStorageState('autoSettleEnabled', true);
   const [lastSettledAt, setLastSettledAt] = useState<number>(0);
-  const { usdcRef, usdtRef } = useReferrer();
+  const { usdcRef, usdtRef, atlasRef } = useReferrer();
   async function onSettleFunds() {
     if (!wallet) {
       notify({
@@ -110,6 +110,7 @@ export default function StandaloneBalancesDisplay() {
         quoteCurrencyAccount,
         usdcRef,
         usdtRef,
+        atlasRef,
       });
     } catch (e) {
       notify({
@@ -154,6 +155,7 @@ export default function StandaloneBalancesDisplay() {
           quoteCurrencyAccount,
           usdcRef,
           usdtRef,
+          atlasRef
         });
       } catch (e) {
         console.log('Error auto settling funds: ' + e.message);
