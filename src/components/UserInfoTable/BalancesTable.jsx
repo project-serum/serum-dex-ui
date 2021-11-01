@@ -20,7 +20,7 @@ export default function BalancesTable({
   const [accounts] = useTokenAccounts();
   const connection = useSendConnection();
   const { wallet } = useWallet();
-  const { usdcRef, usdtRef } = useReferrer();
+  const { usdcRef, usdtRef, atlasRef } = useReferrer();
 
   async function onSettleFunds(market, openOrders) {
     try {
@@ -39,6 +39,7 @@ export default function BalancesTable({
         ),
         usdcRef,
         usdtRef,
+        atlasRef,
       });
     } catch (e) {
       notify({
