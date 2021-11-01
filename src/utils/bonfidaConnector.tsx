@@ -1,7 +1,7 @@
 import { BonfidaTrade } from './types';
 
 export default class BonfidaApi {
-  static URL: string = 'https://api.staratlas.exchange/';
+  static URL: string = 'https://bxrzpbqi9c.execute-api.eu-west-3.amazonaws.com/dev/';
 
   static async get(path: string) {
     try {
@@ -23,4 +23,4 @@ export default class BonfidaApi {
   }
 }
 
-export const BONFIDA_DATA_FEED = 'https://api.staratlas.exchange/tv';
+export const BONFIDA_DATA_FEED = 'https://bxrzpbqi9c.execute-api.eu-west-3.amazonaws.com/dev/tv';
