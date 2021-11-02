@@ -3,7 +3,7 @@
 export declare type DomeCallback = (data: DOMData) => void;
 export declare type ErrorCallback = (reason: string) => void;
 export declare type GetMarksCallback<T> = (marks: T[]) => void;
-export declare type HistoryCallback = (bars: Bar[], meta: HistoryMetadata) => void;
+export declare type HistoryCallback = (bars: Bar[], meta?: HistoryMetadata) => void;
 export declare type MarkConstColors = "red" | "green" | "blue" | "yellow";
 /**
  * This is the generic type useful for declaring a nominal type,
@@ -24,7 +24,6 @@ export declare type Nominal<T, Name extends string> = T & {
 export declare type OnReadyCallback = (configuration: DatafeedConfiguration) => void;
 export declare type QuoteData = QuoteOkData | QuoteErrorData;
 export declare type QuotesCallback = (data: QuoteData[]) => void;
-export declare type ResolutionBackValues = "D" | "M";
 export declare type ResolutionString = Nominal<string, "ResolutionString">;
 export declare type ResolveCallback = (symbolInfo: LibrarySymbolInfo) => void;
 export declare type SearchSymbolsCallback = (items: SearchSymbolResultItem[]) => void;
@@ -52,6 +51,7 @@ export interface DOMLevel {
 export interface DatafeedConfiguration {
 	exchanges?: Exchange[];
 	supported_resolutions?: ResolutionString[];
+	units?: Record<string, Unit[]>;
 	currency_codes?: string[];
 	supports_marks?: boolean;
 	supports_time?: boolean;
@@ -85,16 +85,11 @@ export interface Exchange {
 	name: string;
 	desc: string;
 }
-export interface HistoryDepth {
-	resolutionBack: ResolutionBackValues;
-	intervalBack: number;
-}
 export interface HistoryMetadata {
-	noData: boolean;
+	noData?: boolean;
 	nextTime?: number | null;
 }
 export interface IDatafeedChartApi {
-	calculateHistoryDepth?(resolution: ResolutionString, resolutionBack: ResolutionBackValues, intervalBack: number): HistoryDepth | undefined;
 	getMarks?(symbolInfo: LibrarySymbolInfo, from: number, to: number, onDataCallback: GetMarksCallback<Mark>, resolution: ResolutionString): void;
 	getTimescaleMarks?(symbolInfo: LibrarySymbolInfo, from: number, to: number, onDataCallback: GetMarksCallback<TimescaleMark>, resolution: ResolutionString): void;
 	/**
@@ -104,12 +99,13 @@ export interface IDatafeedChartApi {
 	 */
 	getServerTime?(callback: ServerTimeCallback): void;
 	searchSymbols(userInput: string, exchange: string, symbolType: string, onResult: SearchSymbolsCallback): void;
-	resolveSymbol(symbolName: string, onResolve: ResolveCallback, onError: ErrorCallback): void;
-	getBars(symbolInfo: LibrarySymbolInfo, resolution: ResolutionString, rangeStartDate: number, rangeEndDate: number, onResult: HistoryCallback, onError: ErrorCallback, isFirstCall: boolean): void;
+	resolveSymbol(symbolName: string, onResolve: ResolveCallback, onError: ErrorCallback, extension?: SymbolResolveExtension): void;
+	getBars(symbolInfo: LibrarySymbolInfo, resolution: ResolutionString, periodParams: PeriodParams, onResult: HistoryCallback, onError: ErrorCallback): void;
 	subscribeBars(symbolInfo: LibrarySymbolInfo, resolution: ResolutionString, onTick: SubscribeBarsCallback, listenerGuid: string, onResetCacheNeededCallback: () => void): void;
 	unsubscribeBars(listenerGuid: string): void;
 	subscribeDepth?(symbol: string, callback: DomeCallback): string;
 	unsubscribeDepth?(subscriberUID: string): void;
+	getVolumeProfileResolutionForPeriod?(currentResolution: ResolutionString, from: number, to: number, symbolInfo: LibrarySymbolInfo): ResolutionString;
 }
 export interface IDatafeedQuotesApi {
 	getQuotes(symbols: string[], onDataCallback: QuotesCallback, onErrorCallback: (msg: string) => void): void;
@@ -125,7 +121,9 @@ export interface LibrarySymbolInfo {
 	 */
 	name: string;
 	full_name: string;
-	base_name?: [string];
+	base_name?: [
+		string
+	];
 	/**
 	 * Unique symbol id
 	 */
@@ -136,6 +134,7 @@ export interface LibrarySymbolInfo {
 	 * @example "1700-0200"
 	 */
 	session: string;
+	session_display?: string;
 	/**
 	 * @example "20181105,20181107,20181112"
 	 */
@@ -183,6 +182,7 @@ export interface LibrarySymbolInfo {
 	 */
 	intraday_multipliers?: string[];
 	has_seconds?: boolean;
+	has_ticks?: boolean;
 	/**
 	 * It is an array containing seconds resolutions (in seconds without a postfix) the datafeed builds by itself.
 	 */
@@ -190,7 +190,6 @@ export interface LibrarySymbolInfo {
 	has_daily?: boolean;
 	has_weekly_and_monthly?: boolean;
 	has_empty_bars?: boolean;
-	force_session_rebuild?: boolean;
 	has_no_volume?: boolean;
 	/**
 	 * Integer showing typical volume value decimal places for this symbol
@@ -209,6 +208,9 @@ export interface LibrarySymbolInfo {
 	industry?: string;
 	currency_code?: string;
 	original_currency_code?: string;
+	unit_id?: string;
+	original_unit_id?: string;
+	unit_conversion_types?: string[];
 }
 export interface Mark {
 	id: string | number;
@@ -222,6 +224,12 @@ export interface Mark {
 export interface MarkCustomColor {
 	color: string;
 	background: string;
+}
+export interface PeriodParams {
+	from: number;
+	to: number;
+	countBack: number;
+	firstDataRequest: boolean;
 }
 export interface QuoteErrorData {
 	s: "error";
@@ -243,6 +251,7 @@ export interface SearchSymbolResultItem {
 }
 export interface SymbolResolveExtension {
 	currencyCode?: string;
+	unitId?: string;
 }
 export interface TimescaleMark {
 	id: string | number;
@@ -251,7 +260,12 @@ export interface TimescaleMark {
 	label: string;
 	tooltip: string[];
 }
-export type CustomTimezones = "Africa/Cairo" | "Africa/Johannesburg" | "Africa/Lagos" | "America/Argentina/Buenos_Aires" | "America/Bogota" | "America/Caracas" | "America/Chicago" | "America/El_Salvador" | "America/Juneau" | "America/Lima" | "America/Los_Angeles" | "America/Mexico_City" | "America/New_York" | "America/Phoenix" | "America/Santiago" | "America/Sao_Paulo" | "America/Toronto" | "America/Vancouver" | "Asia/Almaty" | "Asia/Ashkhabad" | "Asia/Bahrain" | "Asia/Bangkok" | "Asia/Chongqing" | "Asia/Dubai" | "Asia/Ho_Chi_Minh" | "Asia/Hong_Kong" | "Asia/Jakarta" | "Asia/Jerusalem" | "Asia/Kathmandu" | "Asia/Kolkata" | "Asia/Kuwait" | "Asia/Muscat" | "Asia/Qatar" | "Asia/Riyadh" | "Asia/Seoul" | "Asia/Shanghai" | "Asia/Singapore" | "Asia/Taipei" | "Asia/Tehran" | "Asia/Tokyo" | "Atlantic/Reykjavik" | "Australia/ACT" | "Australia/Adelaide" | "Australia/Brisbane" | "Australia/Perth" | "Australia/Sydney" | "Europe/Athens" | "Europe/Belgrade" | "Europe/Berlin" | "Europe/Copenhagen" | "Europe/Helsinki" | "Europe/Istanbul" | "Europe/London" | "Europe/Luxembourg" | "Europe/Madrid" | "Europe/Moscow" | "Europe/Oslo" | "Europe/Paris" | "Europe/Riga" | "Europe/Rome" | "Europe/Stockholm" | "Europe/Tallinn" | "Europe/Vilnius" | "Europe/Warsaw" | "Europe/Zurich" | "Pacific/Auckland" | "Pacific/Chatham" | "Pacific/Fakaofo" | "Pacific/Honolulu" | "Pacific/Norfolk" | "US/Mountain";
+export interface Unit {
+	id: string;
+	name: string;
+	description: string;
+}
+export type CustomTimezones = "Africa/Cairo" | "Africa/Johannesburg" | "Africa/Lagos" | "America/Argentina/Buenos_Aires" | "America/Bogota" | "America/Caracas" | "America/Chicago" | "America/El_Salvador" | "America/Juneau" | "America/Lima" | "America/Los_Angeles" | "America/Mexico_City" | "America/New_York" | "America/Phoenix" | "America/Santiago" | "America/Sao_Paulo" | "America/Toronto" | "America/Vancouver" | "Asia/Almaty" | "Asia/Ashkhabad" | "Asia/Bahrain" | "Asia/Bangkok" | "Asia/Chongqing" | "Asia/Dubai" | "Asia/Ho_Chi_Minh" | "Asia/Hong_Kong" | "Asia/Jakarta" | "Asia/Jerusalem" | "Asia/Kathmandu" | "Asia/Kolkata" | "Asia/Kuwait" | "Asia/Muscat" | "Asia/Qatar" | "Asia/Riyadh" | "Asia/Seoul" | "Asia/Shanghai" | "Asia/Singapore" | "Asia/Taipei" | "Asia/Tehran" | "Asia/Tokyo" | "Atlantic/Reykjavik" | "Australia/ACT" | "Australia/Adelaide" | "Australia/Brisbane" | "Australia/Perth" | "Australia/Sydney" | "Europe/Amsterdam" | "Europe/Athens" | "Europe/Belgrade" | "Europe/Berlin" | "Europe/Brussels" | "Europe/Copenhagen" | "Europe/Dublin" | "Europe/Helsinki" | "Europe/Istanbul" | "Europe/Lisbon" | "Europe/London" | "Europe/Luxembourg" | "Europe/Madrid" | "Europe/Malta" | "Europe/Moscow" | "Europe/Oslo" | "Europe/Paris" | "Europe/Riga" | "Europe/Rome" | "Europe/Stockholm" | "Europe/Tallinn" | "Europe/Vilnius" | "Europe/Warsaw" | "Europe/Zurich" | "Pacific/Auckland" | "Pacific/Chatham" | "Pacific/Fakaofo" | "Pacific/Honolulu" | "Pacific/Norfolk" | "US/Mountain";
 
 export as namespace TradingView;
 

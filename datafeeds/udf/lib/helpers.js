@@ -1,13 +1,13 @@
 /**
  * If you want to enable logs from datafeed set it to `true`
  */
-var isLoggingEnabled = false;
+const isLoggingEnabled = false;
 export function logMessage(message) {
   if (isLoggingEnabled) {
-    var now = new Date();
+    const now = new Date();
     // tslint:disable-next-line:no-console
     console.log(
-      now.toLocaleTimeString() + '.' + now.getMilliseconds() + '> ' + message,
+      `${now.toLocaleTimeString()}.${now.getMilliseconds()}> ${message}`,
     );
   }
 }
