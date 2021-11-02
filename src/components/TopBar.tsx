@@ -244,18 +244,28 @@ export default function TopBar() {
               <Menu.Item key="3ySaxSspDCsEM53zRTfpyr9s9yfq9yNpZFXSEbvbadLf">Pearce X5 | PX5</Menu.Item>
               <Menu.Item key="2W6ff8LajAwekXVxDARGQ9QFNcRbxmJPE2p3eNsGR7Qu">Opal Jetjet | OPALJJ</Menu.Item>
             </Menu.ItemGroup>
+            <Menu.ItemGroup title="SMALL">
+              <Menu.Item key="HcYLMMtf55i1X8pXkEppp6e8n8GKTeJHaGfXdh8AJnte">VZUS ambwe | VZUSAM/ATLAS</Menu.Item>
+              <Menu.Item key="8qyeFRyR5255UFTVtSrX9Qad6S4A8kaehc4wdizFDmJe">VZUS ambwe | VZUSAM/USDC</Menu.Item>
+            </Menu.ItemGroup>
             <Menu.ItemGroup title="MEDIUM">
               <Menu.Item key="AT1AoPoFU8WZkW8AnpQsSpUDaRyymvLPvG7k2kGZSwZr">VZUS opod | VZUSOP</Menu.Item>
               <Menu.Item key="BeqGJwPnRb3fJwhSrfhzgUYKqegUtGtvXajTYzEpgGYr">Fimbul BYOS Packlite | FBLBPL</Menu.Item>
               <Menu.Item key="6ybME9qMbXgLs3PLWvEv8uyL2LWnUZUz7CYGE4m8kEFm">Calico Compakt Hero | CALCH</Menu.Item>
               <Menu.Item key="CWn74XJsh98zWVYWtzqn1dGuz96KFxb18pYQQfECuCzA">Pearce F4 | PF4</Menu.Item>
+              <Menu.Item key="8HgYiWUyQDfsK7ofXJD9Jw4a9t6GundiD8TWwdGbWEaH">Rainbow Om | OM/ATLAS</Menu.Item>
+              <Menu.Item key="9X9Ph3dWKKa59nAHPQiy5fEuGvjogKNK3gmKB8n5NVBW">Rainbow Om | OM/USDC</Menu.Item>
             </Menu.ItemGroup>
             <Menu.ItemGroup title="LARGE">
               <Menu.Item key="2qU6MtkBS4NQhzx7FQyxS7qfsjU3ZdbLVyUFjea3KBV2">Ogrika Thripid | OGKATP</Menu.Item>
               <Menu.Item key="9VvHp11hiCPQT2GMMVvmyWPTEzJ1Ey3kqAGA5VsxQwjB">Fimbul ECOS Greenader | FBLEGR</Menu.Item>
+              <Menu.Item key="4nSVznRaTiQrX4rhVY5KnUC8HPNZh85RsaTbLQZznBMs">Pearce R8 | PR8/ATLAS</Menu.Item>
+              <Menu.Item key="33kdNLZCDHtnmp74NPXQ9KGSeJgSqLf1AdsQFkMR7bfp">Pearce R8 | PR8/USDC</Menu.Item>
             </Menu.ItemGroup>
             <Menu.ItemGroup title="CAPITAL">
               <Menu.Item key="4TpCAobnJfGFRbZ8gAppS9aZBwEGG1k9tRVmx6FPUvUp">Calico Guardian | CALG</Menu.Item>
+              <Menu.Item key="6SriSyRDGm8tS7f3njPeFEqSu88MsfFjSBzjMdodenqU">Pearce C9 | PC9/ATLAS</Menu.Item>
+              <Menu.Item key="DAYWM1QZLwBEqxQqE397jsRqML57NGkzTsuoQkQdZnus">Pearce C9 | PC9/USDC</Menu.Item>
             </Menu.ItemGroup>
           </Menu.SubMenu>
           <Menu.SubMenu key="STRUCTURE" title="STRUCTURE">
