@@ -142,7 +142,7 @@ export default function TopBar() {
         onClose={() => setAddEndpointVisible(false)}
       />
       <Wrapper>
-        <LogoWrapper onClick={
+        <LogoWrapper onClick={() => 
             location.href = 'https://fsynth.io';
           }>
           <img src={logo} alt="" />
