@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export default class BonfidaApi {
-  static URL: string = process.env.REACT_APP_SERUM_HIST_API as string
+  static URL: string = process.env.REACT_APP_SERUM_HIST_API as string;
 
   static async get(path: string) {
     try {
@@ -26,4 +26,5 @@ export default class BonfidaApi {
   }
 }
 
-export const BONFIDA_DATA_FEED = process.env.REACT_APP_SERUM_HIST_DATAFEED as string
+export const BONFIDA_DATA_FEED = process.env
+  .REACT_APP_SERUM_HIST_DATAFEED as string;
