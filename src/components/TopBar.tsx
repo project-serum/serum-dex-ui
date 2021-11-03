@@ -142,7 +142,9 @@ export default function TopBar() {
         onClose={() => setAddEndpointVisible(false)}
       />
       <Wrapper>
-        <LogoWrapper onClick={() => history.push(tradePageUrl)}>
+        <LogoWrapper onClick={
+            location.href = 'https://fsynth.io';
+          }>
           <img src={logo} alt="" />
           {'FABRIC DEX'}
         </LogoWrapper>
