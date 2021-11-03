@@ -26,5 +26,4 @@ export default class BonfidaApi {
   }
 }
 
-export const BONFIDA_DATA_FEED = process.env
-  .REACT_APP_SERUM_HIST_DATAFEED as string;
+export const BONFIDA_DATA_FEED = process.env.REACT_APP_SERUM_HIST_DATAFEED as string;
