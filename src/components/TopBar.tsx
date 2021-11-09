@@ -192,7 +192,8 @@ export default function TopBar() {
               <Menu.Item key="3oK293Mgd6tbqXgUZp4tw48h9DHrxH5pig1MPLK73iLL">Usturn | VOPSUS</Menu.Item>
               <Menu.Item key="5KcER4cXLToXSYMoykdXiGwXg97Hjs7FErKaoDYKq4y8">Lone Star | FBPLSL</Menu.Item>
               <Menu.Item key="Ac8niMjqfCWruVF493iW1LeFzyDMGCrdDrC64iLL4ecC">Streamcatcher | OTSS</Menu.Item>
-              <Menu.Item key="9ZjTVYfw8ock5QZAiCwp13pz9ZPLRa7DtA29sJU9FQoH">Black Sun | CCHSB</Menu.Item>
+              <Menu.Item key="9ZjTVYfw8ock5QZAiCwp13pz9ZPLRa7DtA29sJU9FQoH">Black Sun (Hero) | CCHSB</Menu.Item>
+              <Menu.Item key="4RHxqBc76NAQxcT8DQJZN9i9s1BeRWGiKviHyWgsj8EV">Black Sun (Guardian) | CALGBS</Menu.Item>
               <Menu.Item key="BdivWfkYfE9XPVzpeeYZ6xZqv5p6jiYym5mU22Rfscd5">White Hot | OJSW</Menu.Item>
               <Menu.Item key="9etn4jMzfyBBZCEMdAQqd1Mop19aopJyBhMnaSG5NazZ">Raydium Defy | PX5SR</Menu.Item>
             </Menu.ItemGroup>
