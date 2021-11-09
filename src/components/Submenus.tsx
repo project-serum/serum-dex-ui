@@ -149,4 +149,5 @@ export default function DynamicMenu(props) {
                     <Menu.Item key="{market}">4Gg2WPaYbZNpy86tMhmw6w4CsiVupnNXwvbsLREMB5UQ | COUNCIL META-PAS | CMPAS/USDC</Menu.Item>
                 </Menu.ItemGroup>
             </Menu.SubMenu>
-        </>)}
+        </>
+    )}
