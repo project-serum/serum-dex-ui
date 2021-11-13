@@ -27,170 +27,102 @@ import BonfidaApi from './bonfidaConnector';
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
 
-export const ftrMarket: MarketInfo = {
-  address: new PublicKey("4JP75nztBEo5rYhW1LTQyc4qfjPB33jMWEUvp2DGrQQR"),
-  name: "FTR/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "FTR"
-};
-
-export const ropeMarket: MarketInfo = {
-  address: new PublicKey("4Sg1g8U2ZuGnGYxAhc6MmX9MX7yZbrrraPkCQ9MdCPtF"),
-  name: "ROPE/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "ROPE"
-};
-
-export const xcopeMarket: MarketInfo = {
-  address: new PublicKey("7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2"),
-  name: "xCOPE/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "xCOPE"
-};
-
-export const solapeMarket: MarketInfo = {
-  address: new PublicKey("4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon"),
-  name: "SOLAPE/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "SOLAPE"
-};
-
-export const fabMarket: MarketInfo = {
-  address: new PublicKey("GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M"),
-  name: "FAB/USDC (old)",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "FAB"
-};
-
-export const copeMarket: MarketInfo = {
-  address: new PublicKey("6fc7v3PmjZG9Lk2XTot6BywGyYLkBQuzuFKd4FpCsPxk"),
-  name: "COPE/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "COPE"
-};
-
-export const sailMarket: MarketInfo = {
-  address: new PublicKey("6hwK66FfUdyhncdQVxWFPRqY8y6usEvzekUaqtpKEKLr"),
-  name: "SAIL/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "SAIL"
-};
-
-export const samoMarket: MarketInfo = {
-  address: new PublicKey("FR3SPJmgfRSKKQ2ysUZBu7vJLpzTixXnjzb84bY3Diif"),
-  name: "SAMO/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "SAMO"
-};
-
-export const kinMarket: MarketInfo = {
-  address: new PublicKey("Bn6NPyr6UzrFAwC4WmvPvDr2Vm8XSUnFykM2aQroedgn"),
-  name: "KIN/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "KIN"
-};
-
-export const tulipMarket: MarketInfo = {
-  address: new PublicKey("8GufnKq7YnXKhnB3WNhgy5PzU9uvHbaaRrZWQK6ixPxW"),
-  name: "TULIP/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "TULIP"
-};
-
-export const frogMarket: MarketInfo = {
-  address: new PublicKey("2Si6XDdpv5zcvYna221eZZrsjsp5xeYoz9W1TVdMdbnt"),
-  name: "FROG/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "FROG"
-};
-
-export const cheemsMarket: MarketInfo = {
-  address: new PublicKey("5WVBCaUPZF4HP3io9Z56N71cPMJt8qh3c4ZwSjRDeuut"),
-  name: "CHEEMS/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "CHEEMS"
-};
-
-export const fabNewMarket: MarketInfo = {
-  address: new PublicKey("Cud48DK2qoxsWNzQeTL5D8sAiHsGwG8Ev1VMNcYLayxt"),
-  name: "FAB/USDC",
-  programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-  deprecated: false,
-  quoteLabel: "USDC",
-  baseLabel: "FAB"
-};
+export const Markets: MarketInfo[] = [
+  {
+    address: new PublicKey("4JP75nztBEo5rYhW1LTQyc4qfjPB33jMWEUvp2DGrQQR"),
+    name: "FTR/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "FTR"
+  },
+  {
+    address: new PublicKey("4Sg1g8U2ZuGnGYxAhc6MmX9MX7yZbrrraPkCQ9MdCPtF"),
+    name: "ROPE/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "ROPE"
+  },
+  {
+    address: new PublicKey("4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon"),
+    name: "SOLAPE/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "SOLAPE"
+  },
+  {
+    address: new PublicKey("GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M"),
+    name: "FAB/USDC (old)",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "FAB"
+  },
+  {
+    address: new PublicKey("6fc7v3PmjZG9Lk2XTot6BywGyYLkBQuzuFKd4FpCsPxk"),
+    name: "COPE/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "COPE"
+  },
+  {
+    address: new PublicKey("6hwK66FfUdyhncdQVxWFPRqY8y6usEvzekUaqtpKEKLr"),
+    name: "SAIL/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "SAIL"
+  },
+  {
+    address: new PublicKey("FR3SPJmgfRSKKQ2ysUZBu7vJLpzTixXnjzb84bY3Diif"),
+    name: "SAMO/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "SAMO"
+  },
+  {
+    address: new PublicKey("5WVBCaUPZF4HP3io9Z56N71cPMJt8qh3c4ZwSjRDeuut"),
+    name: "CHEEMS/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "CHEEMS"
+  },
+  {
+    address: new PublicKey("Cud48DK2qoxsWNzQeTL5D8sAiHsGwG8Ev1VMNcYLayxt"),
+    name: "FAB/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "FAB"
+  },
+  {
+    address: new PublicKey("2zkPyHgQkKG6qJED6MTbjfCfUbZeT9VFwLm1Ld9nKxRp"),
+    name: "GSAIL/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "GSAIL"
+  },
+  {
+    address: new PublicKey("GX26tyJyDxiFj5oaKvNB9npAHNgdoV9ZYHs5ijs5yG2U"),
+    name: "APEX/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "APEX"
+  }
+];
 
 export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
-  ? MARKETS.map((m) => ({ ...m, deprecated: false }))
-  : MARKETS;
+  ? Markets.map((m) => ({ ...m, deprecated: false }))
+  : Markets;
 
 export function useMarketsList() {
-  while (USE_MARKETS.length) { USE_MARKETS.pop(); }
-  if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC")).length === 0) {
-    USE_MARKETS.push(fabNewMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "ROPE/USDC")).length === 0) {
-    USE_MARKETS.push(ropeMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "SOLAPE/USDC")).length === 0) {
-    USE_MARKETS.push(solapeMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "xCOPE/USDC")).length === 0) {
-    USE_MARKETS.push(xcopeMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "FTR/USDC")).length === 0) {
-    USE_MARKETS.push(ftrMarket);
-  }
-
-  if (USE_MARKETS.filter(({name}) => (name === "COPE/USDC")).length === 0) {
-    USE_MARKETS.push(copeMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "SAMO/USDC")).length === 0) {
-    USE_MARKETS.push(samoMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "SAIL/USDC")).length === 0) {
-    USE_MARKETS.push(sailMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "KIN/USDC")).length === 0) {
-    USE_MARKETS.push(kinMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "TULIP/USDC")).length === 0) {
-    USE_MARKETS.push(tulipMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "FROG/USDC")).length === 0) {
-    USE_MARKETS.push(frogMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "CHEEMS/USDC")).length === 0) {
-    USE_MARKETS.push(cheemsMarket);
-  }
-  if (USE_MARKETS.filter(({name}) => (name === "FAB/USDC (old)")).length === 0) {
-    USE_MARKETS.push(fabMarket);
-  }
-  
   var markets = USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
   return markets;
 }
@@ -356,125 +288,9 @@ export function getMarketDetails(
 }
 
 export function useCustomMarkets() {
-  var ropeMarket: CustomMarketInfo = {
-    address: "4Sg1g8U2ZuGnGYxAhc6MmX9MX7yZbrrraPkCQ9MdCPtF",
-    name: "ROPE/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "ROPE"
-  }
-
-  var ftrMarket: CustomMarketInfo = {
-    address: "4JP75nztBEo5rYhW1LTQyc4qfjPB33jMWEUvp2DGrQQR",
-    name: "FTR/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "FTR"
-  };
-  
-  var xcopeMarket: CustomMarketInfo = {
-    address: "7MpMwArporUHEGW7quUpkPZp5L5cHPs9eKUfKCdaPHq2",
-    name: "xCOPE/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "xCOPE"
-  };
-  
-  var solapeMarket: CustomMarketInfo = {
-    address: "4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon",
-    name: "SOLAPE/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "SOLAPE"
-  };
-  
-  var fabMarket: CustomMarketInfo = {
-    address: "GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M",
-    name: "FAB/USDC (old)",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "FAB"
-  };
-  
-  var copeMarket: CustomMarketInfo = {
-    address: "6fc7v3PmjZG9Lk2XTot6BywGyYLkBQuzuFKd4FpCsPxk",
-    name: "COPE/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "COPE"
-  };
-  
-  var sailMarket: CustomMarketInfo = {
-    address: "6hwK66FfUdyhncdQVxWFPRqY8y6usEvzekUaqtpKEKLr",
-    name: "SAIL/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "SAIL"
-  };
-  
-  var samoMarket: CustomMarketInfo = {
-    address: "FR3SPJmgfRSKKQ2ysUZBu7vJLpzTixXnjzb84bY3Diif",
-    name: "SAMO/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "SAMO"
-  };
-  
-  var kinMarket: CustomMarketInfo = {
-    address: "Bn6NPyr6UzrFAwC4WmvPvDr2Vm8XSUnFykM2aQroedgn",
-    name: "KIN/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "KIN"
-  };
-  
-  var tulipMarket: CustomMarketInfo = {
-    address: "8GufnKq7YnXKhnB3WNhgy5PzU9uvHbaaRrZWQK6ixPxW",
-    name: "TULIP/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "TULIP"
-  };
-  
-  var frogMarket: CustomMarketInfo = {
-    address: "2Si6XDdpv5zcvYna221eZZrsjsp5xeYoz9W1TVdMdbnt",
-    name: "FROG/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "FROG"
-  };
-
-  var cheemsMarket: CustomMarketInfo = {
-    address: "5WVBCaUPZF4HP3io9Z56N71cPMJt8qh3c4ZwSjRDeuut",
-    name: "CHEEMS/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "CHEEMS"
-  };
-  
-  var fabNewMarket: CustomMarketInfo = {
-    address: "Cud48DK2qoxsWNzQeTL5D8sAiHsGwG8Ev1VMNcYLayxt",
-    name: "FAB/USDC",
-    programId: "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-    quoteLabel: "USDC",
-    baseLabel: "FAB"
-  };
-
   const [customMarkets, setCustomMarkets] = useLocalStorageState<CustomMarketInfo[]>('customMarkets', 
   [ 
-    fabNewMarket,
-    ropeMarket,
-    copeMarket,
-    solapeMarket,
-    ftrMarket,
-    xcopeMarket,
-    sailMarket,
-    samoMarket,
-    kinMarket,
-    tulipMarket,
-    cheemsMarket,
-    frogMarket,
-    fabMarket
+
   ]);
   return { customMarkets, setCustomMarkets };
 }

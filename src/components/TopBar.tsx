@@ -50,6 +50,7 @@ const EXTERNAL_LINKS = {
   '/swap': 'https://swap.projectserum.com',
   '/docs': 'https://docs.fsynth.io',
   '/stake': 'https://stake.fsynth.io',
+  '/home': 'https://fsynth.io',
 };
 
 export default function TopBar() {
@@ -142,11 +143,11 @@ export default function TopBar() {
         onClose={() => setAddEndpointVisible(false)}
       />
       <Wrapper>
-        <LogoWrapper onClick={() => 
-            location.href = 'https://fsynth.io';
-          }>
+        <LogoWrapper>
+          <a href={EXTERNAL_LINKS['/home']}>
           <img src={logo} alt="" />
           {'FABRIC DEX'}
+          </a>
         </LogoWrapper>
         <Menu
           mode="horizontal"
@@ -160,7 +161,16 @@ export default function TopBar() {
             flex: 1,
           }}
         >
-          <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
+          <Menu.Item key="/home" style={{ margin: '0 10px 0 20px' }}>
+            <a
+              href={EXTERNAL_LINKS['/home']}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              HOME
+            </a>
+          </Menu.Item>
+          <Menu.Item key={tradePageUrl} >
             TRADE
           </Menu.Item>
           <Menu.Item key="/stake">
