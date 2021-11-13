@@ -8,7 +8,7 @@ import { ConnectionContextValues, EndpointInfo } from './types';
 export const ENDPOINTS: EndpointInfo[] = [
   {
     name: 'genesysgo',
-    endpoint: 'https://ninjahckvjcyato.main.genesysgo.net:8899',
+    endpoint: 'https://staratlasexchange.genesysgo.net/',
     custom: false,
   },
   {
