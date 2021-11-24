@@ -162,10 +162,10 @@ function TradePageInner() {
       <Wrapper>
         <Row
           align="middle"
-          style={{ paddingLeft: 5, paddingRight: 5 }}
+          style={{ paddingLeft: 5, paddingRight: 5, paddingBottom: 10 }}
           gutter={16}
         >
-          <Col>
+          <Col >
             <MarketSelector
               markets={markets}
               setHandleDeprecated={setHandleDeprecated}
@@ -182,16 +182,11 @@ function TradePageInner() {
                 title="Market address"
                 trigger="click"
               >
-                <InfoCircleOutlined style={{ color: '#2abdd2' }} />
+                <InfoCircleOutlined style={{ color: '#5d5fef' }} />
               </Popover>
             </Col>
           ) : null}
-          <Col>
-            <PlusCircleOutlined
-              style={{ color: '#2abdd2' }}
-              onClick={() => setAddMarketVisible(true)}
-            />
-          </Col>
+
           {deprecatedMarkets && deprecatedMarkets.length > 0 && (
             <React.Fragment>
               <Col>

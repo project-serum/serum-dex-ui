@@ -26,17 +26,37 @@ const Wrapper = styled.div`
   justify-content: flex-end;
   padding: 0px 30px;
   flex-wrap: wrap;
+  height: 89px;
+  align-items: center;
 `;
+
 const LogoWrapper = styled.div`
+
+  font-size: 24px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--white-color);
+  height: 100%;
   display: flex;
   align-items: center;
-  color: #2abdd2;
-  font-weight: bold;
-  cursor: pointer;
-  img {
-    height: 30px;
-    margin-right: 8px;
+  margin-right: 62px;
+  position: relative;
+
+  &::after {
+    position: absolute;
+    content: 'DEX';
+    color: var(--accent-color-1);
+    font-size: 16px;
+    font-weight: 900;
+    right: -16px;
+    top: 28px;
   }
+
+  &:hover {
+    text-decoration: none;
+    color: var(--font-btn-small);
+  }
+
 `;
 
 const EXTERNAL_LINKS = {
@@ -141,8 +161,7 @@ export default function TopBar() {
       />
       <Wrapper>
         <LogoWrapper onClick={() => history.push(tradePageUrl)}>
-          <img src={logo} alt="" />
-          {'SERUM'}
+          FRAKTION
         </LogoWrapper>
         <Menu
           mode="horizontal"
@@ -157,155 +176,48 @@ export default function TopBar() {
           }}
         >
           <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
-            TRADE
+            Trade
           </Menu.Item>
           {!searchFocussed && (
             <Menu.Item key="/swap" style={{ margin: '0 10px' }}>
               <a
-                href={EXTERNAL_LINKS['/swap']}
+                href='https://fraktion.art/swap'
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                SWAP
+                Swap
               </a>
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/balances') && (
             <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
-              BALANCES
+              Balances
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/orders') && (
             <Menu.Item key="/orders" style={{ margin: '0 10px' }}>
-              ORDERS
+              Orders
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/convert') && (
             <Menu.Item key="/convert" style={{ margin: '0 10px' }}>
-              CONVERT
+              Convert
             </Menu.Item>
           )}
           {(!searchFocussed || location.pathname === '/list-new-market') && (
             <Menu.Item key="/list-new-market" style={{ margin: '0 10px' }}>
-              ADD MARKET
+              Add market
             </Menu.Item>
           )}
-          {!searchFocussed && (
-            <Menu.SubMenu
-              title="LEARN"
-              onTitleClick={() =>
-                window.open(EXTERNAL_LINKS['/learn'], '_blank')
-              }
-              style={{ margin: '0 0px 0 10px' }}
-            >
-              <Menu.Item key="/add-market">
-                <a
-                  href={EXTERNAL_LINKS['/add-market']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Adding a market
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/wallet-support">
-                <a
-                  href={EXTERNAL_LINKS['/wallet-support']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Supported wallets
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/dex-list">
-                <a
-                  href={EXTERNAL_LINKS['/dex-list']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  DEX list
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/developer-resources">
-                <a
-                  href={EXTERNAL_LINKS['/developer-resources']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Developer resources
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/explorer">
-                <a
-                  href={EXTERNAL_LINKS['/explorer']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Solana block explorer
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/srm-faq">
-                <a
-                  href={EXTERNAL_LINKS['/srm-faq']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  SRM FAQ
-                </a>
-              </Menu.Item>
-            </Menu.SubMenu>
+          {(!searchFocussed || location.pathname === '/list-new-pool') && (
+            <Menu.Item key="/list-new-pool" style={{ margin: '0 10px' }}>
+              List pool
+            </Menu.Item>
           )}
+
         </Menu>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            paddingRight: 5,
-          }}
-        >
-          <AppSearch
-            onFocus={() => setSearchFocussed(true)}
-            onBlur={() => setSearchFocussed(false)}
-            focussed={searchFocussed}
-            width={searchFocussed ? '350px' : '35px'}
-          />
-        </div>
-        <div>
-          <Row
-            align="middle"
-            style={{ paddingLeft: 5, paddingRight: 5 }}
-            gutter={16}
-          >
-            <Col>
-              <PlusCircleOutlined
-                style={{ color: '#2abdd2' }}
-                onClick={() => setAddEndpointVisible(true)}
-              />
-            </Col>
-            <Col>
-              <Popover
-                content={endpoint}
-                placement="bottomRight"
-                title="URL"
-                trigger="hover"
-              >
-                <InfoCircleOutlined style={{ color: '#2abdd2' }} />
-              </Popover>
-            </Col>
-            <Col>
-              <Select
-                onSelect={setEndpoint}
-                value={endpoint}
-                style={{ marginRight: 8, width: '150px' }}
-              >
-                {availableEndpoints.map(({ name, endpoint }) => (
-                  <Select.Option value={endpoint} key={endpoint}>
-                    {name}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Col>
-          </Row>
-        </div>
+
+
         {connected && (
           <div>
             <Popover

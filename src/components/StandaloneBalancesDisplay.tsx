@@ -35,7 +35,7 @@ const Tip = styled.p`
 `;
 
 const ActionButton = styled(Button)`
-  color: #2abdd2;
+  color: #5d5fef;
   background-color: #212734;
   border-width: 0px;
 `;
@@ -170,19 +170,19 @@ export default function StandaloneBalancesDisplay() {
     string,
     string | undefined,
   ][] = [
-    [
-      baseCurrency,
-      baseCurrencyBalances,
-      'base',
-      market?.baseMintAddress.toBase58(),
-    ],
-    [
-      quoteCurrency,
-      quoteCurrencyBalances,
-      'quote',
-      market?.quoteMintAddress.toBase58(),
-    ],
-  ];
+      [
+        baseCurrency,
+        baseCurrencyBalances,
+        'base',
+        market?.baseMintAddress.toBase58(),
+      ],
+      [
+        quoteCurrency,
+        quoteCurrencyBalances,
+        'quote',
+        market?.quoteMintAddress.toBase58(),
+      ],
+    ];
 
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
@@ -198,7 +198,7 @@ export default function StandaloneBalancesDisplay() {
                   title="Token mint"
                   trigger="hover"
                 >
-                  <InfoCircleOutlined style={{ color: '#2abdd2' }} />
+                  <InfoCircleOutlined style={{ color: '#5d5fef' }} />
                 </Popover>
               )}
             </Divider>

@@ -28,19 +28,19 @@ input[type=number]:focus::-webkit-inner-spin-button {
   background: #5b5f67;
 }
 .ant-slider-track, .ant-slider:hover .ant-slider-track {
-  background-color: #2abdd2;
+  background-color: #5d5fef;
   opacity: 0.75;
 }
 .ant-slider-track,
 .ant-slider ant-slider-track:hover {
-  background-color: #2abdd2;
+  background-color: #5d5fef;
   opacity: 0.75;
 }
 .ant-slider-dot-active,
 .ant-slider-handle,
 .ant-slider-handle-click-focused,
 .ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open)  {
-  border: 2px solid #2abdd2; 
+  border: 2px solid #5d5fef; 
 }
 .ant-table-tbody > tr.ant-table-row:hover > td {
   background: #273043;
@@ -73,15 +73,15 @@ input[type=number]:focus::-webkit-inner-spin-button {
 }
 
 @-webkit-keyframes highlight {
-  from { background-color: #2abdd2;}
+  from { background-color: #5d5fef;}
   to {background-color: #1A2029;}
 }
 @-moz-keyframes highlight {
-  from { background-color: #2abdd2;}
+  from { background-color: #5d5fef;}
   to {background-color: #1A2029;}
 }
 @-keyframes highlight {
-  from { background-color: #2abdd2;}
+  from { background-color: #5d5fef;}
   to {background-color: #1A2029;}
 }
 .flash {
