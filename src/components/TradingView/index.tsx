@@ -5,7 +5,7 @@ import {
   ChartingLibraryWidgetOptions,
   IChartingLibraryWidget,
 } from '../../charting_library';
-import { useMarket, USE_MARKETS } from '../../utils/markets';
+import { useMarket, useMarketsList } from '../../utils/markets';
 import * as saveLoadAdapter from './saveLoadAdapter';
 import { flatten } from '../../utils/utils';
 import { BONFIDA_DATA_FEED } from '../../utils/bonfidaConnector';
@@ -30,7 +30,7 @@ export interface ChartContainerProps {
   theme: string;
 }
 
-export interface ChartContainerState {}
+export interface ChartContainerState { }
 
 export const TVChartContainer = () => {
   // let datafeed = useTvDataFeed();
@@ -54,6 +54,7 @@ export const TVChartContainer = () => {
 
   const tvWidgetRef = React.useRef<IChartingLibraryWidget | null>(null);
   const { market } = useMarket();
+  const markets = useMarketsList();
 
   const chartProperties = JSON.parse(
     localStorage.getItem('chartproperties') || '{}',
@@ -66,9 +67,9 @@ export const TVChartContainer = () => {
 
     const widgetOptions: ChartingLibraryWidgetOptions = {
       symbol:
-        USE_MARKETS.find(
+        markets.find(
           (m) => m.address.toBase58() === market?.publicKey.toBase58(),
-        )?.name || 'SRM/USDC',
+        )?.name || 'FRKT/SOL',
       // BEWARE: no trailing slash is expected in feed URL
       // tslint:disable-next-line:no-any
       // @ts-ignore

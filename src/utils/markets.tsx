@@ -1,14 +1,14 @@
-import {Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions,} from '@project-serum/serum';
-import {PublicKey} from '@solana/web3.js';
-import React, {useContext, useEffect, useState} from 'react';
-import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState,} from './utils';
-import {refreshCache, useAsyncData} from './fetch-loop';
-import {useAccountData, useAccountInfo, useConnection} from './connection';
-import {useWallet} from './wallet';
+import { Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions, } from '@project-serum/serum';
+import { PublicKey } from '@solana/web3.js';
+import React, { useContext, useEffect, useState } from 'react';
+import { divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState, } from './utils';
+import { refreshCache, useAsyncData } from './fetch-loop';
+import { useAccountData, useAccountInfo, useConnection } from './connection';
+import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
-import {notify} from './notifications';
+import { notify } from './notifications';
 import BN from 'bn.js';
-import {getTokenAccountInfo, parseTokenAccountData, useMintInfos,} from './tokens';
+import { getTokenAccountInfo, parseTokenAccountData, useMintInfos, } from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -20,24 +20,42 @@ import {
   SelectedTokenAccounts,
   TokenAccount,
 } from './types';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
-import {Order} from '@project-serum/serum/lib/market';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { Order } from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
+import { useFraktion } from './fraktion';
+import { useTokenRegistry } from './tokensRegistry';
+import { TokenInfo } from '@solana/spl-token-registry';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
 
-export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
-  ? MARKETS.map((m) => ({ ...m, deprecated: false }))
-  : MARKETS;
+// export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
+//   ? MARKETS.map((m) => ({ ...m, deprecated: false }))
+//   : MARKETS;
+
 
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
+  const { vaultsMarkets } = useFraktion();
+
+  const markets = [...vaultsMarkets.map(({ address, name, programId }) => ({
+    name,
+    address: new PublicKey(address),
+    programId: new PublicKey(programId),
+    deprecated: false,
+    // * Add FRKT markets
+  })), DEFAULT_MARKET];
+
+  return markets.filter(
+    ({ name, deprecated }) =>
+      !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name),
+  );
 }
 
 export function useAllMarkets() {
   const connection = useConnection();
   const { customMarkets } = useCustomMarkets();
+  const marketsList = useMarketsList();
 
   const getAllMarkets = async () => {
     const markets: Array<{
@@ -45,7 +63,7 @@ export function useAllMarkets() {
       marketName: string;
       programId: PublicKey;
     } | null> = await Promise.all(
-      getMarketInfos(customMarkets).map(async (marketInfo) => {
+      getMarketInfos(marketsList, customMarkets).map(async (marketInfo) => {
         try {
           const market = await Market.load(
             connection,
@@ -83,6 +101,7 @@ export function useAllMarkets() {
 export function useUnmigratedOpenOrdersAccounts() {
   const connection = useConnection();
   const { wallet } = useWallet();
+  const markets = useMarketsList();
 
   async function getUnmigratedOpenOrdersAccounts(): Promise<OpenOrders[]> {
     if (!wallet || !connection || !wallet.publicKey) {
@@ -92,7 +111,7 @@ export function useUnmigratedOpenOrdersAccounts() {
     let deprecatedOpenOrdersAccounts: OpenOrders[] = [];
     const deprecatedProgramIds = Array.from(
       new Set(
-        USE_MARKETS.filter(
+        markets.filter(
           ({ deprecated }) => deprecated,
         ).map(({ programId }) => programId.toBase58()),
       ),
@@ -113,7 +132,7 @@ export function useUnmigratedOpenOrdersAccounts() {
                 openOrders.quoteTokenTotal.toNumber(),
             )
             .filter((openOrders) =>
-              USE_MARKETS.some(
+              markets.some(
                 (market) =>
                   market.deprecated && market.address.equals(openOrders.market),
               ),
@@ -158,31 +177,35 @@ const _SLOW_REFRESH_INTERVAL = 5 * 1000;
 // For things that change frequently
 const _FAST_REFRESH_INTERVAL = 1000;
 
-export const DEFAULT_MARKET = USE_MARKETS.find(
-  ({ name, deprecated }) => name === 'SRM/USDT' && !deprecated,
-);
+export const DEFAULT_MARKET = {
+  name: 'FRKT/SOL',
+  deprecated: false,
+  address: new PublicKey('FE5nRChviHFXnUDPRpPwHcPoQSxXwjAB5gdPFJLweEYK'),
+  programId: new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin')
+};
 
 export function getMarketDetails(
   market: Market | undefined | null,
-  customMarkets: CustomMarketInfo[],
+  markets,
+  tokens: TokenInfo[]
 ): FullMarketInfo {
   if (!market) {
     return {};
   }
-  const marketInfos = getMarketInfos(customMarkets);
+  const marketInfos = markets;
   const marketInfo = marketInfos.find((otherMarket) =>
     otherMarket.address.equals(market.address),
   );
   const baseCurrency =
     (market?.baseMintAddress &&
-      TOKEN_MINTS.find((token) => token.address.equals(market.baseMintAddress))
-        ?.name) ||
+      tokens.find((token) => token.address === market.baseMintAddress.toBase58())
+        ?.symbol) ||
     (marketInfo?.baseLabel && `${marketInfo?.baseLabel}*`) ||
     'UNKNOWN';
   const quoteCurrency =
     (market?.quoteMintAddress &&
-      TOKEN_MINTS.find((token) => token.address.equals(market.quoteMintAddress))
-        ?.name) ||
+      tokens.find((token) => token.address === market.quoteMintAddress.toBase58())
+        ?.symbol) ||
     (marketInfo?.quoteLabel && `${marketInfo?.quoteLabel}*`) ||
     'UNKNOWN';
 
@@ -204,10 +227,11 @@ export function useCustomMarkets() {
 
 export function MarketProvider({ marketAddress, setMarketAddress, children }) {
   const { customMarkets, setCustomMarkets } = useCustomMarkets();
-
+  const { tokens } = useTokenRegistry();
+  const markets = useMarketsList();
   const address = marketAddress && new PublicKey(marketAddress);
   const connection = useConnection();
-  const marketInfos = getMarketInfos(customMarkets);
+  const marketInfos = getMarketInfos(markets, customMarkets);
   const marketInfo =
     address && marketInfos.find((market) => market.address.equals(address));
 
@@ -257,7 +281,7 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
     <MarketContext.Provider
       value={{
         market,
-        ...getMarketDetails(market, customMarkets),
+        ...getMarketDetails(market, markets, tokens),
         setMarketAddress,
         customMarkets,
         setCustomMarkets,
@@ -569,11 +593,11 @@ export function useLocallyStoredFeeDiscountKey(): {
 export function useFeeDiscountKeys(): [
   (
     | {
-        pubkey: PublicKey;
-        feeTier: number;
-        balance: number;
-        mint: PublicKey;
-      }[]
+      pubkey: PublicKey;
+      feeTier: number;
+      balance: number;
+      mint: PublicKey;
+    }[]
     | null
     | undefined
   ),
@@ -726,6 +750,7 @@ export const useAllOpenOrders = (): {
   refreshOpenOrders: () => void;
 } => {
   const connection = useConnection();
+  const markets = useMarketsList();
   const { connected, wallet } = useWallet();
   const [loaded, setLoaded] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -769,7 +794,7 @@ export const useAllOpenOrders = (): {
             console.warn(`Error loading open order ${marketInfo.name} - ${e}`);
           }
         };
-        await Promise.all(USE_MARKETS.map((m) => getOpenOrdersForMarket(m)));
+        await Promise.all(markets.map((m) => getOpenOrdersForMarket(m)));
         setOpenOrders(_openOrders);
         setLastRefresh(new Date().getTime());
         setLoaded(true);
@@ -810,8 +835,8 @@ export function useBalances(): Balances[] {
       orders:
         baseExists && market && openOrders
           ? market.baseSplSizeToNumber(
-              openOrders.baseTokenTotal.sub(openOrders.baseTokenFree),
-            )
+            openOrders.baseTokenTotal.sub(openOrders.baseTokenFree),
+          )
           : null,
       openOrders,
       unsettled:
@@ -828,8 +853,8 @@ export function useBalances(): Balances[] {
       orders:
         quoteExists && market && openOrders
           ? market.quoteSplSizeToNumber(
-              openOrders.quoteTokenTotal.sub(openOrders.quoteTokenFree),
-            )
+            openOrders.quoteTokenTotal.sub(openOrders.quoteTokenFree),
+          )
           : null,
       unsettled:
         quoteExists && market && openOrders
@@ -884,6 +909,7 @@ export function useWalletBalancesForAllMarkets(): {
 export function useUnmigratedDeprecatedMarkets() {
   const connection = useConnection();
   const { accounts } = useUnmigratedOpenOrdersAccounts();
+  const fraktionMarkets = useMarketsList();
   const marketsList =
     accounts &&
     Array.from(new Set(accounts.map((openOrders) => openOrders.market)));
@@ -894,7 +920,7 @@ export function useUnmigratedDeprecatedMarkets() {
       return null;
     }
     const getMarket = async (address) => {
-      const marketInfo = USE_MARKETS.find((market) =>
+      const marketInfo = fraktionMarkets.find((market) =>
         market.address.equals(address),
       );
       if (!marketInfo) {
@@ -953,6 +979,8 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
 } {
   const { connected, wallet } = useWallet();
   const { customMarkets } = useCustomMarkets();
+  const { tokens } = useTokenRegistry();
+  const markets = useMarketsList();
   const connection = useConnection();
   const marketsAndOrders = useUnmigratedDeprecatedMarkets();
   const marketsList =
@@ -977,7 +1005,7 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
       if (!market) {
         return null;
       }
-      const { marketName } = getMarketDetails(market, customMarkets);
+      const { marketName } = getMarketDetails(market, markets, tokens);
       try {
         console.log('Fetching open orders for', marketName);
         // Can do better than this, we have the open orders accounts already
@@ -1023,6 +1051,7 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
 
 export function useBalancesForDeprecatedMarkets() {
   const markets = useUnmigratedDeprecatedMarkets();
+  const { tokens } = useTokenRegistry();
   const [customMarkets] = useLocalStorageState<CustomMarketInfo[]>(
     'customMarkets',
     [],
@@ -1035,7 +1064,8 @@ export function useBalancesForDeprecatedMarkets() {
   markets.forEach(({ market, openOrdersList }) => {
     const { baseCurrency, quoteCurrency, marketName } = getMarketDetails(
       market,
-      customMarkets,
+      markets,
+      tokens
     );
     if (!baseCurrency || !quoteCurrency || !market) {
       return;
@@ -1084,21 +1114,22 @@ export function useBalancesForDeprecatedMarkets() {
 }
 
 export function getMarketInfos(
+  markets,
   customMarkets: CustomMarketInfo[],
 ): MarketInfo[] {
-  const customMarketsInfo = customMarkets.map((m) => ({
+  return [...customMarkets.map((m) => ({
     ...m,
     address: new PublicKey(m.address),
     programId: new PublicKey(m.programId),
     deprecated: false,
-  }));
+  })), ...markets];
 
-  return [...customMarketsInfo, ...USE_MARKETS];
 }
 
 export function useMarketInfos() {
   const { customMarkets } = useCustomMarkets();
-  return getMarketInfos(customMarkets);
+  const markets = useMarketsList();
+  return getMarketInfos(markets, customMarkets);
 }
 
 /**

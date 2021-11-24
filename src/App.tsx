@@ -8,6 +8,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { Routes } from './routes';
 import { PreferencesProvider } from './utils/preferences';
 import { ReferrerProvider } from './utils/referrer';
+import { FraktionProvider } from './utils/fraktion';
+import { TokenRegistryProvider } from './utils/tokensRegistry';
 
 export default function App() {
   return (
@@ -17,11 +19,15 @@ export default function App() {
         <ConnectionProvider>
           <ReferrerProvider>
             <WalletProvider>
-              <PreferencesProvider>
-                <Suspense fallback={() => <Spin size="large" />}>
-                  <Routes />
-                </Suspense>
-              </PreferencesProvider>
+              <FraktionProvider>
+                <TokenRegistryProvider>
+                  <PreferencesProvider>
+                    <Suspense fallback={() => <Spin size="large" />}>
+                      <Routes />
+                    </Suspense>
+                  </PreferencesProvider>
+                </TokenRegistryProvider>
+              </FraktionProvider>
             </WalletProvider>
           </ReferrerProvider>
         </ConnectionProvider>

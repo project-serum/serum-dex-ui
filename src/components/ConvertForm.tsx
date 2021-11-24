@@ -13,6 +13,7 @@ import {
   useCustomMarkets,
   useLocallyStoredFeeDiscountKey,
   useMarket,
+  useMarketsList,
   useTokenAccounts,
 } from '../utils/markets';
 import { notify } from '../utils/notifications';
@@ -25,6 +26,7 @@ import WalletConnect from './WalletConnect';
 import { SwapOutlined } from '@ant-design/icons';
 import { CustomMarketInfo } from '../utils/types';
 import { WalletAdapter } from '../wallet-adapters';
+import { useTokenRegistry } from '../utils/tokensRegistry';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -43,7 +45,8 @@ const ConvertButton = styled(Button)`
 export default function ConvertForm() {
   const { connected, wallet } = useWallet();
   const { customMarkets } = useCustomMarkets();
-  const marketInfos = getMarketInfos(customMarkets);
+  const markets = useMarketsList();
+  const marketInfos = getMarketInfos(markets, customMarkets);
   const [marketAddress, setMarketAddress] = useState<string | null>(null);
 
   const [fromToken, setFromToken] = useState<string | undefined>(undefined);
@@ -60,15 +63,15 @@ export default function ConvertForm() {
     !tokenConvertMap.has(base)
       ? tokenConvertMap.set(base, new Set([quote]))
       : tokenConvertMap.set(
-          base,
-          new Set([...(tokenConvertMap.get(base) || []), quote]),
-        );
+        base,
+        new Set([...(tokenConvertMap.get(base) || []), quote]),
+      );
     !tokenConvertMap.has(quote)
       ? tokenConvertMap.set(quote, new Set([base]))
       : tokenConvertMap.set(
-          quote,
-          new Set([...(tokenConvertMap.get(quote) || []), base]),
-        );
+        quote,
+        new Set([...(tokenConvertMap.get(quote) || []), base]),
+      );
   });
 
   const setMarket = (toToken) => {
@@ -188,11 +191,13 @@ function ConvertFormSubmit({
 
   const connection = useConnection();
   const sendConnection = useSendConnection();
+  const { tokens } = useTokenRegistry();
+  const markets = useMarketsList();
 
   const [isConverting, setIsConverting] = useState(false);
 
   const isFromTokenBaseOfMarket = (market) => {
-    const { marketName } = getMarketDetails(market, customMarkets);
+    const { marketName } = getMarketDetails(market, markets, tokens);
     if (!marketName) {
       throw Error(
         'Cannot determine if coin is quote or base because marketName is missing',

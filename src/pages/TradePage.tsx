@@ -132,7 +132,7 @@ function TradePageInner() {
   })();
 
   const onAddCustomMarket = (customMarket) => {
-    const marketInfo = getMarketInfos(customMarkets).some(
+    const marketInfo = getMarketInfos(markets, customMarkets).some(
       (m) => m.address.toBase58() === customMarket.address,
     );
     if (marketInfo) {
@@ -222,6 +222,7 @@ function MarketSelector({
   onDeleteCustomMarket,
 }) {
   const { market, setMarketAddress } = useMarket();
+  const marketsList = useMarketsList();
 
   const onSetMarketAddress = (marketAddress) => {
     setHandleDeprecated(false);
@@ -231,7 +232,7 @@ function MarketSelector({
   const extractBase = (a) => a.split('/')[0];
   const extractQuote = (a) => a.split('/')[1];
 
-  const selectedMarket = getMarketInfos(customMarkets)
+  const selectedMarket = getMarketInfos(marketsList, customMarkets)
     .find(
       (proposedMarket) =>
         market?.address && proposedMarket.address.equals(market.address),
@@ -290,15 +291,15 @@ function MarketSelector({
               ? -1
               : extractQuote(a.name) !== 'USDT' &&
                 extractQuote(b.name) === 'USDT'
-              ? 1
-              : 0,
+                ? 1
+                : 0,
           )
           .sort((a, b) =>
             extractBase(a.name) < extractBase(b.name)
               ? -1
               : extractBase(a.name) > extractBase(b.name)
-              ? 1
-              : 0,
+                ? 1
+                : 0,
           )
           .map(({ address, name, deprecated }, i) => (
             <Option
