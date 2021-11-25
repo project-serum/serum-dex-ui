@@ -1,14 +1,17 @@
-import * as React from 'react';
 import './index.css';
+
+import * as React from 'react';
+import * as saveLoadAdapter from './saveLoadAdapter';
+
 import {
-  widget,
   ChartingLibraryWidgetOptions,
   IChartingLibraryWidget,
+  widget,
 } from '../../charting_library';
-import { useMarket, useMarketsList } from '../../utils/markets';
-import * as saveLoadAdapter from './saveLoadAdapter';
+
 import { flatten } from '../../utils/utils';
-import { BONFIDA_DATA_FEED } from '../../utils/bonfidaConnector';
+import { useMarket } from '../../utils/markets';
+import { useTvDataFeed } from '../../utils/Datafeed';
 
 export interface ChartContainerProps {
   symbol: ChartingLibraryWidgetOptions['symbol'];
@@ -16,7 +19,6 @@ export interface ChartContainerProps {
   auto_save_delay: ChartingLibraryWidgetOptions['auto_save_delay'];
 
   // BEWARE: no trailing slash is expected in feed URL
-  // datafeed: any;
   datafeedUrl: string;
   libraryPath: ChartingLibraryWidgetOptions['library_path'];
   chartsStorageUrl: ChartingLibraryWidgetOptions['charts_storage_url'];
@@ -28,33 +30,33 @@ export interface ChartContainerProps {
   studiesOverrides: ChartingLibraryWidgetOptions['studies_overrides'];
   containerId: ChartingLibraryWidgetOptions['container_id'];
   theme: string;
+  timeframe: ChartingLibraryWidgetOptions['timeframe'];
 }
 
 export interface ChartContainerState { }
 
 export const TVChartContainer = () => {
-  // let datafeed = useTvDataFeed();
+  let datafeed = useTvDataFeed();
   const defaultProps: ChartContainerProps = {
-    symbol: 'BTC/USDC',
+    symbol: 'FRKT/SOL',
     // @ts-ignore
     interval: '60',
     auto_save_delay: 5,
     theme: 'Dark',
     containerId: 'tv_chart_container',
-    // datafeed: datafeed,
     libraryPath: '/charting_library/',
+    chartsStorageUrl: 'https://saveload.tradingview.com',
     chartsStorageApiVersion: '1.1',
     clientId: 'tradingview.com',
     userId: 'public_user_id',
     fullscreen: false,
     autosize: true,
-    datafeedUrl: BONFIDA_DATA_FEED,
     studiesOverrides: {},
+    timeframe: '1D'
   };
 
   const tvWidgetRef = React.useRef<IChartingLibraryWidget | null>(null);
-  const { market } = useMarket();
-  const markets = useMarketsList();
+  const { marketName } = useMarket();
 
   const chartProperties = JSON.parse(
     localStorage.getItem('chartproperties') || '{}',
@@ -66,18 +68,8 @@ export const TVChartContainer = () => {
     });
 
     const widgetOptions: ChartingLibraryWidgetOptions = {
-      symbol:
-        markets.find(
-          (m) => m.address.toBase58() === market?.publicKey.toBase58(),
-        )?.name || 'FRKT/SOL',
-      // BEWARE: no trailing slash is expected in feed URL
-      // tslint:disable-next-line:no-any
-      // @ts-ignore
-      // datafeed: datafeed,
-      // @ts-ignore
-      datafeed: new (window as any).Datafeeds.UDFCompatibleDatafeed(
-        defaultProps.datafeedUrl,
-      ),
+      symbol: marketName as string,
+      datafeed: datafeed,
       interval: defaultProps.interval as ChartingLibraryWidgetOptions['interval'],
       container_id: defaultProps.containerId as ChartingLibraryWidgetOptions['container_id'],
       library_path: defaultProps.libraryPath as string,
@@ -97,6 +89,7 @@ export const TVChartContainer = () => {
         ...savedProperties,
         'mainSeriesProperties.candleStyle.upColor': '#41C77A',
         'mainSeriesProperties.candleStyle.downColor': '#F23B69',
+        // 'mainSeriesProperties.candleStyle.borderColor': '#378658',
         'mainSeriesProperties.candleStyle.borderUpColor': '#41C77A',
         'mainSeriesProperties.candleStyle.borderDownColor': '#F23B69',
         'mainSeriesProperties.candleStyle.wickUpColor': '#41C77A',
@@ -143,8 +136,7 @@ export const TVChartContainer = () => {
         // @ts-ignore
         .subscribe('onAutoSaveNeeded', () => tvWidget.saveChartToServer());
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market, tvWidgetRef.current]);
+  }, [chartProperties, datafeed, defaultProps.autosize, defaultProps.clientId, defaultProps.containerId, defaultProps.fullscreen, defaultProps.interval, defaultProps.libraryPath, defaultProps.studiesOverrides, defaultProps.theme, defaultProps.userId, marketName]);
 
   return <div id={defaultProps.containerId} className={'TVChartContainer'} />;
 };

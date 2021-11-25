@@ -84,7 +84,7 @@ function TradePageInner() {
   });
 
   useEffect(() => {
-    document.title = marketName ? `${marketName} — Serum` : 'Serum';
+    document.title = marketName ? `${marketName} — Fraktion DEX` : 'Fraktion DEX';
   }, [marketName]);
 
   const changeOrderRef = useRef<
