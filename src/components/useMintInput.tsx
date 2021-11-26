@@ -84,11 +84,7 @@ export function useMintInput(
         <Tooltip
           title={
             <>
-              {tooltip} You can look up token mint addresses on{' '}
-              <Link external to="https://sollet.io">
-                sollet.io
-              </Link>
-              .
+              {tooltip} You can look up token mint addresses in wallet or explorer.
             </>
           }
         >

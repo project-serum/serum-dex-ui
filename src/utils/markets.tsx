@@ -38,13 +38,19 @@ const _IGNORE_DEPRECATED = false;
 export function useMarketsList() {
   const { vaultsMarkets } = useFraktion();
 
-  const markets = [...vaultsMarkets.map(({ address, name, programId }) => ({
+  const markets = [...vaultsMarkets.map(({ address, name, programId, baseMint }) => ({
     name,
     address: new PublicKey(address),
     programId: new PublicKey(programId),
     deprecated: false,
+    baseMint
     // * Add FRKT markets
-  })), DEFAULT_MARKET];
+  })), {
+    name: 'FRKT/USDC',
+    deprecated: false,
+    address: new PublicKey('8inqBe7D12XJ6tMAzpLCGYpjazWFXG1Ue5q3UZ6X1FM3'),
+    programId: new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin')
+  }, DEFAULT_MARKET];
 
   return markets.filter(
     ({ name, deprecated }) =>

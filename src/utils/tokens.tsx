@@ -1,15 +1,16 @@
 import * as BufferLayout from 'buffer-layout';
-import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
-import {TokenAccount} from './types';
-import {TOKEN_MINTS} from '@project-serum/serum';
-import {useAllMarkets, useCustomMarkets, useTokenAccounts} from './markets';
-import {getMultipleSolanaAccounts} from './send';
-import {useConnection} from './connection';
-import {useAsyncData} from './fetch-loop';
+import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { TokenAccount } from './types';
+import { TOKEN_MINTS } from '@project-serum/serum';
+import { useAllMarkets, useCustomMarkets, useTokenAccounts } from './markets';
+import { getMultipleSolanaAccounts } from './send';
+import { useConnection } from './connection';
+import { useAsyncData } from './fetch-loop';
 import tuple from 'immutable-tuple';
 import BN from 'bn.js';
-import {useMemo} from 'react';
+import { useMemo } from 'react';
+import { useTokenRegistry } from './tokensRegistry';
 
 export const ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(32, 'mint'),
@@ -120,12 +121,13 @@ export async function getTokenAccountInfo(
 // todo: use this to map custom mints to custom tickers. Add functionality once custom markets store mints
 export function useMintToTickers(): { [mint: string]: string } {
   const { customMarkets } = useCustomMarkets();
+  const { tokens } = useTokenRegistry();
   return useMemo(() => {
     return Object.fromEntries(
-      TOKEN_MINTS.map((mint) => [mint.address.toBase58(), mint.name]),
+      tokens.map((mint) => [mint.address, mint.symbol]),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customMarkets.length]);
+  }, [customMarkets.length, tokens.length]);
 }
 
 const _VERY_SLOW_REFRESH_INTERVAL = 5000 * 1000;
@@ -134,11 +136,11 @@ const _VERY_SLOW_REFRESH_INTERVAL = 5000 * 1000;
 export function useMintInfos(): [
   (
     | {
-        [mintAddress: string]: {
-          decimals: number;
-          initialized: boolean;
-        } | null;
-      }
+      [mintAddress: string]: {
+        decimals: number;
+        initialized: boolean;
+      } | null;
+    }
     | null
     | undefined
   ),

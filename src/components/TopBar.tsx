@@ -173,13 +173,14 @@ export default function TopBar() {
             display: 'flex',
             alignItems: 'flex-end',
             flex: 1,
+            height: 'calc(100% - 2px)'
           }}
         >
-          <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
+          <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px', height: '100%', display: 'flex', alignItems: 'center' }}>
             Trade
           </Menu.Item>
           {!searchFocussed && (
-            <Menu.Item key="/swap" style={{ margin: '0 10px' }}>
+            <Menu.Item key="/swap" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
               <a
                 href='https://fraktion.art/swap'
                 target="_blank"
@@ -190,27 +191,27 @@ export default function TopBar() {
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/balances') && (
-            <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
+            <Menu.Item key="/balances" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
               Balances
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/orders') && (
-            <Menu.Item key="/orders" style={{ margin: '0 10px' }}>
+            <Menu.Item key="/orders" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
               Orders
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/convert') && (
-            <Menu.Item key="/convert" style={{ margin: '0 10px' }}>
+            <Menu.Item key="/convert" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
               Convert
             </Menu.Item>
           )}
           {(!searchFocussed || location.pathname === '/list-new-market') && (
-            <Menu.Item key="/list-new-market" style={{ margin: '0 10px' }}>
+            <Menu.Item key="/list-new-market" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
               Add market
             </Menu.Item>
           )}
           {(!searchFocussed || location.pathname === '/list-new-pool') && (
-            <Menu.Item key="/list-new-pool" style={{ margin: '0 10px' }}>
+            <Menu.Item key="/list-new-pool" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
               List pool
             </Menu.Item>
           )}
