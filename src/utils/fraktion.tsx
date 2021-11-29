@@ -4,6 +4,7 @@ import { Keypair, TransactionInstruction } from '@solana/web3.js';
 import BN from 'bn.js';
 
 import { useConnection } from "./connection";
+import { useTokenRegistry } from "./tokensRegistry";
 
 export enum VaultKey {
     Uninitialized = 0,
@@ -99,6 +100,29 @@ export interface FraktionMarket {
     programId: string;
 }
 
+export interface RawFraktionMarket {
+    accountFlags: object;
+    ownAddress: string;
+    vaultSignerNonce: string;
+    baseMint: string;
+    quoteMint: string;
+    baseVault: string;
+    baseDepositsTotal: string;
+    baseFeesAccrued: string;
+    quoteVault: string;
+    quoteDepositsTotal: string;
+    quoteFeesAccrued: string;
+    quoteDustThreshold: string;
+    requestQueue: string;
+    eventQueue: string;
+    bids: string;
+    asks: string;
+    baseLotSize: string;
+    quoteLotSize: string;
+    feeRateBps: string;
+    referrerRebatesAccrued: string;
+}
+
 
 
 const FraktionContext = React.createContext<FraktionContextType>({
@@ -113,16 +137,21 @@ export const FraktionProvider = ({
     children: JSX.Element;
 }): JSX.Element => {
     const connection = useConnection();
-
+    const { tokens, loading: loadingTokens } = useTokenRegistry();
     const [loadingMarkets, setLoadingMarkets] = useState<boolean>(false);
-    const [loadingTokens, setLoadingTokens] = useState<boolean>(false);
     const [vaultsMarkets, setVaultsMarkets] = useState<FraktionMarket[]>([]);
-    const [tokens, setTokens] = useState<FraktionMarket[]>([]);
+
     const fetchVaultsMarkets = async () => {
         setLoadingMarkets(true);
         try {
-            const markets = await getFraktionMarkets();
-            setVaultsMarkets(markets);
+            const { fraktionMarkets: rawMarkets } = await getFraktionMarkets();
+            const fraktionMarkets = rawMarkets.map((market: RawFraktionMarket) => {
+                console.log({ tokens })
+                const baseToken = tokens.find(token => token.address === market.baseMint);
+                const quouteToken = tokens.find(token => token.address === market.quoteMint);
+                return { name: `${baseToken?.symbol}/${quouteToken?.symbol}`, address: market.ownAddress, baseMint: baseToken?.address, programId: '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin' } as FraktionMarket
+            })
+            setVaultsMarkets(fraktionMarkets as Array<FraktionMarket>);
         } catch (error) {
             console.log(error);
         } finally {
@@ -130,24 +159,33 @@ export const FraktionProvider = ({
         }
     };
 
-    const fetchTokens = async () => {
-        setLoadingMarkets(true);
-        try {
-            const markets = await getFraktionMarkets();
-            setVaultsMarkets(markets);
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoadingMarkets(false)
-        }
-    };
+    // const fetchTokens = async () => {
+    //     setLoadingMarkets(true);
+    //     try {
+    //         const rawMarkets = await getFraktionMarkets();
+    //         const fraktionMarkets = rawMarkets.map((market: RawFraktionMarket) => {
+    //             const baseToken = tokens.find(token => token.address === market.baseMint);
+    //             const quouteToken = tokens.find(token => token.address === market.quoteMint);
+    //             return { name: `${baseToken?.symbol}/${quouteToken?.symbol}`, address: market.ownAddress } as FraktionMarket
+    //         })
+    //         setVaultsMarkets(fraktionMarkets as Array<FraktionMarket>);
+    //     } catch (error) {
+    //         console.log(error);
+    //     } finally {
+    //         setLoadingMarkets(false)
+    //     }
+    // };
 
 
 
     useEffect(() => {
-        fetchVaultsMarkets();
+        if (!loadingMarkets) {
+
+            fetchVaultsMarkets();
+        }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [tokens, loadingTokens]);
 
     return (
         <FraktionContext.Provider
@@ -175,10 +213,10 @@ export const useFraktion = (): FraktionContextType => {
 const REGISTRAR_URL = 'https://fraktion-tokens-register.herokuapp.com/market';
 
 const MARKETS_URL =
-    'https://raw.githubusercontent.com/frakt-solana/fraktion-tokens-list/main/markets.json';
+    'https://fraktion-markets-pools-endpoin.herokuapp.com';
 
 export const getFraktionMarkets = async (): Promise<
-    Array<FraktionMarket>
+    any
     | []> => {
     try {
         const res = await fetch(MARKETS_URL);

@@ -19,15 +19,15 @@ export default function App() {
         <ConnectionProvider>
           <ReferrerProvider>
             <WalletProvider>
-              <FraktionProvider>
-                <TokenRegistryProvider>
+              <TokenRegistryProvider>
+                <FraktionProvider>
                   <PreferencesProvider>
                     <Suspense fallback={() => <Spin size="large" />}>
                       <Routes />
                     </Suspense>
                   </PreferencesProvider>
-                </TokenRegistryProvider>
-              </FraktionProvider>
+                </FraktionProvider>
+              </TokenRegistryProvider>
             </WalletProvider>
           </ReferrerProvider>
         </ConnectionProvider>
