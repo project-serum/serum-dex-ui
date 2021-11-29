@@ -127,7 +127,10 @@ export default function ListNewMarketPage() {
           onFinish={onSubmit}
         >
           {baseMintInput}
-
+          <Text>
+            <Text strong>IMPORTANT:</Text> Serum market creation can cost up to
+            5 SOL
+          </Text>
           <Form.Item label=" " colon={false}>
             <Button
               type="primary"
