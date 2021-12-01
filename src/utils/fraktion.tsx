@@ -179,9 +179,12 @@ export const FraktionProvider = ({
 
 
     useEffect(() => {
-        fetchVaultsMarkets();
+        if (tokens.length) {
+
+            fetchVaultsMarkets();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [loadingTokens]);
+    }, [loadingTokens, tokens.length]);
 
     return (
         <FraktionContext.Provider
