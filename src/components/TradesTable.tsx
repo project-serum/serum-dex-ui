@@ -14,8 +14,39 @@ const SizeTitle = styled(Row)`
   color: #434a59;
 `;
 
+const MemoizedRow = React.memo(function RowImpl({
+  price,
+  side,
+  size,
+  time,
+}: Pick<BonfidaTrade, 'price' | 'side' | 'size' | 'time'>) {
+  const { market } = useMarket();
+  return (
+    <Row style={{ marginBottom: 4 }}>
+      <Col
+        span={8}
+        style={{
+          color: side === 'buy' ? '#41C77A' : '#F23B69',
+        }}
+      >
+        {market?.tickSize && !isNaN(price)
+          ? Number(price).toFixed(getDecimalCount(market.tickSize))
+          : price}
+      </Col>
+      <Col span={8} style={{ textAlign: 'right' }}>
+        {market?.minOrderSize && !isNaN(size)
+          ? Number(size).toFixed(getDecimalCount(market.minOrderSize))
+          : size}
+      </Col>
+      <Col span={8} style={{ textAlign: 'right', color: '#434a59' }}>
+        {time && new Date(time).toLocaleTimeString()}
+      </Col>
+    </Row>
+  );
+});
+
 export default function PublicTrades({ smallScreen }) {
-  const { baseCurrency, quoteCurrency, market } = useMarket();
+  const { baseCurrency, quoteCurrency } = useMarket();
   const [trades, loaded] = useBonfidaTrades();
 
   return (
@@ -51,31 +82,14 @@ export default function PublicTrades({ smallScreen }) {
               : 'calc(100vh - 800px)',
           }}
         >
-          {trades.map((trade: BonfidaTrade, i: number) => (
-            <Row key={i} style={{ marginBottom: 4 }}>
-              <Col
-                span={8}
-                style={{
-                  color: trade.side === 'buy' ? '#41C77A' : '#F23B69',
-                }}
-              >
-                {market?.tickSize && !isNaN(trade.price)
-                  ? Number(trade.price).toFixed(
-                      getDecimalCount(market.tickSize),
-                    )
-                  : trade.price}
-              </Col>
-              <Col span={8} style={{ textAlign: 'right' }}>
-                {market?.minOrderSize && !isNaN(trade.size)
-                  ? Number(trade.size).toFixed(
-                      getDecimalCount(market.minOrderSize),
-                    )
-                  : trade.size}
-              </Col>
-              <Col span={8} style={{ textAlign: 'right', color: '#434a59' }}>
-                {trade.time && new Date(trade.time).toLocaleTimeString()}
-              </Col>
-            </Row>
+          {trades.map((trade) => (
+            <MemoizedRow
+              key={trade.orderId}
+              price={trade.price}
+              side={trade.side}
+              size={trade.size}
+              time={trade.time}
+            />
           ))}
         </div>
       )}
