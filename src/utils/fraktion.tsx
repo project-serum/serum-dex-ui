@@ -141,6 +141,11 @@ export const FraktionProvider = ({
     const [loadingMarkets, setLoadingMarkets] = useState<boolean>(false);
     const [vaultsMarkets, setVaultsMarkets] = useState<FraktionMarket[]>([]);
 
+    const DEPRECATED_MARKETS = [
+        'EQ5XjC1neq4FbqLUaeHLx48CTougsPYdsGgti4KqEFUT',
+        'dvQF6YNQvQ2dQkMyt3rW7ibypCkHJDgVAJvZz6A6gZx',
+    ];
+
     const fetchVaultsMarkets = async () => {
         setLoadingMarkets(true);
         try {
@@ -150,7 +155,7 @@ export const FraktionProvider = ({
                 const baseToken = tokens.find(token => token.address === market.baseMint);
                 const quouteToken = tokens.find(token => token.address === market.quoteMint);
                 return { name: `${baseToken?.symbol}/${quouteToken?.symbol}`, address: market.ownAddress, baseMint: baseToken?.address, programId: '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin' } as FraktionMarket
-            })
+            }).filter(market => !DEPRECATED_MARKETS.includes(market.address))
             setVaultsMarkets(fraktionMarkets as Array<FraktionMarket>);
         } catch (error) {
             console.log(error);
