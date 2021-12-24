@@ -200,19 +200,9 @@ export default function TopBar() {
               Orders
             </Menu.Item>
           )}
-          {connected && (!searchFocussed || location.pathname === '/convert') && (
-            <Menu.Item key="/convert" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
-              Convert
-            </Menu.Item>
-          )}
           {(!searchFocussed || location.pathname === '/list-new-market') && (
             <Menu.Item key="/list-new-market" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
               Add market
-            </Menu.Item>
-          )}
-          {(!searchFocussed || location.pathname === '/list-new-pool') && (
-            <Menu.Item key="/list-new-pool" style={{ margin: '0 10px', height: '100%', display: 'flex', alignItems: 'center' }}>
-              List pool
             </Menu.Item>
           )}
 
