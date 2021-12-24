@@ -38,18 +38,22 @@ const _IGNORE_DEPRECATED = false;
 export function useMarketsList() {
   const { vaultsMarkets } = useFraktion();
 
-  const markets = [...vaultsMarkets.map(({ address, name, programId, baseMint }) => ({
+  const markets = [...vaultsMarkets.map(({ address, name, programId, baseMint, baseTokenImg, quoteTokenImg }) => ({
     name,
     address: new PublicKey(address),
     programId: new PublicKey(programId),
     deprecated: false,
+    baseTokenImg,
+    quoteTokenImg,
     baseMint
     // * Add FRKT markets
   })), {
     name: 'FRKT/USDC',
     deprecated: false,
     address: new PublicKey('8inqBe7D12XJ6tMAzpLCGYpjazWFXG1Ue5q3UZ6X1FM3'),
-    programId: new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin')
+    programId: new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'),
+    baseTokenImg: 'https://s2.coinmarketcap.com/static/img/coins/64x64/12604.png',
+    quoteTokenImg: 'https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png',
   }, DEFAULT_MARKET];
 
   return markets.filter(
@@ -187,7 +191,9 @@ export const DEFAULT_MARKET = {
   name: 'FRKT/SOL',
   deprecated: false,
   address: new PublicKey('FE5nRChviHFXnUDPRpPwHcPoQSxXwjAB5gdPFJLweEYK'),
-  programId: new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin')
+  programId: new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'),
+  baseTokenImg: 'https://s2.coinmarketcap.com/static/img/coins/64x64/12604.png',
+  quoteTokenImg: 'https://s2.coinmarketcap.com/static/img/coins/64x64/5426.png',
 };
 
 export function getMarketDetails(

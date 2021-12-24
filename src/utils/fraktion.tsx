@@ -98,6 +98,8 @@ export interface FraktionMarket {
     address: string;
     baseMint: string;
     programId: string;
+    baseTokenImg: string;
+    quoteTokenImg: string;
 }
 
 export interface RawFraktionMarket {
@@ -154,7 +156,14 @@ export const FraktionProvider = ({
                 console.log({ tokens })
                 const baseToken = tokens.find(token => token.address === market.baseMint);
                 const quouteToken = tokens.find(token => token.address === market.quoteMint);
-                return { name: `${baseToken?.symbol}/${quouteToken?.symbol}`, address: market.ownAddress, baseMint: baseToken?.address, programId: '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin' } as FraktionMarket
+                return {
+                    name: `${baseToken?.symbol}/${quouteToken?.symbol}`,
+                    address: market.ownAddress,
+                    baseMint: baseToken?.address,
+                    programId: '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin',
+                    baseTokenImg: baseToken?.logoURI,
+                    quoteTokenImg: quouteToken?.logoURI,
+                } as FraktionMarket
             }).filter(market => !DEPRECATED_MARKETS.includes(market.address))
             setVaultsMarkets(fraktionMarkets as Array<FraktionMarket>);
         } catch (error) {

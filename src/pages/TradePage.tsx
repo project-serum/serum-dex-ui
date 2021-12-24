@@ -44,6 +44,29 @@ const Wrapper = styled.div`
   }
 `;
 
+const TokenLogos = styled.div`
+  display: flex;
+  align-items: center;
+  width: 60px;
+  margin-right: 10px;
+  margin-left: 1px;
+  span {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background-position: center;
+    background-size: cover;
+    position: relative;
+    z-index: 1;
+    
+    &:last-of-type {
+      z-index: 0;
+      margin-left: -8px;
+    }
+  }
+`;
+
 export default function TradePage() {
   const { marketAddress } = useParams();
   useEffect(() => {
@@ -87,9 +110,7 @@ function TradePageInner() {
     document.title = marketName ? `${marketName} — Fraktion DEX` : 'Fraktion DEX';
   }, [marketName]);
 
-  const changeOrderRef = useRef<
-    ({ size, price }: { size?: number; price?: number }) => void
-  >();
+  const changeOrderRef = useRef<({ size, price }: { size?: number; price?: number }) => void>();
 
   useEffect(() => {
     const handleResize = () => {
@@ -161,11 +182,11 @@ function TradePageInner() {
       />
       <Wrapper>
         <Row
-          align="middle"
+          align='middle'
           style={{ paddingLeft: 5, paddingRight: 5, paddingBottom: 10 }}
           gutter={16}
         >
-          <Col >
+          <Col>
             <MarketSelector
               markets={markets}
               setHandleDeprecated={setHandleDeprecated}
@@ -178,9 +199,9 @@ function TradePageInner() {
             <Col>
               <Popover
                 content={<LinkAddress address={market.publicKey.toBase58()} />}
-                placement="bottomRight"
-                title="Market address"
-                trigger="click"
+                placement='bottomRight'
+                title='Market address'
+                trigger='click'
               >
                 <InfoCircleOutlined style={{ color: '#5d5fef' }} />
               </Popover>
@@ -210,12 +231,12 @@ function TradePageInner() {
 }
 
 function MarketSelector({
-  markets,
-  placeholder,
-  setHandleDeprecated,
-  customMarkets,
-  onDeleteCustomMarket,
-}) {
+                          markets,
+                          placeholder,
+                          setHandleDeprecated,
+                          customMarkets,
+                          onDeleteCustomMarket,
+                        }) {
   const { market, setMarketAddress } = useMarket();
   const marketsList = useMarketsList();
 
@@ -240,7 +261,7 @@ function MarketSelector({
       size={'large'}
       style={{ width: 200 }}
       placeholder={placeholder || 'Select a market'}
-      optionFilterProp="name"
+      optionFilterProp='name'
       onSelect={onSetMarketAddress}
       listHeight={400}
       value={selectedMarket}
@@ -249,7 +270,7 @@ function MarketSelector({
       }
     >
       {customMarkets && customMarkets.length > 0 && (
-        <OptGroup label="Custom">
+        <OptGroup label='Custom'>
           {customMarkets.map(({ address, name }, i) => (
             <Option
               value={address}
@@ -262,7 +283,7 @@ function MarketSelector({
               }}
             >
               <Row>
-                <Col flex="auto">{name}</Col>
+                <Col flex='auto'>{name}</Col>
                 {selectedMarket !== address && (
                   <Col>
                     <DeleteOutlined
@@ -279,13 +300,13 @@ function MarketSelector({
           ))}
         </OptGroup>
       )}
-      <OptGroup label="Markets">
+      <OptGroup label='Markets'>
         {markets
           .sort((a, b) =>
             extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
               ? -1
               : extractQuote(a.name) !== 'USDT' &&
-                extractQuote(b.name) === 'USDT'
+              extractQuote(b.name) === 'USDT'
                 ? 1
                 : 0,
           )
@@ -296,18 +317,28 @@ function MarketSelector({
                 ? 1
                 : 0,
           )
-          .map(({ address, name, deprecated }, i) => (
+          .map(({ address, name, deprecated, baseTokenImg, quoteTokenImg }, i) => (
             <Option
               value={address.toBase58()}
               key={nanoid()}
               name={name}
               style={{
-                padding: '10px',
+                height: '42px',
+                paddingLeft: '16px',
                 // @ts-ignore
                 backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
               }}
             >
-              {name} {deprecated ? ' (Deprecated)' : null}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}>
+                <TokenLogos>
+                  <span style={{backgroundImage: `url(${baseTokenImg})`}} />
+                  <span style={{backgroundImage: `url(${quoteTokenImg})`}} />
+                </TokenLogos>
+                {name} {deprecated ? ' (Deprecated)' : null}
+              </div>
             </Option>
           ))}
       </OptGroup>
@@ -319,7 +350,7 @@ const DeprecatedMarketsPage = ({ switchToLiveMarkets }) => {
   return (
     <>
       <Row>
-        <Col flex="auto">
+        <Col flex='auto'>
           <DeprecatedMarketsInstructions
             switchToLiveMarkets={switchToLiveMarkets}
           />
@@ -337,7 +368,7 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
         flexWrap: 'nowrap',
       }}
     >
-      <Col flex="auto" style={{ height: '50vh' }}>
+      <Col flex='auto' style={{ height: '50vh' }}>
         <Row style={{ height: '100%' }}>
           <TVChartContainer />
         </Row>
@@ -350,7 +381,7 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
         <TradesTable smallScreen={false} />
       </Col>
       <Col
-        flex="400px"
+        flex='400px'
         style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
       >
         <TradeForm setChangeOrderRef={onChangeOrderRef} />
@@ -371,7 +402,7 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
           height: '900px',
         }}
       >
-        <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
+        <Col flex='auto' style={{ height: '100%', display: 'flex' }}>
           <Orderbook
             smallScreen={true}
             depth={13}
@@ -379,11 +410,11 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
             onSize={onSize}
           />
         </Col>
-        <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
+        <Col flex='auto' style={{ height: '100%', display: 'flex' }}>
           <TradesTable smallScreen={true} />
         </Col>
         <Col
-          flex="400px"
+          flex='400px'
           style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
         >
           <TradeForm setChangeOrderRef={onChangeOrderRef} />
@@ -391,7 +422,7 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
         </Col>
       </Row>
       <Row>
-        <Col flex="auto">
+        <Col flex='auto'>
           <UserInfoTable />
         </Col>
       </Row>
@@ -426,7 +457,7 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
         </Col>
       </Row>
       <Row>
-        <Col flex="auto">
+        <Col flex='auto'>
           <UserInfoTable />
         </Col>
       </Row>
