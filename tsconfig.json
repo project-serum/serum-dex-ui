@@ -16,6 +16,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
     "jsx": "react",
     "lib": ["dom", "esnext"]
   },

@@ -32,7 +32,7 @@ import { Order } from '@project-serum/serum/lib/market';
 import { Buffer } from 'buffer';
 import assert from 'assert';
 import { struct } from 'superstruct';
-import { WalletAdapter } from '../wallet-adapters';
+import { ConnectedWallet } from '@saberhq/use-solana';
 
 export async function createTokenAccountTransaction({
   connection,
@@ -40,7 +40,7 @@ export async function createTokenAccountTransaction({
   mintPublicKey,
 }: {
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   mintPublicKey: PublicKey;
 }): Promise<{
   transaction: Transaction;
@@ -83,7 +83,7 @@ export async function settleFunds({
   market: Market;
   openOrders: OpenOrders;
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   baseCurrencyAccount: TokenAccount;
   quoteCurrencyAccount: TokenAccount;
   sendNotification?: boolean;
@@ -173,7 +173,7 @@ export async function settleAllFunds({
   selectedTokenAccounts,
 }: {
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   tokenAccounts: TokenAccount[];
   markets: Market[];
   selectedTokenAccounts?: SelectedTokenAccounts;
@@ -237,15 +237,15 @@ export async function settleAllFunds({
           tokenAccounts,
           baseMint,
           baseMint &&
-          selectedTokenAccounts &&
-          selectedTokenAccounts[baseMint.toBase58()],
+            selectedTokenAccounts &&
+            selectedTokenAccounts[baseMint.toBase58()],
         )?.pubkey;
         const selectedQuoteTokenAccount = getSelectedTokenAccountForMint(
           tokenAccounts,
           quoteMint,
           quoteMint &&
-          selectedTokenAccounts &&
-          selectedTokenAccounts[quoteMint.toBase58()],
+            selectedTokenAccounts &&
+            selectedTokenAccounts[quoteMint.toBase58()],
         )?.pubkey;
         if (!selectedBaseTokenAccount || !selectedQuoteTokenAccount) {
           return null;
@@ -295,7 +295,7 @@ export async function settleAllFunds({
 export async function cancelOrder(params: {
   market: Market;
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   order: Order;
 }) {
   return cancelOrders({ ...params, orders: [params.order] });
@@ -308,7 +308,7 @@ export async function cancelOrders({
   orders,
 }: {
   market: Market;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   connection: Connection;
   orders: Order[];
 }) {
@@ -345,7 +345,7 @@ export async function placeOrder({
   orderType: 'ioc' | 'postOnly' | 'limit';
   market: Market | undefined | null;
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   baseCurrencyAccount: PublicKey | undefined;
   quoteCurrencyAccount: PublicKey | undefined;
   feeDiscountPubkey: PublicKey | undefined;
@@ -482,7 +482,7 @@ export async function listMarket({
   dexProgramId,
 }: {
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   baseMint: PublicKey;
   quoteMint: PublicKey;
   baseLotSize: number;
@@ -641,7 +641,7 @@ export async function sendTransaction({
   sendNotification = true,
 }: {
   transaction: Transaction;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   signers?: Array<Account>;
   connection: Connection;
   sendingMessage?: string;
@@ -674,7 +674,7 @@ export async function signTransaction({
   connection,
 }: {
   transaction: Transaction;
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   signers?: Array<Account>;
   connection: Connection;
 }) {
@@ -697,7 +697,7 @@ export async function signTransactions({
     transaction: Transaction;
     signers?: Array<Account>;
   }[];
-  wallet: WalletAdapter;
+  wallet: ConnectedWallet;
   connection: Connection;
 }) {
   const blockhash = (await connection.getRecentBlockhash('max')).blockhash;
@@ -770,7 +770,7 @@ export async function sendSignedTransaction({
       simulateResult = (
         await simulateTransaction(connection, signedTransaction, 'single')
       ).value;
-    } catch (e) { }
+    } catch (e) {}
     if (simulateResult && simulateResult.err) {
       if (simulateResult.logs) {
         for (let i = simulateResult.logs.length - 1; i >= 0; --i) {
@@ -942,9 +942,9 @@ export async function getMultipleSolanaAccounts(
   if (res.error) {
     throw new Error(
       'failed to get info about accounts ' +
-      publicKeys.map((k) => k.toBase58()).join(', ') +
-      ': ' +
-      res.error.message,
+        publicKeys.map((k) => k.toBase58()).join(', ') +
+        ': ' +
+        res.error.message,
     );
   }
   assert(typeof res.result !== 'undefined');

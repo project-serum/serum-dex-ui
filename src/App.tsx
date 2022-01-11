@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import { WalletKitProvider } from '@gokiprotocol/walletkit';
 import './App.less';
 import { ConnectionProvider } from './utils/connection';
 import { WalletProvider } from './utils/wallet';
@@ -14,17 +15,23 @@ export default function App() {
     <Suspense fallback={() => <Spin size="large" />}>
       <GlobalStyle />
       <ErrorBoundary>
-        <ConnectionProvider>
-          <ReferrerProvider>
-            <WalletProvider>
-              <PreferencesProvider>
-                <Suspense fallback={() => <Spin size="large" />}>
-                  <Routes />
-                </Suspense>
-              </PreferencesProvider>
-            </WalletProvider>
-          </ReferrerProvider>
-        </ConnectionProvider>
+        <WalletKitProvider
+          app={{
+            name: 'My App',
+          }}
+        >
+          <ConnectionProvider>
+            <ReferrerProvider>
+              <WalletProvider>
+                <PreferencesProvider>
+                  <Suspense fallback={() => <Spin size="large" />}>
+                    <Routes />
+                  </Suspense>
+                </PreferencesProvider>
+              </WalletProvider>
+            </ReferrerProvider>
+          </ConnectionProvider>
+        </WalletKitProvider>
       </ErrorBoundary>
     </Suspense>
   );
