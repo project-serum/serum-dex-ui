@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Col, Input, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
 import { Orderbook } from '@project-serum/serum';
+import { ConnectedWallet } from '@saberhq/use-solana';
 import {
   getExpectedFillPrice,
   getMarketDetails,
@@ -24,7 +25,6 @@ import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
 import { SwapOutlined } from '@ant-design/icons';
 import { CustomMarketInfo } from '../utils/types';
-import { WalletAdapter } from '../wallet-adapters';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -174,7 +174,7 @@ function ConvertFormSubmit({
   setSize: (newSize: number | undefined) => void;
   fromToken: string;
   toToken: string;
-  wallet?: WalletAdapter;
+  wallet?: ConnectedWallet | null;
   customMarkets: CustomMarketInfo[];
 }) {
   const { market } = useMarket();
