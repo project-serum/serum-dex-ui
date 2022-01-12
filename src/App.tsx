@@ -17,7 +17,7 @@ export default function App() {
       <ErrorBoundary>
         <WalletKitProvider
           app={{
-            name: 'My App',
+            name: 'Fabric x Serum DEX',
           }}
         >
           <ConnectionProvider>
