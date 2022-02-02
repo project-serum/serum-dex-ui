@@ -45,14 +45,6 @@ export const Markets: MarketInfo[] = [
     baseLabel: "ROPE"
   },
   {
-    address: new PublicKey("4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon"),
-    name: "SOLAPE/USDC",
-    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
-    deprecated: false,
-    quoteLabel: "USDC",
-    baseLabel: "SOLAPE"
-  },
-  {
     address: new PublicKey("GHPhJm8F5Kg4Xq3nxHfN2SKsgPwNPMuB8FHFsLE6RP8M"),
     name: "FAB/USDC (old)",
     programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
@@ -115,6 +107,86 @@ export const Markets: MarketInfo[] = [
     deprecated: false,
     quoteLabel: "USDC",
     baseLabel: "APEX"
+  },
+  {
+    address: new PublicKey("3M8uZhLZMxFUedsEgPzywZr9qbGTv3kKNMCEfAmg8iyK"),
+    name: "SHIBA/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "SHIBA"
+  },
+  {
+    address: new PublicKey("HXBi8YBwbh4TXF6PjVw81m8Z3Cc4WBofvauj5SBFdgUs"),
+    name: "SBR/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "SBR"
+  },
+  {
+    address: new PublicKey("8N1KkhaCYDpj3awD58d85n973EwkpeYnRp84y1kdZpMX"),
+    name: "ORCA/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "ORCA"
+  },
+  {
+    address: new PublicKey("Di66GTLsV64JgCCYGVcY21RZ173BHkjJVgPyezNN7P1K"),
+    name: "ATLAS/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "ATLAS"
+  },
+  {
+    address: new PublicKey("2xiv8A5xrJ7RnGdxXB42uFEkYHJjszEhaJyKKt4WaLep"),
+    name: "RAY/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "RAY"
+  },
+  {
+    address: new PublicKey("CVJVpXU9xksCt2uSduVDrrqVw6fLZCAtNusuqLKc5DhW"),
+    name: "SHDW/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "SHDW"
+  },
+  {
+    address: new PublicKey("HxFLKUAmAMLz1jtT3hbvCMELwH5H9tpM2QugP8sKyfhW"),
+    name: "POLIS/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "POLIS"
+  },
+  {
+    address: new PublicKey("9wFFyRfZBsuAha4YcuxcXLKwMxJR43S7fPfQLusDBzvT"),
+    name: "SOL/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "SOL"
+  },
+  {
+    address: new PublicKey("6oGsL2puUgySccKzn9XA9afqF217LfxP5ocq4B3LWsjy"),
+    name: "mSOL/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "mSOL"
+  },
+  {
+    address: new PublicKey("E14BKBhDWD4EuTkWj1ooZezesGxMW8LPCps4W5PuzZJo"),
+    name: "FIDA/USDC",
+    programId: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    deprecated: false,
+    quoteLabel: "USDC",
+    baseLabel: "FIDA"
   }
 ];
 
