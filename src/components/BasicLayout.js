@@ -23,7 +23,7 @@ export default function BasicLayout({ children }) {
   return (
     <React.Fragment>
       <Layout
-        style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}
+        style={{ display: 'flex', height: '100vh', flexDirection: 'column' }}
       >
         <Header style={{ padding: 0, minHeight: 64, height: 'unset' }}>
           <TopBar />
