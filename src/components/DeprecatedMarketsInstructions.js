@@ -1,3 +1,5 @@
+/*
+
 import { Button, Divider, Spin, Typography } from 'antd';
 import React from 'react';
 import {
@@ -91,3 +93,4 @@ export default function DeprecatedMarketsInstructions({ switchToLiveMarkets }) {
     </FloatingElement>
   );
 }
+*/

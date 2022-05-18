@@ -1,8 +1,9 @@
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
-import { Market, OpenOrders } from '@project-serum/serum';
-import { Event } from '@project-serum/serum/lib/queue';
-import { Order } from '@project-serum/serum/lib/market';
+import { Market, OpenOrders, Order } from '@bonfida/dex-v4';
+import { EventFill, EventOut } from '@bonfida/aaob';
 import { WalletAdapter } from '../wallet-adapters';
+
+type Event = EventFill | EventOut;
 
 export interface ConnectionContextValues {
   endpoint: string;
@@ -65,7 +66,8 @@ export interface TokenAccount {
   effectiveMint: PublicKey;
 }
 
-export interface Trade extends Event {
+export interface Trade {
+  event: Event;
   side: string;
   price: number;
   feeCost: number;
@@ -97,13 +99,13 @@ export interface Balances extends BalancesBase {
 export interface OpenOrdersBalances extends BalancesBase {
   market?: string | null | undefined;
   baseCurrencyAccount:
-    | { pubkey: PublicKey; account: AccountInfo<Buffer> }
-    | null
-    | undefined;
+  | { pubkey: PublicKey; account: AccountInfo<Buffer> }
+  | null
+  | undefined;
   quoteCurrencyAccount:
-    | { pubkey: PublicKey; account: AccountInfo<Buffer> }
-    | null
-    | undefined;
+  | { pubkey: PublicKey; account: AccountInfo<Buffer> }
+  | null
+  | undefined;
 }
 
 export interface DeprecatedOpenOrdersBalances extends BalancesBase {

@@ -10,12 +10,12 @@ import {
   MarketProvider,
   useMarket,
   useMarketsList,
-  useUnmigratedDeprecatedMarkets,
+  // useUnmigratedDeprecatedMarkets,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
 import LinkAddress from '../components/LinkAddress';
-import DeprecatedMarketsInstructions from '../components/DeprecatedMarketsInstructions';
+// import DeprecatedMarketsInstructions from '../components/DeprecatedMarketsInstructions';
 import {
   DeleteOutlined,
   InfoCircleOutlined,
@@ -77,7 +77,6 @@ function TradePageInner() {
   const markets = useMarketsList();
   const [handleDeprecated, setHandleDeprecated] = useState(false);
   const [addMarketVisible, setAddMarketVisible] = useState(false);
-  const deprecatedMarkets = useUnmigratedDeprecatedMarkets();
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
     width: window.innerWidth,
@@ -116,13 +115,7 @@ function TradePageInner() {
     ),
   };
   const component = (() => {
-    if (handleDeprecated) {
-      return (
-        <DeprecatedMarketsPage
-          switchToLiveMarkets={() => setHandleDeprecated(false)}
-        />
-      );
-    } else if (width < 1000) {
+    if (width < 1000) {
       return <RenderSmaller {...componentProps} />;
     } else if (width < 1450) {
       return <RenderSmall {...componentProps} />;
@@ -177,7 +170,7 @@ function TradePageInner() {
           {market ? (
             <Col>
               <Popover
-                content={<LinkAddress address={market.publicKey.toBase58()} />}
+                content={<LinkAddress address={market.address.toBase58()} />}
                 placement="bottomRight"
                 title="Market address"
                 trigger="click"
@@ -192,21 +185,6 @@ function TradePageInner() {
               onClick={() => setAddMarketVisible(true)}
             />
           </Col>
-          {deprecatedMarkets && deprecatedMarkets.length > 0 && (
-            <React.Fragment>
-              <Col>
-                <Typography>
-                  You have unsettled funds on old markets! Please go through
-                  them to claim your funds.
-                </Typography>
-              </Col>
-              <Col>
-                <Button onClick={() => setHandleDeprecated(!handleDeprecated)}>
-                  {handleDeprecated ? 'View new markets' : 'Handle old markets'}
-                </Button>
-              </Col>
-            </React.Fragment>
-          )}
         </Row>
         {component}
       </Wrapper>
@@ -290,15 +268,15 @@ function MarketSelector({
               ? -1
               : extractQuote(a.name) !== 'USDT' &&
                 extractQuote(b.name) === 'USDT'
-              ? 1
-              : 0,
+                ? 1
+                : 0,
           )
           .sort((a, b) =>
             extractBase(a.name) < extractBase(b.name)
               ? -1
               : extractBase(a.name) > extractBase(b.name)
-              ? 1
-              : 0,
+                ? 1
+                : 0,
           )
           .map(({ address, name, deprecated }, i) => (
             <Option
@@ -318,20 +296,6 @@ function MarketSelector({
     </Select>
   );
 }
-
-const DeprecatedMarketsPage = ({ switchToLiveMarkets }) => {
-  return (
-    <>
-      <Row>
-        <Col flex="auto">
-          <DeprecatedMarketsInstructions
-            switchToLiveMarkets={switchToLiveMarkets}
-          />
-        </Col>
-      </Row>
-    </>
-  );
-};
 
 const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (

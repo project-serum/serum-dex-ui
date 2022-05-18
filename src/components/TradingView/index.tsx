@@ -30,7 +30,7 @@ export interface ChartContainerProps {
   theme: string;
 }
 
-export interface ChartContainerState {}
+export interface ChartContainerState { }
 
 export const TVChartContainer = () => {
   // let datafeed = useTvDataFeed();
@@ -67,7 +67,7 @@ export const TVChartContainer = () => {
     const widgetOptions: ChartingLibraryWidgetOptions = {
       symbol:
         USE_MARKETS.find(
-          (m) => m.address.toBase58() === market?.publicKey.toBase58(),
+          (m) => m.address.toBase58() === market?.address.toBase58(),
         )?.name || 'SRM/USDC',
       // BEWARE: no trailing slash is expected in feed URL
       // tslint:disable-next-line:no-any

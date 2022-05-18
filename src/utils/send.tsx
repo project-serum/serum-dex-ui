@@ -9,7 +9,6 @@ import {
   PublicKey,
   RpcResponseAndContext,
   SimulatedTransactionResponse,
-  SystemProgram,
   Transaction,
   TransactionSignature,
 } from '@solana/web3.js';
@@ -20,26 +19,26 @@ import {
 } from '@solana/spl-token';
 import BN from 'bn.js';
 import {
-  DexInstructions,
+  parseInstructionErrorResponse,
+} from '@project-serum/serum';
+import {
   Market,
   OpenOrders,
-  parseInstructionErrorResponse,
-  TOKEN_MINTS,
-  TokenInstructions,
-} from '@project-serum/serum';
+  OrderType,
+  SelfTradeBehavior,
+  Side,
+} from '@bonfida/dex-v4';
+import { createMarket } from '@bonfida/dex-v4/dist/bindings';
 import { SelectedTokenAccounts, TokenAccount } from './types';
-import { Order } from '@project-serum/serum/lib/market';
 import { Buffer } from 'buffer';
 import assert from 'assert';
 import { struct } from 'superstruct';
 import { WalletAdapter } from '../wallet-adapters';
 
 export async function createTokenAccountTransaction({
-  connection,
   wallet,
   mintPublicKey,
 }: {
-  connection: Connection;
   wallet: WalletAdapter;
   mintPublicKey: PublicKey;
 }): Promise<{
@@ -77,8 +76,6 @@ export async function settleFunds({
   baseCurrencyAccount,
   quoteCurrencyAccount,
   sendNotification = true,
-  usdcRef = undefined,
-  usdtRef = undefined,
 }: {
   market: Market;
   openOrders: OpenOrders;
@@ -87,8 +84,6 @@ export async function settleFunds({
   baseCurrencyAccount: TokenAccount;
   quoteCurrencyAccount: TokenAccount;
   sendNotification?: boolean;
-  usdcRef?: PublicKey;
-  usdtRef?: PublicKey;
 }): Promise<string | undefined> {
   if (
     !market ||
@@ -109,7 +104,6 @@ export async function settleFunds({
 
   if (!baseCurrencyAccountPubkey) {
     const result = await createTokenAccountTransaction({
-      connection,
       wallet,
       mintPublicKey: market.baseMintAddress,
     });
@@ -118,36 +112,17 @@ export async function settleFunds({
   }
   if (!quoteCurrencyAccountPubkey) {
     const result = await createTokenAccountTransaction({
-      connection,
       wallet,
       mintPublicKey: market.quoteMintAddress,
     });
     quoteCurrencyAccountPubkey = result?.newAccountPubkey;
     createAccountTransaction = result?.transaction;
   }
-  let referrerQuoteWallet: PublicKey | null = null;
-  if (market.supportsReferralFees) {
-    const usdt = TOKEN_MINTS.find(({ name }) => name === 'USDT');
-    const usdc = TOKEN_MINTS.find(({ name }) => name === 'USDC');
-    if (usdtRef && usdt && market.quoteMintAddress.equals(usdt.address)) {
-      referrerQuoteWallet = usdtRef;
-    } else if (
-      usdcRef &&
-      usdc &&
-      market.quoteMintAddress.equals(usdc.address)
-    ) {
-      referrerQuoteWallet = usdcRef;
-    }
-  }
-  const {
-    transaction: settleFundsTransaction,
-    signers: settleFundsSigners,
-  } = await market.makeSettleFundsTransaction(
-    connection,
-    openOrders,
+
+  const settleFundsTransaction = await market.makeSettleFundsTransaction(
+    wallet.publicKey,
     baseCurrencyAccountPubkey,
     quoteCurrencyAccountPubkey,
-    referrerQuoteWallet,
   );
 
   let transaction = mergeTransactions([
@@ -157,7 +132,7 @@ export async function settleFunds({
 
   return await sendTransaction({
     transaction,
-    signers: settleFundsSigners,
+    signers: [],
     wallet,
     connection,
     sendingMessage: 'Settling funds...',
@@ -182,53 +157,17 @@ export async function settleAllFunds({
     return;
   }
 
-  const programIds: PublicKey[] = [];
-  markets
-    .reduce((cumulative, m) => {
-      // @ts-ignore
-      cumulative.push(m._programId);
-      return cumulative;
-    }, [])
-    .forEach((programId) => {
-      if (!programIds.find((p) => p.equals(programId))) {
-        programIds.push(programId);
-      }
-    });
-
-  const getOpenOrdersAccountsForProgramId = async (programId) => {
-    const openOrdersAccounts = await OpenOrders.findForOwner(
-      connection,
-      wallet.publicKey,
-      programId,
-    );
-    return openOrdersAccounts.filter(
-      (openOrders) =>
-        openOrders.baseTokenFree.toNumber() ||
-        openOrders.quoteTokenFree.toNumber(),
-    );
-  };
-
-  const openOrdersAccountsForProgramIds = await Promise.all(
-    programIds.map((programId) => getOpenOrdersAccountsForProgramId(programId)),
-  );
-  const openOrdersAccounts = openOrdersAccountsForProgramIds.reduce(
-    (accounts, current) => accounts.concat(current),
-    [],
-  );
-
   const settleTransactions = (
     await Promise.all(
-      openOrdersAccounts.map((openOrdersAccount) => {
-        const market = markets.find((m) =>
-          // @ts-ignore
-          m._decoded?.ownAddress?.equals(openOrdersAccount.market),
-        );
+      markets.map(async (market) => {
+        const openOrdersAccount = await market.findOpenOrdersAccountForOwner(connection, wallet.publicKey);
+
         if (
           openOrdersAccount.baseTokenFree.isZero() &&
           openOrdersAccount.quoteTokenFree.isZero()
         ) {
           // nothing to settle for this market.
-          return null;
+          return undefined;
         }
         const baseMint = market?.baseMintAddress;
         const quoteMint = market?.quoteMintAddress;
@@ -248,77 +187,58 @@ export async function settleAllFunds({
           selectedTokenAccounts[quoteMint.toBase58()],
         )?.pubkey;
         if (!selectedBaseTokenAccount || !selectedQuoteTokenAccount) {
-          return null;
+          return undefined;
         }
         return (
           market &&
           market.makeSettleFundsTransaction(
-            connection,
-            openOrdersAccount,
+            wallet.publicKey,
             selectedBaseTokenAccount,
             selectedQuoteTokenAccount,
           )
         );
       }),
     )
-  ).filter(
-    (
-      x,
-    ): x is {
-      signers: Account[];
-      transaction: Transaction;
-      payer: PublicKey;
-    } => !!x,
-  );
+  ).filter(x => !!x);
   if (!settleTransactions || settleTransactions.length === 0) return;
 
-  const transactions = settleTransactions.slice(0, 4).map((t) => t.transaction);
-  const signers: Array<Account> = [];
-  settleTransactions
-    .reduce((cumulative: Array<Account>, t) => cumulative.concat(t.signers), [])
-    .forEach((signer) => {
-      if (!signers.find((s) => s.publicKey.equals(signer.publicKey))) {
-        signers.push(signer);
-      }
-    });
+  const transactions = settleTransactions.slice(0, 4);
 
   const transaction = mergeTransactions(transactions);
 
   return await sendTransaction({
     transaction,
-    signers,
+    signers: [],
     wallet,
     connection,
   });
 }
 
-export async function cancelOrder(params: {
+export async function cancelOrder({ market, connection, wallet, orderId }: {
   market: Market;
   connection: Connection;
   wallet: WalletAdapter;
-  order: Order;
+  orderId: BN;
 }) {
-  return cancelOrders({ ...params, orders: [params.order] });
-}
+  const transaction = new Transaction();
 
-export async function cancelOrders({
-  market,
-  wallet,
-  connection,
-  orders,
-}: {
-  market: Market;
-  wallet: WalletAdapter;
-  connection: Connection;
-  orders: Order[];
-}) {
-  const transaction = market.makeMatchOrdersTransaction(5);
-  orders.forEach((order) => {
-    transaction.add(
-      market.makeCancelOrderInstruction(connection, wallet.publicKey, order),
-    );
-  });
-  transaction.add(market.makeMatchOrdersTransaction(5));
+  const openOrders = await market.loadOrdersForOwner(connection, wallet.publicKey);
+  let orderIndex: BN | null = null;
+  for (let i = 0; i < openOrders.length; i++) {
+    const order = openOrders[i];
+    if (orderId.eq(order.orderId)) {
+      orderIndex = new BN(i);
+      break;
+    }
+  }
+
+  if (orderIndex === null) {
+    notify({ message: 'Order not found', type: 'error' });
+    return;
+  }
+
+  transaction.add(await market.makeCancelOrderInstruction(orderIndex, orderId, wallet.publicKey));
+
   return await sendTransaction({
     transaction,
     wallet,
@@ -339,10 +259,10 @@ export async function placeOrder({
   quoteCurrencyAccount,
   feeDiscountPubkey = undefined,
 }: {
-  side: 'buy' | 'sell';
+  side: Side;
   price: number;
   size: number;
-  orderType: 'ioc' | 'postOnly' | 'limit';
+  orderType: OrderType;
   market: Market | undefined | null;
   connection: Connection;
   wallet: WalletAdapter;
@@ -399,14 +319,12 @@ export async function placeOrder({
   }
   const owner = wallet.publicKey;
   const transaction = new Transaction();
-  const signers: Account[] = [];
 
   if (!baseCurrencyAccount) {
     const {
       transaction: createAccountTransaction,
       newAccountPubkey,
     } = await createTokenAccountTransaction({
-      connection,
       wallet,
       mintPublicKey: market.baseMintAddress,
     });
@@ -418,7 +336,6 @@ export async function placeOrder({
       transaction: createAccountTransaction,
       newAccountPubkey,
     } = await createTokenAccountTransaction({
-      connection,
       wallet,
       mintPublicKey: market.quoteMintAddress,
     });
@@ -426,7 +343,7 @@ export async function placeOrder({
     quoteCurrencyAccount = newAccountPubkey;
   }
 
-  const payer = side === 'sell' ? baseCurrencyAccount : quoteCurrencyAccount;
+  const payer = side === Side.Ask ? baseCurrencyAccount : quoteCurrencyAccount;
   if (!payer) {
     notify({
       message: 'Need an SPL token account for cost currency',
@@ -445,29 +362,19 @@ export async function placeOrder({
   };
   console.log(params);
 
-  const matchOrderstransaction = market.makeMatchOrdersTransaction(5);
-  transaction.add(matchOrderstransaction);
   const startTime = getUnixTs();
-  let {
-    transaction: placeOrderTx,
-    signers: placeOrderSigners,
-  } = await market.makePlaceOrderTransaction(
-    connection,
-    params,
-    120_000,
-    120_000,
+  let placeOrderTx = await market.makePlaceOrderTransaction(
+    side, price, size, orderType, SelfTradeBehavior.DecrementTake, payer, owner, feeDiscountPubkey
   );
   const endTime = getUnixTs();
   console.log(`Creating order transaction took ${endTime - startTime}`);
   transaction.add(placeOrderTx);
-  transaction.add(market.makeMatchOrdersTransaction(5));
-  signers.push(...placeOrderSigners);
 
   return await sendTransaction({
     transaction,
     wallet,
     connection,
-    signers,
+    signers: [],
     sendingMessage: 'Sending order...',
   });
 }
@@ -479,7 +386,6 @@ export async function listMarket({
   quoteMint,
   baseLotSize,
   quoteLotSize,
-  dexProgramId,
 }: {
   connection: Connection;
   wallet: WalletAdapter;
@@ -487,132 +393,33 @@ export async function listMarket({
   quoteMint: PublicKey;
   baseLotSize: number;
   quoteLotSize: number;
-  dexProgramId: PublicKey;
 }) {
-  const market = new Account();
-  const requestQueue = new Account();
-  const eventQueue = new Account();
-  const bids = new Account();
-  const asks = new Account();
-  const baseVault = new Account();
-  const quoteVault = new Account();
-  const feeRateBps = 0;
-  const quoteDustThreshold = new BN(100);
-
-  async function getVaultOwnerAndNonce() {
-    const nonce = new BN(0);
-    while (true) {
-      try {
-        const vaultOwner = await PublicKey.createProgramAddress(
-          [market.publicKey.toBuffer(), nonce.toArrayLike(Buffer, 'le', 8)],
-          dexProgramId,
-        );
-        return [vaultOwner, nonce];
-      } catch (e) {
-        nonce.iaddn(1);
-      }
-    }
-  }
-  const [vaultOwner, vaultSignerNonce] = await getVaultOwnerAndNonce();
-
-  const tx1 = new Transaction();
-  tx1.add(
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: baseVault.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(165),
-      space: 165,
-      programId: TokenInstructions.TOKEN_PROGRAM_ID,
-    }),
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: quoteVault.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(165),
-      space: 165,
-      programId: TokenInstructions.TOKEN_PROGRAM_ID,
-    }),
-    TokenInstructions.initializeAccount({
-      account: baseVault.publicKey,
-      mint: baseMint,
-      owner: vaultOwner,
-    }),
-    TokenInstructions.initializeAccount({
-      account: quoteVault.publicKey,
-      mint: quoteMint,
-      owner: vaultOwner,
-    }),
+  const primedTransactions = await createMarket(
+    connection,
+    baseMint,
+    quoteMint,
+    baseLotSize,
+    wallet.publicKey,
+    wallet.publicKey,
+    new BN(quoteLotSize),
+    new BN(50000),
+    new Array(6).fill(new BN(0)),
+    new Array(7).fill(new BN(0)),
+    new Array(7).fill(new BN(0)),
   );
 
-  const tx2 = new Transaction();
-  tx2.add(
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: market.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(
-        Market.getLayout(dexProgramId).span,
-      ),
-      space: Market.getLayout(dexProgramId).span,
-      programId: dexProgramId,
-    }),
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: requestQueue.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(5120 + 12),
-      space: 5120 + 12,
-      programId: dexProgramId,
-    }),
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: eventQueue.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(262144 + 12),
-      space: 262144 + 12,
-      programId: dexProgramId,
-    }),
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: bids.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(65536 + 12),
-      space: 65536 + 12,
-      programId: dexProgramId,
-    }),
-    SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: asks.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(65536 + 12),
-      space: 65536 + 12,
-      programId: dexProgramId,
-    }),
-    DexInstructions.initializeMarket({
-      market: market.publicKey,
-      requestQueue: requestQueue.publicKey,
-      eventQueue: eventQueue.publicKey,
-      bids: bids.publicKey,
-      asks: asks.publicKey,
-      baseVault: baseVault.publicKey,
-      quoteVault: quoteVault.publicKey,
-      baseMint,
-      quoteMint,
-      baseLotSize: new BN(baseLotSize),
-      quoteLotSize: new BN(quoteLotSize),
-      feeRateBps,
-      vaultSignerNonce,
-      quoteDustThreshold,
-      programId: dexProgramId,
-      authority: undefined,
-    }),
-  );
+  // Hack for now
+  const market = primedTransactions[0][0][0];
 
   const signedTransactions = await signTransactions({
-    transactionsAndSigners: [
-      { transaction: tx1, signers: [baseVault, quoteVault] },
-      {
-        transaction: tx2,
-        signers: [market, requestQueue, eventQueue, bids, asks],
-      },
-    ],
+    transactionsAndSigners: primedTransactions.map(([keypairs, instructions]) => ({
+      transaction: new Transaction().add(...instructions),
+      signers: keypairs.map(keypair => new Account(keypair.secretKey)),
+    })),
     wallet,
     connection,
   });
+
   for (let signedTransaction of signedTransactions) {
     await sendSignedTransaction({
       signedTransaction,
@@ -762,7 +569,7 @@ export async function sendSignedTransaction({
   try {
     await awaitTransactionSignatureConfirmation(txid, timeout, connection);
   } catch (err) {
-    if (err.timeout) {
+    if ((err as any).timeout) {
       throw new Error('Timed out awaiting confirmation on transaction');
     }
     let simulateResult: SimulatedTransactionResponse | null = null;

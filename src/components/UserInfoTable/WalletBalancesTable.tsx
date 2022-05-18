@@ -70,7 +70,7 @@ export default function WalletBalancesTable({
     } catch (e) {
       notify({
         message: 'Error settling funds',
-        description: e.message,
+        description: (e as any).message,
         type: 'error',
       });
     } finally {

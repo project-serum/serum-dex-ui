@@ -108,13 +108,11 @@ export default function StandaloneBalancesDisplay() {
         wallet,
         baseCurrencyAccount,
         quoteCurrencyAccount,
-        usdcRef,
-        usdtRef,
       });
     } catch (e) {
       notify({
         message: 'Error settling funds',
-        description: e.message,
+        description: (e as any).message,
         type: 'error',
       });
     }
@@ -152,11 +150,9 @@ export default function StandaloneBalancesDisplay() {
           wallet,
           baseCurrencyAccount,
           quoteCurrencyAccount,
-          usdcRef,
-          usdtRef,
         });
       } catch (e) {
-        console.log('Error auto settling funds: ' + e.message);
+        console.log('Error auto settling funds: ' + (e as any).message);
         return;
       }
       console.log('Finished settling funds.');
@@ -170,22 +166,22 @@ export default function StandaloneBalancesDisplay() {
     string,
     string | undefined,
   ][] = [
-    [
-      baseCurrency,
-      baseCurrencyBalances,
-      'base',
-      market?.baseMintAddress.toBase58(),
-    ],
-    [
-      quoteCurrency,
-      quoteCurrencyBalances,
-      'quote',
-      market?.quoteMintAddress.toBase58(),
-    ],
-  ];
+      [
+        baseCurrency,
+        baseCurrencyBalances,
+        'base',
+        market?.baseMintAddress.toBase58(),
+      ],
+      [
+        quoteCurrency,
+        quoteCurrencyBalances,
+        'quote',
+        market?.quoteMintAddress.toBase58(),
+      ],
+    ];
 
   return (
-    <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
+    <FloatingElement style={{ flex: 1, paddingTop: 10 } as any}>
       {formattedBalances.map(
         ([currency, balances, baseOrQuote, mint], index) => (
           <React.Fragment key={index}>

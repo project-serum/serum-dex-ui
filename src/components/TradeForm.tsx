@@ -1,5 +1,5 @@
-import {Button, Input, Radio, Slider, Switch} from 'antd';
-import React, {useEffect, useState} from 'react';
+import { Button, Input, Radio, Slider, Switch } from 'antd';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import {
   useFeeDiscountKeys,
@@ -12,15 +12,16 @@ import {
   useSelectedQuoteCurrencyAccount,
   useSelectedQuoteCurrencyBalances,
 } from '../utils/markets';
-import {useWallet} from '../utils/wallet';
-import {notify} from '../utils/notifications';
-import {floorToDecimal, getDecimalCount, roundToDecimal,} from '../utils/utils';
-import {useSendConnection} from '../utils/connection';
+import { useWallet } from '../utils/wallet';
+import { notify } from '../utils/notifications';
+import { floorToDecimal, getDecimalCount, roundToDecimal, } from '../utils/utils';
+import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
-import {getUnixTs, placeOrder} from '../utils/send';
-import {SwitchChangeEventHandler} from 'antd/es/switch';
-import {refreshCache} from '../utils/fetch-loop';
+import { getUnixTs, placeOrder } from '../utils/send';
+import { SwitchChangeEventHandler } from 'antd/es/switch';
+import { refreshCache } from '../utils/fetch-loop';
 import tuple from 'immutable-tuple';
+import { OrderType, Side } from '@bonfida/dex-v4';
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
@@ -51,7 +52,7 @@ export default function TradeForm({
     ref: ({ size, price }: { size?: number; price?: number }) => void,
   ) => void;
 }) {
-  const [side, setSide] = useState<'buy' | 'sell'>('buy');
+  const [side, setSide] = useState<Side>(Side.Bid);
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const baseCurrencyBalances = useSelectedBaseCurrencyBalances();
   const quoteCurrencyBalances = useSelectedQuoteCurrencyBalances();
@@ -111,12 +112,9 @@ export default function TradeForm({
         }
         const startTime = getUnixTs();
         console.log(`Refreshing accounts for ${market.address}`);
-        await market?.findOpenOrdersAccountsForOwner(sendConnection, publicKey);
-        await market?.findBestFeeDiscountKey(sendConnection, publicKey);
         const endTime = getUnixTs();
         console.log(
-          `Finished refreshing accounts for ${market.address} after ${
-            endTime - startTime
+          `Finished refreshing accounts for ${market.address} after ${endTime - startTime
           }`,
         );
       } catch (e) {
@@ -176,7 +174,7 @@ export default function TradeForm({
 
   const updateSizeFraction = () => {
     const rawMaxSize =
-      side === 'buy' ? quoteBalance / (price || markPrice || 1) : baseBalance;
+      side === Side.Bid ? quoteBalance / (price || markPrice || 1) : baseBalance;
     const maxSize = floorToDecimal(rawMaxSize, sizeDecimalCount);
     const sizeFraction = Math.min(((baseSize || 0) / maxSize) * 100, 100);
     setSizeFraction(sizeFraction);
@@ -195,7 +193,7 @@ export default function TradeForm({
     }
 
     let newSize;
-    if (side === 'buy') {
+    if (side === Side.Bid) {
       if (price || markPrice) {
         newSize = ((quoteBalance / (price || markPrice || 1)) * value) / 100;
       }
@@ -249,7 +247,7 @@ export default function TradeForm({
         side,
         price,
         size: baseSize,
-        orderType: ioc ? 'ioc' : postOnly ? 'postOnly' : 'limit',
+        orderType: ioc ? OrderType.ImmediateOrCancel : postOnly ? OrderType.PostOnly : OrderType.Limit,
         market,
         connection: sendConnection,
         wallet,
@@ -264,7 +262,7 @@ export default function TradeForm({
       console.warn(e);
       notify({
         message: 'Error placing order',
-        description: e.message,
+        description: (e as any).message,
         type: 'error',
       });
     } finally {
@@ -291,8 +289,8 @@ export default function TradeForm({
             style={{
               width: '50%',
               textAlign: 'center',
-              background: side === 'buy' ? '#02bf76' : '',
-              borderColor: side === 'buy' ? '#02bf76' : '',
+              background: side === Side.Bid ? '#02bf76' : '',
+              borderColor: side === Side.Bid ? '#02bf76' : '',
             }}
           >
             BUY
@@ -302,8 +300,8 @@ export default function TradeForm({
             style={{
               width: '50%',
               textAlign: 'center',
-              background: side === 'sell' ? '#F23B69' : '',
-              borderColor: side === 'sell' ? '#F23B69' : '',
+              background: side === Side.Ask ? '#F23B69' : '',
+              borderColor: side === Side.Ask ? '#F23B69' : '',
             }}
           >
             SELL
@@ -362,7 +360,7 @@ export default function TradeForm({
           <Switch checked={ioc} onChange={iocOnChange} />
         </div>
       </div>
-      {side === 'buy' ? (
+      {side === Side.Bid ? (
         <BuyButton
           disabled={!price || !baseSize}
           onClick={onSubmit}

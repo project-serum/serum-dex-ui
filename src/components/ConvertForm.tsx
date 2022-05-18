@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Col, Input, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
-import { Orderbook } from '@project-serum/serum';
+import { Orderbook, OrderType, Side } from '@bonfida/dex-v4';
 import {
   getExpectedFillPrice,
   getMarketDetails,
@@ -60,15 +60,15 @@ export default function ConvertForm() {
     !tokenConvertMap.has(base)
       ? tokenConvertMap.set(base, new Set([quote]))
       : tokenConvertMap.set(
-          base,
-          new Set([...(tokenConvertMap.get(base) || []), quote]),
-        );
+        base,
+        new Set([...(tokenConvertMap.get(base) || []), quote]),
+      );
     !tokenConvertMap.has(quote)
       ? tokenConvertMap.set(quote, new Set([base]))
       : tokenConvertMap.set(
-          quote,
-          new Set([...(tokenConvertMap.get(quote) || []), base]),
-        );
+        quote,
+        new Set([...(tokenConvertMap.get(quote) || []), base]),
+      );
   });
 
   const setMarket = (toToken) => {
@@ -94,7 +94,7 @@ export default function ConvertForm() {
   };
 
   return (
-    <FloatingElement style={{ maxWidth: 500 }}>
+    <FloatingElement style={{ maxWidth: 500 } as any}>
       <Title level={3}>Convert</Title>
       {!connected && (
         <Row justify="center">
@@ -222,37 +222,20 @@ function ConvertFormSubmit({
     );
 
     // get approximate price
-    let side;
+    let side: Side;
     try {
-      side = isFromTokenBaseOfMarket(market) ? 'sell' : 'buy';
+      side = isFromTokenBaseOfMarket(market) ? Side.Ask : Side.Bid;
     } catch (e) {
       console.warn(e);
       notify({
         message: 'Error placing order',
-        description: e.message,
+        description: (e as any).message,
         type: 'error',
       });
       return;
     }
 
-    const sidedOrderbookAccount =
-      // @ts-ignore
-      side === 'buy' ? market._decoded.asks : market._decoded.bids;
-    const orderbookData = await connection.getAccountInfo(
-      sidedOrderbookAccount,
-    );
-    if (!orderbookData?.data) {
-      notify({ message: 'Invalid orderbook data', type: 'error' });
-      return;
-    }
-    const decodedOrderbookData = Orderbook.decode(market, orderbookData.data);
-    const [bbo] =
-      decodedOrderbookData &&
-      decodedOrderbookData.getL2(1).map(([price]) => price);
-    if (!bbo) {
-      notify({ message: 'No best price found', type: 'error' });
-      return;
-    }
+    const decodedOrderbookData = await Orderbook.load(connection, market.address);
     if (!size) {
       notify({ message: 'Size not specified', type: 'error' });
       return;
@@ -261,13 +244,14 @@ function ConvertFormSubmit({
     const tickSizeDecimals = getDecimalCount(market.tickSize);
     const parsedPrice = getMarketOrderPrice(
       decodedOrderbookData,
+      side,
       size,
       tickSizeDecimals,
     );
 
     // round size
     const sizeDecimalCount = getDecimalCount(market.minOrderSize);
-    const nativeSize = side === 'sell' ? size : size / parsedPrice;
+    const nativeSize = side === Side.Ask ? size : size / parsedPrice;
     const parsedSize = floorToDecimal(nativeSize, sizeDecimalCount);
 
     setIsConverting(true);
@@ -280,7 +264,7 @@ function ConvertFormSubmit({
         side,
         price: parsedPrice,
         size: parsedSize,
-        orderType: 'ioc',
+        orderType: OrderType.ImmediateOrCancel,
         market,
         connection: sendConnection,
         wallet,
@@ -292,7 +276,7 @@ function ConvertFormSubmit({
       console.warn(e);
       notify({
         message: 'Error placing order',
-        description: e.message,
+        description: (e as any).message,
         type: 'error',
       });
     } finally {
@@ -302,30 +286,29 @@ function ConvertFormSubmit({
 
   const getPrice = async () => {
     try {
-      const side = isFromTokenBaseOfMarket(market) ? 'sell' : 'buy';
-      const sidedOrderbookAccount =
-        // @ts-ignore
-        side === 'buy' ? market._decoded.asks : market._decoded.bids;
-      const orderbookData = await connection.getAccountInfo(
-        sidedOrderbookAccount,
-      );
-      if (!orderbookData?.data || !market) {
+      if (!market) {
         return [null, null];
       }
-      const decodedOrderbookData = Orderbook.decode(market, orderbookData.data);
+
+      const side = isFromTokenBaseOfMarket(market) ? Side.Ask : Side.Bid;
+
+      const decodedOrderbookData = await Orderbook.load(connection, market.address);
       const [bbo] =
         decodedOrderbookData &&
-        decodedOrderbookData.getL2(1).map(([price]) => price);
+        decodedOrderbookData.getL2(1, side === Side.Ask, true);
+
       if (!bbo || !size) {
         return [null, null];
       }
+
       const tickSizeDecimals = getDecimalCount(market.tickSize);
       const expectedPrice = getExpectedFillPrice(
         decodedOrderbookData,
+        side,
         size,
         tickSizeDecimals,
       );
-      if (side === 'buy') {
+      if (side === Side.Bid) {
         return [expectedPrice.toFixed(6), 1];
       } else {
         return [1, expectedPrice.toFixed(6)];

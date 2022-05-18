@@ -1,15 +1,15 @@
-import React, {useContext, useState} from 'react';
-import {sleep, useLocalStorageState} from './utils';
-import {useInterval} from './useInterval';
-import {useConnection} from './connection';
-import {useWallet} from './wallet';
+import React, { useContext, useState } from 'react';
+import { sleep, useLocalStorageState } from './utils';
+import { useInterval } from './useInterval';
+import { useConnection } from './connection';
+import { useWallet } from './wallet';
 import {
   useMarketInfos,
   useTokenAccounts,
 } from './markets';
-import {settleAllFunds} from './send';
-import {PreferencesContextValues} from './types';
-import {Market} from "@project-serum/serum";
+import { settleAllFunds } from './send';
+import { PreferencesContextValues } from './types';
+import { Market } from "@bonfida/dex-v4";
 
 export const AUTO_SETTLE_DISABLED_OVERRIDE = true;
 
@@ -35,25 +35,9 @@ export function PreferencesProvider({ children }) {
 
   useInterval(() => {
     const autoSettle = async () => {
-			if (AUTO_SETTLE_DISABLED_OVERRIDE) {
-				return;
-			}
-      if (!wallet) {
+      if (AUTO_SETTLE_DISABLED_OVERRIDE) {
         return;
       }
-      try {
-        console.log('Settling funds...');
-        await settleAllFunds({
-          connection,
-          wallet,
-          tokenAccounts: tokenAccounts || [],
-          markets: [...markets.values()],
-        });
-      } catch (e) {
-        console.log('Error auto settling funds: ' + e.message);
-        return;
-      }
-      console.log('Finished settling funds.');
     };
     (
       connected &&
@@ -76,11 +60,11 @@ export function PreferencesProvider({ children }) {
           continue;
         }
         try {
-          const market = await Market.load(connection, marketInfo.address, {}, marketInfo.programId)
+          const market = await Market.load(connection, marketInfo.address, marketInfo.programId)
           addToMarketsMap(marketInfo.address.toString(), market);
           await sleep(1000);
         } catch (e) {
-          console.log('Error fetching market: ' + e.message);
+          console.log('Error fetching market: ' + (e as any).message);
         }
       }
       setCurrentlyFetchingMarkets(false);

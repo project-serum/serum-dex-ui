@@ -3,7 +3,8 @@ import { Col, Input, Modal, Row, Typography } from 'antd';
 import { notify } from '../utils/notifications';
 import { isValidPublicKey } from '../utils/utils';
 import { PublicKey } from '@solana/web3.js';
-import { Market, MARKETS, TOKEN_MINTS } from '@project-serum/serum';
+import { MARKETS, TOKEN_MINTS } from '@project-serum/serum';
+import { Market } from '@bonfida/dex-v4';
 import { useAccountInfo, useConnection } from '../utils/connection';
 import { LoadingOutlined } from '@ant-design/icons';
 
@@ -40,12 +41,7 @@ export default function CustomMarketDialog({
       return;
     }
     setLoadingMarket(true);
-    Market.load(
-      connection,
-      new PublicKey(marketId),
-      {},
-      new PublicKey(programId),
-    )
+    Market.load(connection, new PublicKey(marketId), new PublicKey(programId))
       .then((market) => {
         setMarket(market);
       })

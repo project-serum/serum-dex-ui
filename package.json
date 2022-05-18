@@ -5,6 +5,7 @@
   "homepage": "https://dex.projectserum.com/",
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
+    "@bonfida/dex-v4": "^0.1.0",
     "@craco/craco": "^5.6.4",
     "@ledgerhq/hw-transport-webusb": "^5.41.0",
     "@project-serum/associated-token": "0.1.0",
@@ -15,6 +16,7 @@
     "@solana/spl-name-service": "^0.1.2",
     "@solana/spl-token": "^0.1.6",
     "@solana/web3.js": "^1.22.0",
+    "@solana/buffer-layout": "^4.0.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",

@@ -41,15 +41,15 @@ export default function OpenOrderTable({
       }
 
       await cancelOrder({
-        order,
         market: order.market,
         connection,
         wallet,
+        orderId: order.orderId,
       });
     } catch (e) {
       notify({
         message: 'Error cancelling order',
-        description: e.message,
+        description: (e as any).message,
         type: 'error',
       });
       return;
@@ -127,7 +127,7 @@ export default function OpenOrderTable({
   ];
   const dataSource = (openOrders || []).map((order) => ({
     ...order,
-    key: order.orderId,
+    key: order.orderIndex,
   }));
 
   return (
