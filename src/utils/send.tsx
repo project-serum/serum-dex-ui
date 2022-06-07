@@ -364,7 +364,7 @@ export async function placeOrder({
 
   const startTime = getUnixTs();
   let placeOrderTx = await market.makePlaceOrderTransaction(
-    side, price, size, orderType, SelfTradeBehavior.DecrementTake, payer, owner, feeDiscountPubkey
+    side, price, size, orderType, SelfTradeBehavior.DecrementTake, payer, owner, new BN(0), feeDiscountPubkey
   );
   const endTime = getUnixTs();
   console.log(`Creating order transaction took ${endTime - startTime}`);
@@ -394,6 +394,13 @@ export async function listMarket({
   baseLotSize: number;
   quoteLotSize: number;
 }) {
+  const metadataProgramId = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+  const [metadataAccount] = PublicKey.findProgramAddressSync([
+    "metadata" as any,
+    metadataProgramId.toBuffer(),
+    baseMint.toBuffer(),
+  ], metadataProgramId);
+
   const primedTransactions = await createMarket(
     connection,
     baseMint,
@@ -403,9 +410,7 @@ export async function listMarket({
     wallet.publicKey,
     new BN(quoteLotSize),
     new BN(50000),
-    new Array(6).fill(new BN(0)),
-    new Array(7).fill(new BN(0)),
-    new Array(7).fill(new BN(0)),
+    metadataAccount,
   );
 
   // Hack for now

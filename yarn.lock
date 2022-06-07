@@ -1176,10 +1176,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@bonfida/aaob@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@bonfida/aaob/-/aaob-0.0.3.tgz#9157aa3aab32abc5e78294801317f53481fa8654"
-  integrity sha512-YLac//38o470VFUOqDnXXIbouJ61cJK6OgylE1sBdm4zvBNsf2/xu2DthhsnLvphIVqY5KLK+VB6iOgtG4olmw==
+"@bonfida/aaob@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@bonfida/aaob/-/aaob-0.0.5.tgz#fb94f831a11f8794d241d2156899e365a803f779"
+  integrity sha512-VrhhKgcnUSzliRecV3FCPv3ztFxUnsTjE1s8yAxv+yfEN5jay+zcRhtzPcNR9aGvgvXyuZGsiL4V7yzLtE+sNQ==
   dependencies:
     "@solana/spl-token" "0.1.5"
     "@solana/web3.js" "^1.15.0"
@@ -1187,12 +1187,12 @@
     borsh "^0.6.0"
     bs58 "4.0.1"
 
-"@bonfida/dex-v4@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@bonfida/dex-v4/-/dex-v4-0.1.0.tgz#dc621f8aaf7141def39f5b0b9789f385ad764471"
-  integrity sha512-/JKrHUfP/GD4TTdGKxS0R0GtStf6w4xJ0Pt781qA+2zDxIwGxIvsCBuGQGKInyJquz2Sxn1ItIcwPXVktgqAdw==
+"@bonfida/dex-v4@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@bonfida/dex-v4/-/dex-v4-0.1.1.tgz#c77da43ba3b28b4cea9b6216571324cc27a34382"
+  integrity sha512-N3udrAiLhhr9BQhofzXDydQxE0WQxxKKVi2rHFmRhsgS3LXxHCCllEaKTLcJ+8YBNBITkBeD2Kqp0NyUn4u3xg==
   dependencies:
-    "@bonfida/aaob" "^0.0.3"
+    "@bonfida/aaob" "^0.0.5"
     "@solana/spl-token" "0.1.5"
     "@solana/web3.js" "^1.27.0"
     bn.js "^5.1.3"
