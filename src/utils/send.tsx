@@ -13,6 +13,7 @@ import {
   SimulatedTransactionResponse,
   SystemProgram,
   Transaction,
+  TransactionInstruction,
   TransactionSignature,
 } from '@solana/web3.js';
 import {
@@ -103,9 +104,9 @@ export async function settleFunds({
     return;
   }
 
-  let createAccountTransaction: Transaction | undefined;
   let baseCurrencyAccountPubkey = baseCurrencyAccount?.pubkey;
   let quoteCurrencyAccountPubkey = quoteCurrencyAccount?.pubkey;
+  const transactions: Transaction[] = [];
 
   if (!baseCurrencyAccountPubkey) {
     const result = await createTokenAccountTransaction({
@@ -113,7 +114,7 @@ export async function settleFunds({
       mintPublicKey: market.baseMintAddress,
     });
     baseCurrencyAccountPubkey = result?.newAccountPubkey;
-    createAccountTransaction = result?.transaction;
+    transactions.push(result?.transaction);
   }
   if (!quoteCurrencyAccountPubkey) {
     const result = await createTokenAccountTransaction({
@@ -121,23 +122,63 @@ export async function settleFunds({
       mintPublicKey: market.quoteMintAddress,
     });
     quoteCurrencyAccountPubkey = result?.newAccountPubkey;
-    createAccountTransaction = result?.transaction;
+    transactions.push(result?.transaction);
   }
 
-  const settleFundsTransaction = await market.makeSettleFundsTransaction(
+  let closeInstruction: TransactionInstruction | null = null;
+  let signers: Keypair[] = [];
+  if (baseCurrencyAccount.effectiveMint.equals(NATIVE_MINT) || quoteCurrencyAccount.effectiveMint.equals(NATIVE_MINT)) {
+    const newAccount = Keypair.generate();
+    signers.push(newAccount);
+    const wrapTransaction = new Transaction();
+
+    wrapTransaction.add(SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: newAccount.publicKey,
+      lamports: await Token.getMinBalanceRentForExemptAccount(connection),
+      space: AccountLayout.span,
+      programId: TOKEN_PROGRAM_ID,
+    }));
+
+    wrapTransaction.add(Token.createInitAccountInstruction(
+      TOKEN_PROGRAM_ID,
+      NATIVE_MINT,
+      newAccount.publicKey,
+      wallet.publicKey,
+    ));
+
+    if (baseCurrencyAccount.effectiveMint.equals(NATIVE_MINT)) {
+      baseCurrencyAccountPubkey = newAccount.publicKey;
+    } else {
+      quoteCurrencyAccountPubkey = newAccount.publicKey;
+    }
+
+    closeInstruction = Token.createCloseAccountInstruction(
+      TOKEN_PROGRAM_ID,
+      newAccount.publicKey,
+      wallet.publicKey,
+      wallet.publicKey,
+      signers,
+    );
+
+    transactions.push(wrapTransaction);
+  }
+
+  transactions.push(await market.makeSettleFundsTransaction(
     wallet.publicKey,
     baseCurrencyAccountPubkey,
     quoteCurrencyAccountPubkey,
-  );
+  ));
 
-  let transaction = mergeTransactions([
-    createAccountTransaction,
-    settleFundsTransaction,
-  ]);
+  let transaction = mergeTransactions(transactions);
+
+  if (closeInstruction) {
+    transaction.add(closeInstruction);
+  }
 
   return await sendTransaction({
     transaction,
-    signers: [],
+    signers: signers.map(signer => new Account(signer.secretKey)),
     wallet,
     connection,
     sendingMessage: 'Settling funds...',
