@@ -161,7 +161,7 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
       market &&
       marketInfo &&
       // @ts-ignore
-      market._decoded.ownAddress?.equals(marketInfo?.address)
+      market.address.equals(marketInfo?.address)
     ) {
       return;
     }
@@ -317,7 +317,7 @@ export function useOrderbookAccounts() {
   }, [market]);
 
   const getSidedOrderbook = (orderbook: Orderbook, asks: boolean) => ({
-    getL2: (depth) => orderbook.getL2(depth, false, true).map(({ price, size }) => [price, size])
+    getL2: (depth) => orderbook.getL2(depth, asks, true).map(({ price, size }) => [price, size])
   });
 
   return {
@@ -332,14 +332,15 @@ export function useOrderbook(
 ): [{ bids: number[][]; asks: number[][] }, boolean] {
   const { bidOrderbook, askOrderbook } = useOrderbookAccounts();
   const { market } = useMarket();
+
   const bids =
     !bidOrderbook || !market
       ? []
-      : bidOrderbook.getL2(depth).map(([price, size]) => [price, size]);
+      : bidOrderbook.getL2(depth);
   const asks =
     !askOrderbook || !market
       ? []
-      : askOrderbook.getL2(depth).map(([price, size]) => [price, size]);
+      : askOrderbook.getL2(depth);
   return [{ bids, asks }, !!bids || !!asks];
 }
 
@@ -492,7 +493,7 @@ export function useTrades(limit = 100) {
     .filter(({ eventFlags }) => eventFlags.maker)
     .map((trade) => ({
       ...trade,
-      side: trade.side === 'buy' ? 'sell' : 'buy',
+      side: trade.side === Side.Bid ? 'sell' : 'buy',
     }));
 }
 

@@ -271,13 +271,14 @@ export default function TradeForm({
   }
 
   return (
+    // @ts-ignore
     <FloatingElement
       style={{ display: 'flex', flexDirection: 'column', ...style }}
     >
       <div style={{ flex: 1 }}>
         <Radio.Group
-          onChange={(e) => setSide(e.target.value)}
-          value={side}
+          onChange={(e) => setSide(e.target.value === 'bid' ? Side.Bid : Side.Ask)}
+          value={side === Side.Bid ? 'bid' : 'ask'}
           buttonStyle="solid"
           style={{
             marginBottom: 8,

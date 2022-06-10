@@ -8,6 +8,7 @@ import styled from 'styled-components';
 import { useWallet } from '../utils/wallet';
 import { listMarket } from '../utils/send';
 import { useMintInput } from '../components/useMintInput';
+import BN from 'bn.js';
 
 const { Text, Title } = Typography;
 
@@ -54,8 +55,8 @@ export default function ListNewMarketPage() {
     </Text>,
     'The quote token is the token used to price trades. For example, the quote token of a BTC/USDT market is USDT.',
   );
-  const [lotSize, setLotSize] = useState('1');
-  const [tickSize, setTickSize] = useState('0.01');
+  const [lotSize, setLotSize] = useState('.1');
+  const [tickSize, setTickSize] = useState('0.001');
   const dexProgramId = MARKETS.find(({ deprecated }) => !deprecated).programId;
   const [submitting, setSubmitting] = useState(false);
 
@@ -64,14 +65,10 @@ export default function ListNewMarketPage() {
   let baseLotSize;
   let quoteLotSize;
   if (baseMintInfo && parseFloat(lotSize) > 0) {
-    baseLotSize = Math.round(10 ** baseMintInfo.decimals * parseFloat(lotSize));
-    if (quoteMintInfo && parseFloat(tickSize) > 0) {
-      quoteLotSize = Math.round(
-        parseFloat(lotSize) *
-          10 ** quoteMintInfo.decimals *
-          parseFloat(tickSize),
-      );
-    }
+    baseLotSize = new BN(parseFloat(lotSize) * 10 ** baseMintInfo.decimals);
+  }
+  if (quoteMintInfo && parseFloat(tickSize) > 0) {
+    quoteLotSize = parseFloat(tickSize);
   }
 
   const canSubmit =

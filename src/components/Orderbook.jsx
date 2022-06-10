@@ -7,6 +7,7 @@ import { useInterval } from '../utils/useInterval';
 import FloatingElement from './layout/FloatingElement';
 import usePrevious from '../utils/usePrevious';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { Side } from '@bonfida/dex-v4';
 
 const Title = styled.div`
   color: rgba(255, 255, 255, 1);
@@ -185,7 +186,7 @@ const OrderbookRow = React.memo(
           <Line
             data-width={sizePercent + '%'}
             data-bgcolor={
-              side === 'buy'
+              side === Side.Bid
                 ? 'rgba(65, 199, 122, 0.6)'
                 : 'rgba(242, 60, 105, 0.6)'
             }

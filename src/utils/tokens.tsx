@@ -1,15 +1,15 @@
 import * as BufferLayout from 'buffer-layout';
-import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
-import {TokenAccount} from './types';
-import {TOKEN_MINTS} from '@project-serum/serum';
-import {useAllMarkets, useCustomMarkets, useTokenAccounts} from './markets';
-import {getMultipleSolanaAccounts} from './send';
-import {useConnection} from './connection';
-import {useAsyncData} from './fetch-loop';
+import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { TokenAccount } from './types';
+import { TOKEN_MINTS } from '@project-serum/serum';
+import { useAllMarkets, useCustomMarkets, useTokenAccounts } from './markets';
+import { getMultipleSolanaAccounts } from './send';
+import { useConnection } from './connection';
+import { useAsyncData } from './fetch-loop';
 import tuple from 'immutable-tuple';
 import BN from 'bn.js';
-import {useMemo} from 'react';
+import { useMemo } from 'react';
 
 export const ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(32, 'mint'),
@@ -109,7 +109,7 @@ export async function getTokenAccountInfo(
         effectiveMint: parseTokenAccountData(accountInfo.data).mint,
       };
     },
-  );
+  ).filter(({ effectiveMint }) => !effectiveMint.equals(WRAPPED_SOL_MINT));
   return parsedSplAccounts.concat({
     pubkey: ownerAddress,
     account,
@@ -134,11 +134,11 @@ const _VERY_SLOW_REFRESH_INTERVAL = 5000 * 1000;
 export function useMintInfos(): [
   (
     | {
-        [mintAddress: string]: {
-          decimals: number;
-          initialized: boolean;
-        } | null;
-      }
+      [mintAddress: string]: {
+        decimals: number;
+        initialized: boolean;
+      } | null;
+    }
     | null
     | undefined
   ),

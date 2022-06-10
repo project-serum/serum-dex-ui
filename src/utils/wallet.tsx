@@ -20,6 +20,7 @@ import {
   SolflareExtensionWalletAdapter,
 } from '../wallet-adapters';
 
+
 const ASSET_URL =
   'https://cdn.jsdelivr.net/gh/solana-labs/oyster@main/assets/wallets';
 export const WALLET_PROVIDERS = [
@@ -119,12 +120,12 @@ export function WalletProvider({ children }) {
           const keyToDisplay =
             walletPublicKey.length > 20
               ? `${walletPublicKey.substring(
-                  0,
-                  7,
-                )}.....${walletPublicKey.substring(
-                  walletPublicKey.length - 7,
-                  walletPublicKey.length,
-                )}`
+                0,
+                7,
+              )}.....${walletPublicKey.substring(
+                walletPublicKey.length - 7,
+                walletPublicKey.length,
+              )}`
               : walletPublicKey;
 
           notify({
@@ -159,7 +160,7 @@ export function WalletProvider({ children }) {
       setAutoConnect(false);
     }
 
-    return () => {};
+    return () => { };
   }, [wallet, autoConnect]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);

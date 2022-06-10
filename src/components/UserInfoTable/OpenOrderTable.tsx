@@ -9,6 +9,7 @@ import { useSendConnection } from '../../utils/connection';
 import { notify } from '../../utils/notifications';
 import { DeleteOutlined } from '@ant-design/icons';
 import { OrderWithMarketAndMarketName } from '../../utils/types';
+import { Side } from '@bonfida/dex-v4';
 
 const CancelButton = styled(Button)`
   color: #f23b69;
@@ -79,16 +80,16 @@ export default function OpenOrderTable({
       key: 'side',
       render: (side) => (
         <Tag
-          color={side === 'buy' ? '#41C77A' : '#F23B69'}
+          color={side === Side.Bid ? '#41C77A' : '#F23B69'}
           style={{ fontWeight: 700 }}
         >
-          {side.charAt(0).toUpperCase() + side.slice(1)}
+          {side === Side.Bid ? 'Bid' : 'Ask'}
         </Tag>
       ),
       sorter: (a, b) => {
         if (a.side === b.side) {
           return 0;
-        } else if (a.side === 'buy') {
+        } else if (a.side === Side.Bid) {
           return 1;
         } else {
           return -1;

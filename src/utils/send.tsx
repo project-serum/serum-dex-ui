@@ -6,9 +6,12 @@ import {
   AccountInfo,
   Commitment,
   Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   RpcResponseAndContext,
   SimulatedTransactionResponse,
+  SystemProgram,
   Transaction,
   TransactionSignature,
 } from '@solana/web3.js';
@@ -16,6 +19,8 @@ import {
   Token,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
+  AccountLayout,
+  NATIVE_MINT,
 } from '@solana/spl-token';
 import BN from 'bn.js';
 import {
@@ -306,19 +311,13 @@ export async function placeOrder({
     notify({ message: 'Size too small', type: 'error' });
     return;
   }
-  if (!isIncrement(price, market.tickSize)) {
-    notify({
-      message: `Price must be an increment of ${formattedTickSize}`,
-      type: 'error',
-    });
-    return;
-  }
   if (price < market.tickSize) {
     notify({ message: 'Price under tick size', type: 'error' });
     return;
   }
   const owner = wallet.publicKey;
   const transaction = new Transaction();
+  const signers: Keypair[] = [];
 
   if (!baseCurrencyAccount) {
     const {
@@ -343,7 +342,7 @@ export async function placeOrder({
     quoteCurrencyAccount = newAccountPubkey;
   }
 
-  const payer = side === Side.Ask ? baseCurrencyAccount : quoteCurrencyAccount;
+  let payer = side === Side.Ask ? baseCurrencyAccount : quoteCurrencyAccount;
   if (!payer) {
     notify({
       message: 'Need an SPL token account for cost currency',
@@ -351,30 +350,59 @@ export async function placeOrder({
     });
     return;
   }
-  const params = {
-    owner,
-    payer,
-    side,
-    price,
-    size,
-    orderType,
-    feeDiscountPubkey: feeDiscountPubkey || null,
-  };
-  console.log(params);
+
+  if (payer.equals(owner)) {
+    const newAccount = Keypair.generate();
+
+    transaction.add(SystemProgram.createAccount({
+      fromPubkey: owner,
+      newAccountPubkey: newAccount.publicKey,
+      lamports: await Token.getMinBalanceRentForExemptAccount(connection),
+      space: AccountLayout.span,
+      programId: TOKEN_PROGRAM_ID,
+    })); // Send lamports to it (these will be wrapped into native tokens by the token program)
+
+    transaction.add(SystemProgram.transfer({
+      fromPubkey: owner,
+      toPubkey: newAccount.publicKey,
+      lamports: side === Side.Ask ? Math.floor(size * LAMPORTS_PER_SOL) : Math.floor(size * price * LAMPORTS_PER_SOL),
+    })); // Assign the new account to the native token mint.
+    // the account will be initialized with a balance equal to the native token balance.
+    // (i.e. amount)
+
+    transaction.add(Token.createInitAccountInstruction(TOKEN_PROGRAM_ID, NATIVE_MINT, newAccount.publicKey, owner)); // Send the three instructions
+
+    payer = newAccount.publicKey;
+
+    signers.push(newAccount);
+  }
+
+
+  try {
+    await OpenOrders.load(connection, market.address, owner)
+  } catch (e) {
+    const initOpenOrders = await OpenOrders.makeCreateAccountTransaction(market.address, owner);
+    transaction.add(initOpenOrders);
+  }
 
   const startTime = getUnixTs();
+
   let placeOrderTx = await market.makePlaceOrderTransaction(
-    side, price, size, orderType, SelfTradeBehavior.DecrementTake, payer, owner, new BN(0), feeDiscountPubkey
+    side, price, size, orderType, SelfTradeBehavior.DecrementTake, payer, owner, new BN(0), // feeDiscountPubkey TODO FIX
   );
   const endTime = getUnixTs();
   console.log(`Creating order transaction took ${endTime - startTime}`);
   transaction.add(placeOrderTx);
 
+  if (payer.equals(owner)) {
+    Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, payer, owner, owner, signers);
+  }
+
   return await sendTransaction({
     transaction,
     wallet,
     connection,
-    signers: [],
+    signers: signers.map(signer => new Account(signer.secretKey)),
     sendingMessage: 'Sending order...',
   });
 }
@@ -391,16 +419,9 @@ export async function listMarket({
   wallet: WalletAdapter;
   baseMint: PublicKey;
   quoteMint: PublicKey;
-  baseLotSize: number;
+  baseLotSize: BN;
   quoteLotSize: number;
 }) {
-  const metadataProgramId = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
-  const [metadataAccount] = PublicKey.findProgramAddressSync([
-    "metadata" as any,
-    metadataProgramId.toBuffer(),
-    baseMint.toBuffer(),
-  ], metadataProgramId);
-
   const primedTransactions = await createMarket(
     connection,
     baseMint,
@@ -408,9 +429,8 @@ export async function listMarket({
     baseLotSize,
     wallet.publicKey,
     wallet.publicKey,
-    new BN(quoteLotSize),
+    new BN(quoteLotSize * 2 ** 32),
     new BN(50000),
-    metadataAccount,
   );
 
   // Hack for now

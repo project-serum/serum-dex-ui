@@ -79,7 +79,7 @@ export default function CustomMarketDialog({
   const canSubmit =
     !loadingMarket &&
     !!market &&
-    market.publicKey.toBase58() === marketId &&
+    market.address.toBase58() === marketId &&
     marketId &&
     programId &&
     marketLabel &&

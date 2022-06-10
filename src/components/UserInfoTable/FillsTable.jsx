@@ -2,6 +2,7 @@ import React from 'react';
 import { Row, Col, Tag } from 'antd';
 import { useFills, useMarket } from '../../utils/markets';
 import DataTable from '../layout/DataTable';
+import { Side } from '@bonfida/dex-v4';
 
 export default function FillsTable() {
   const fills = useFills();
@@ -20,7 +21,7 @@ export default function FillsTable() {
       key: 'side',
       render: (side) => (
         <Tag
-          color={side === 'buy' ? '#41C77A' : '#F23B69'}
+          color={side === Side.Bid ? '#41C77A' : '#F23B69'}
           style={{ fontWeight: 700 }}
         >
           {side.charAt(0).toUpperCase() + side.slice(1)}

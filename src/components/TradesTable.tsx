@@ -24,10 +24,10 @@ export default function PublicTrades({ smallScreen }) {
         smallScreen
           ? { flex: 1 }
           : {
-              marginTop: '10px',
-              minHeight: '270px',
-              maxHeight: 'calc(100vh - 700px)',
-            }
+            marginTop: '10px',
+            minHeight: '270px',
+            maxHeight: 'calc(100vh - 700px)',
+          }
       }
     >
       <Title>Recent Market trades</Title>
@@ -61,15 +61,15 @@ export default function PublicTrades({ smallScreen }) {
               >
                 {market?.tickSize && !isNaN(trade.price)
                   ? Number(trade.price).toFixed(
-                      getDecimalCount(market.tickSize),
-                    )
+                    getDecimalCount(market.tickSize),
+                  )
                   : trade.price}
               </Col>
               <Col span={8} style={{ textAlign: 'right' }}>
                 {market?.minOrderSize && !isNaN(trade.size)
                   ? Number(trade.size).toFixed(
-                      getDecimalCount(market.minOrderSize),
-                    )
+                    getDecimalCount(market.minOrderSize),
+                  )
                   : trade.size}
               </Col>
               <Col span={8} style={{ textAlign: 'right', color: '#434a59' }}>
