@@ -9,6 +9,14 @@ import {
 import { createMarket, initializeAccount } from "../../src/bindings";
 import BN from "bn.js";
 import { DEX_ID } from "../../src/ids";
+import {
+  createCreateMetadataAccountV2Instruction,
+  CreateMetadataAccountArgsV2,
+  CreateMetadataAccountV2InstructionAccounts,
+  DataV2,
+  Creator,
+} from "@metaplex-foundation/mpl-token-metadata";
+import { getMetadataKeyFromMint } from "../../src/metadata";
 
 export const createContext = async (
   connection: Connection,
@@ -16,13 +24,57 @@ export const createContext = async (
   tickSize: BN,
   minBaseOrderSize: BN,
   baseDecimals: number,
-  quoteDecimals: number
+  quoteDecimals: number,
+  baseCurrencyMultiplier?: BN,
+  quoteCurrencyMultiplier?: BN,
+  creators?: { key: Keypair; share: number }[],
+  sellerFeeBasisPoints?: number
 ) => {
   /**
    * Base and quote
    */
   const base = await TokenMint.init(connection, feePayer, baseDecimals);
   const quote = await TokenMint.init(connection, feePayer, quoteDecimals);
+
+  /**
+   * Create metadata
+   */
+  if (creators && sellerFeeBasisPoints) {
+    const accounts: CreateMetadataAccountV2InstructionAccounts = {
+      metadata: await getMetadataKeyFromMint(base.token),
+      mint: base.token,
+      mintAuthority: base.signer.publicKey,
+      payer: feePayer.publicKey,
+      updateAuthority: feePayer.publicKey,
+    };
+    const creators_: Creator[] = creators.map((e) => {
+      return {
+        address: e.key.publicKey,
+        verified: false,
+        share: e.share,
+      };
+    });
+    const data: DataV2 = {
+      name: "Test base",
+      symbol: "BASE",
+      uri: "https://google.com",
+      creators: creators_,
+      sellerFeeBasisPoints,
+      collection: null,
+      uses: null,
+    };
+    const args: CreateMetadataAccountArgsV2 = { data, isMutable: false };
+    const ix = createCreateMetadataAccountV2Instruction(accounts, {
+      createMetadataAccountArgsV2: args,
+    });
+    const tx = await signAndSendInstructions(
+      connection,
+      [base.signer],
+      feePayer,
+      [ix]
+    );
+    console.log(`Created metadata ${tx}`);
+  }
 
   /**
    * Create market
@@ -35,7 +87,8 @@ export const createContext = async (
     feePayer.publicKey,
     feePayer.publicKey,
     tickSize,
-    new BN(0)
+    baseCurrencyMultiplier,
+    quoteCurrencyMultiplier
   );
 
   for (let ix of ixs) {
@@ -77,7 +130,8 @@ export const initializeTraders = async (
   Bob: Keypair,
   feePayer: Keypair,
   marketKey: PublicKey,
-  tokenAmount = 10_000_000 * Math.pow(10, 6)
+  baseTokenAmount: number,
+  quoteTokenAmount: number
 ) => {
   const aliceBaseAta = await base.getAssociatedTokenAccount(Alice.publicKey);
   const aliceQuoteAta = await quote.getAssociatedTokenAccount(Alice.publicKey);
@@ -85,11 +139,11 @@ export const initializeTraders = async (
   const bobBaseAta = await base.getAssociatedTokenAccount(Bob.publicKey);
   const bobQuoteAta = await quote.getAssociatedTokenAccount(Bob.publicKey);
 
-  base.mintInto(aliceBaseAta, tokenAmount);
-  quote.mintInto(aliceQuoteAta, tokenAmount);
+  base.mintInto(aliceBaseAta, baseTokenAmount);
+  quote.mintInto(aliceQuoteAta, quoteTokenAmount);
 
-  base.mintInto(bobBaseAta, tokenAmount);
-  quote.mintInto(bobQuoteAta, tokenAmount);
+  base.mintInto(bobBaseAta, baseTokenAmount);
+  quote.mintInto(bobQuoteAta, quoteTokenAmount);
 
   // Create user accounts
   let tx = await signAndSendInstructions(connection, [Alice, Bob], feePayer, [

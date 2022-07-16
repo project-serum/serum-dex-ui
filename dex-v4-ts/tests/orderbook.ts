@@ -6,7 +6,7 @@ import {
 } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "@jest/globals";
-import { AccountTag, UserAccount } from "../src/state";
+import { AccountTag, UserAccount, MarketState } from "../src/state";
 import { createContext, initializeTraders } from "./utils/context";
 import { signAndSendInstructions } from "@bonfida/utils";
 import { Market } from "../src/market";
@@ -16,18 +16,32 @@ import { computeFp32Price } from "../src/utils";
 import { DEX_ID } from "../src/ids";
 import { OrderType, SelfTradeBehavior } from "../src/types";
 import { AccountLayout } from "@solana/spl-token";
+import { random } from "./utils/random";
+import { checkTokenBalances } from "./utils/token-balances";
 
 export const orderbookTest = async (
   connection: Connection,
   feePayer: Keypair,
   baseDecimals: number,
-  quoteDecimals: number
+  quoteDecimals: number,
+  minPrice: number,
+  maxPrice: number,
+  minUiTradeSize: number,
+  maxUiTradeSize: number,
+  maxTickSize: number,
+  baseCurrencyMultiplier?: BN,
+  quoteCurrencyMultiplier?: BN
 ) => {
-  const tokenAmount = 100_000_000 * Math.pow(10, 6);
+  const baseTokenAmount =
+    random(maxUiTradeSize, 10 * maxUiTradeSize, true) *
+    Math.pow(10, baseDecimals);
+  const quoteTokenAmount =
+    random(10 * maxUiTradeSize, maxPrice * (10 * maxUiTradeSize), true) *
+    Math.pow(10, quoteDecimals);
   /**
    * Initialize market and traders
    */
-  const tickSize = new BN(2 ** 32);
+  const tickSize = new BN(random(0, maxTickSize) * 2 ** 32);
   const minBaseOrderSize = new BN(1);
   const { marketKey, base, quote, Alice, Bob } = await createContext(
     connection,
@@ -35,8 +49,11 @@ export const orderbookTest = async (
     tickSize,
     minBaseOrderSize,
     baseDecimals,
-    quoteDecimals
+    quoteDecimals,
+    baseCurrencyMultiplier,
+    quoteCurrencyMultiplier
   );
+  const marketState = await MarketState.retrieve(connection, marketKey);
   let market = await Market.load(connection, marketKey);
   const { bobBaseAta, bobQuoteAta } = await initializeTraders(
     connection,
@@ -46,7 +63,8 @@ export const orderbookTest = async (
     Bob,
     feePayer,
     marketKey,
-    tokenAmount
+    baseTokenAmount,
+    quoteTokenAmount
   );
 
   /**
@@ -68,29 +86,17 @@ export const orderbookTest = async (
    *
    */
 
-  const minBid = Math.random() * 100_000;
-  const maxBid = minBid + 40_000 * Math.random();
+  const bidPrices = [minPrice / 2, random(minPrice / 2, minPrice), minPrice];
 
-  const minAsk = maxBid + 10_000 * Math.random();
-  const maxAsk = minAsk + 100_000 * Math.random();
-
-  const bidPrices = [
-    minBid,
-    minBid + (maxBid - minBid) * Math.random(),
-    maxBid,
-  ];
   const bidSizes = new Array(3)
     .fill(0)
-    .map((e) => Math.floor(Math.random() * Math.pow(10, 8)));
+    .map(() => random(minUiTradeSize, maxUiTradeSize, true));
 
-  const askPrices = [
-    minAsk,
-    minAsk + (maxAsk - minAsk) * Math.random(),
-    maxAsk,
-  ];
+  const askPrices = [minPrice * 2, random(2 * minPrice, maxPrice), maxPrice];
+
   const askSizes = new Array(3)
     .fill(0)
-    .map((e) => Math.floor(Math.random() * Math.pow(10, 8)));
+    .map(() => random(minUiTradeSize, maxUiTradeSize, true));
 
   /**
    * Place orders
@@ -107,11 +113,7 @@ export const orderbookTest = async (
         OrderType.Limit,
         SelfTradeBehavior.AbortTransaction,
         bobQuoteAta,
-        Bob.publicKey,
-        undefined,
-        undefined,
-        undefined,
-        new BN(Number.MAX_SAFE_INTEGER)
+        Bob.publicKey
       ),
       await placeOrder(
         market,
@@ -131,10 +133,8 @@ export const orderbookTest = async (
   let asksSlab = await market.loadAsks(connection);
   let bidsSlab = await market.loadBids(connection);
 
-  let asks = asksSlab.getL2DepthJS(3, true);
-  let bids = bidsSlab.getL2DepthJS(3, false);
-  console.log(asks, askPrices, askSizes);
-  console.log(bids, bidPrices, bidSizes);
+  let bids = market.parseBidsSlab(bidsSlab, 3);
+  let asks = market.parseAsksSlab(asksSlab, 3);
 
   let totalBase = new BN(0);
   let totalQuote = new BN(0);
@@ -143,14 +143,22 @@ export const orderbookTest = async (
     const bidFp32 = computeFp32Price(market, bidPrices[2 - i]);
     const askFp3 = computeFp32Price(market, askPrices[i]);
 
-    expect(bids[i].price).toBe(bidFp32.toNumber());
-    expect(bids[i].size).toBe(Math.floor(bidSizes[2 - i]));
+    expect(bids[i].priceRaw.toString()).toBe(bidFp32.toString());
+    expect(bids[i].size.toString()).toBe(
+      Math.floor(bidSizes[2 - i]).toString()
+    );
 
-    expect(asks[i].price).toBe(askFp3.toNumber());
-    expect(asks[i].size).toBe(Math.floor(askSizes[i]));
+    expect(asks[i].priceRaw.toString()).toBe(askFp3.toString());
+    expect(asks[i].size.toString()).toBe(Math.floor(askSizes[i]).toString());
 
     totalBase = totalBase.add(new BN(askSizes[i]));
-    totalQuote = totalQuote.add(bidFp32.mul(new BN(bids[i].size)).shrn(32));
+    totalQuote = totalQuote.add(
+      bidFp32
+        .mul(bids[i].size)
+        .shrn(32)
+        .mul(market.quoteCurrencyMultiplier)
+        .div(market.baseCurrencyMultiplier)
+    );
   }
 
   /**
@@ -161,15 +169,19 @@ export const orderbookTest = async (
     [marketKey.toBuffer(), Bob.publicKey.toBuffer()],
     DEX_ID
   );
-  let bobUserAccount = await UserAccount.retrieve(connection, bobUa);
+  let bobUserAccount = await UserAccount.retrieve(
+    connection,
+    bobUa,
+    marketState
+  );
   expect(bobUserAccount.tag).toBe(AccountTag.UserAccount);
   expect(bobUserAccount.market.toBase58()).toBe(marketKey.toBase58());
   expect(bobUserAccount.owner.toBase58()).toBe(Bob.publicKey.toBase58());
   expect(bobUserAccount.baseTokenFree.toNumber()).toBe(0);
   expect(bobUserAccount.baseTokenLocked.toNumber()).toBe(totalBase.toNumber());
   expect(bobUserAccount.quoteTokenFree.toNumber()).toBe(0);
-  expect(bobUserAccount.quoteTokenLocked.toNumber()).toBe(
-    totalQuote.toNumber()
+  expect(bobUserAccount.quoteTokenLocked.toString()).toBe(
+    totalQuote.toString()
   );
   expect(bobUserAccount.accumulatedRebates.toNumber()).toBe(0);
   expect(bobUserAccount.accumulatedMakerQuoteVolume.toNumber()).toBe(0);
@@ -177,6 +189,21 @@ export const orderbookTest = async (
   expect(bobUserAccount.accumulatedTakerQuoteVolume.toNumber()).toBe(0);
   expect(bobUserAccount.accumulatedTakerBaseVolume.toNumber()).toBe(0);
   expect(bobUserAccount.orders.length).toBe(bidSizes.length + askSizes.length);
+
+  /**
+   * Check token accounts
+   */
+
+  checkTokenBalances(
+    connection,
+    bobBaseAta,
+    new BN(baseTokenAmount).sub(totalBase)
+  );
+  checkTokenBalances(
+    connection,
+    bobQuoteAta,
+    new BN(quoteTokenAmount).sub(totalQuote)
+  );
 
   /**
    * Cancel order
@@ -196,8 +223,8 @@ export const orderbookTest = async (
   asksSlab = await market.loadAsks(connection);
   bidsSlab = await market.loadBids(connection);
 
-  asks = asksSlab.getL2DepthJS(3, true);
-  bids = bidsSlab.getL2DepthJS(3, false);
+  bids = market.parseBidsSlab(bidsSlab, 3);
+  asks = market.parseAsksSlab(asksSlab, 3);
 
   expect(asks.length).toBe(0);
   expect(bids.length).toBe(0);
@@ -206,13 +233,13 @@ export const orderbookTest = async (
    * Check user account
    */
 
-  bobUserAccount = await UserAccount.retrieve(connection, bobUa);
+  bobUserAccount = await UserAccount.retrieve(connection, bobUa, marketState);
   expect(bobUserAccount.tag).toBe(AccountTag.UserAccount);
   expect(bobUserAccount.market.toBase58()).toBe(marketKey.toBase58());
   expect(bobUserAccount.owner.toBase58()).toBe(Bob.publicKey.toBase58());
   expect(bobUserAccount.baseTokenFree.toNumber()).toBe(totalBase.toNumber());
   expect(bobUserAccount.baseTokenLocked.toNumber()).toBe(0);
-  expect(bobUserAccount.quoteTokenFree.toNumber()).toBe(totalQuote.toNumber());
+  expect(bobUserAccount.quoteTokenFree.toString()).toBe(totalQuote.toString());
   expect(bobUserAccount.quoteTokenLocked.toNumber()).toBe(0);
   expect(bobUserAccount.accumulatedRebates.toNumber()).toBe(0);
   expect(bobUserAccount.accumulatedMakerQuoteVolume.toNumber()).toBe(0);
@@ -229,7 +256,7 @@ export const orderbookTest = async (
   ]);
   console.log(`Settled ${tx}`);
 
-  bobUserAccount = await UserAccount.retrieve(connection, bobUa);
+  bobUserAccount = await UserAccount.retrieve(connection, bobUa, marketState);
   expect(bobUserAccount.tag).toBe(AccountTag.UserAccount);
   expect(bobUserAccount.market.toBase58()).toBe(marketKey.toBase58());
   expect(bobUserAccount.owner.toBase58()).toBe(Bob.publicKey.toBase58());
@@ -256,6 +283,6 @@ export const orderbookTest = async (
   const bobQuoteAccount = AccountLayout.decode(bobQuoteRaw.data);
   const bobBaseAccount = AccountLayout.decode(bobBaseRaw.data);
 
-  expect(bobQuoteAccount.amount.toString()).toBe(tokenAmount.toString());
-  expect(bobBaseAccount.amount.toString()).toBe(tokenAmount.toString());
+  expect(bobQuoteAccount.amount.toString()).toBe(quoteTokenAmount.toString());
+  expect(bobBaseAccount.amount.toString()).toBe(baseTokenAmount.toString());
 };

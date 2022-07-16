@@ -1,0 +1,10 @@
+.vscode/
+target
+dist/
+node_modules/
+docs/
+.env
+wallet.json
+out.log
+wallet.json
+coverage/

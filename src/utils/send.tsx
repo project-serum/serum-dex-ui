@@ -24,9 +24,7 @@ import {
   NATIVE_MINT,
 } from '@solana/spl-token';
 import BN from 'bn.js';
-import {
-  parseInstructionErrorResponse,
-} from '@project-serum/serum';
+import { parseInstructionErrorResponse } from '@project-serum/serum';
 import {
   Market,
   OpenOrders,
@@ -127,25 +125,32 @@ export async function settleFunds({
 
   let closeInstruction: TransactionInstruction | null = null;
   let signers: Keypair[] = [];
-  if (baseCurrencyAccount.effectiveMint.equals(NATIVE_MINT) || quoteCurrencyAccount.effectiveMint.equals(NATIVE_MINT)) {
+  if (
+    baseCurrencyAccount.effectiveMint.equals(NATIVE_MINT) ||
+    quoteCurrencyAccount.effectiveMint.equals(NATIVE_MINT)
+  ) {
     const newAccount = Keypair.generate();
     signers.push(newAccount);
     const wrapTransaction = new Transaction();
 
-    wrapTransaction.add(SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: newAccount.publicKey,
-      lamports: await Token.getMinBalanceRentForExemptAccount(connection),
-      space: AccountLayout.span,
-      programId: TOKEN_PROGRAM_ID,
-    }));
+    wrapTransaction.add(
+      SystemProgram.createAccount({
+        fromPubkey: wallet.publicKey,
+        newAccountPubkey: newAccount.publicKey,
+        lamports: await Token.getMinBalanceRentForExemptAccount(connection),
+        space: AccountLayout.span,
+        programId: TOKEN_PROGRAM_ID,
+      }),
+    );
 
-    wrapTransaction.add(Token.createInitAccountInstruction(
-      TOKEN_PROGRAM_ID,
-      NATIVE_MINT,
-      newAccount.publicKey,
-      wallet.publicKey,
-    ));
+    wrapTransaction.add(
+      Token.createInitAccountInstruction(
+        TOKEN_PROGRAM_ID,
+        NATIVE_MINT,
+        newAccount.publicKey,
+        wallet.publicKey,
+      ),
+    );
 
     if (baseCurrencyAccount.effectiveMint.equals(NATIVE_MINT)) {
       baseCurrencyAccountPubkey = newAccount.publicKey;
@@ -164,11 +169,13 @@ export async function settleFunds({
     transactions.push(wrapTransaction);
   }
 
-  transactions.push(await market.makeSettleFundsTransaction(
-    wallet.publicKey,
-    baseCurrencyAccountPubkey,
-    quoteCurrencyAccountPubkey,
-  ));
+  transactions.push(
+    await market.makeSettleFundsTransaction(
+      wallet.publicKey,
+      baseCurrencyAccountPubkey,
+      quoteCurrencyAccountPubkey,
+    ),
+  );
 
   let transaction = mergeTransactions(transactions);
 
@@ -178,7 +185,7 @@ export async function settleFunds({
 
   return await sendTransaction({
     transaction,
-    signers: signers.map(signer => new Account(signer.secretKey)),
+    signers: signers.map((signer) => new Account(signer.secretKey)),
     wallet,
     connection,
     sendingMessage: 'Settling funds...',
@@ -206,7 +213,10 @@ export async function settleAllFunds({
   const settleTransactions = (
     await Promise.all(
       markets.map(async (market) => {
-        const openOrdersAccount = await market.findOpenOrdersAccountForOwner(connection, wallet.publicKey);
+        const openOrdersAccount = await market.findOpenOrdersAccountForOwner(
+          connection,
+          wallet.publicKey,
+        );
 
         if (
           openOrdersAccount.baseTokenFree.isZero() &&
@@ -222,15 +232,15 @@ export async function settleAllFunds({
           tokenAccounts,
           baseMint,
           baseMint &&
-          selectedTokenAccounts &&
-          selectedTokenAccounts[baseMint.toBase58()],
+            selectedTokenAccounts &&
+            selectedTokenAccounts[baseMint.toBase58()],
         )?.pubkey;
         const selectedQuoteTokenAccount = getSelectedTokenAccountForMint(
           tokenAccounts,
           quoteMint,
           quoteMint &&
-          selectedTokenAccounts &&
-          selectedTokenAccounts[quoteMint.toBase58()],
+            selectedTokenAccounts &&
+            selectedTokenAccounts[quoteMint.toBase58()],
         )?.pubkey;
         if (!selectedBaseTokenAccount || !selectedQuoteTokenAccount) {
           return undefined;
@@ -245,7 +255,7 @@ export async function settleAllFunds({
         );
       }),
     )
-  ).filter(x => !!x);
+  ).filter((x) => !!x);
   if (!settleTransactions || settleTransactions.length === 0) return;
 
   const transactions = settleTransactions.slice(0, 4);
@@ -260,7 +270,12 @@ export async function settleAllFunds({
   });
 }
 
-export async function cancelOrder({ market, connection, wallet, orderId }: {
+export async function cancelOrder({
+  market,
+  connection,
+  wallet,
+  orderId,
+}: {
   market: Market;
   connection: Connection;
   wallet: WalletAdapter;
@@ -268,7 +283,10 @@ export async function cancelOrder({ market, connection, wallet, orderId }: {
 }) {
   const transaction = new Transaction();
 
-  const openOrders = await market.loadOrdersForOwner(connection, wallet.publicKey);
+  const openOrders = await market.loadOrdersForOwner(
+    connection,
+    wallet.publicKey,
+  );
   let orderIndex: BN | null = null;
   for (let i = 0; i < openOrders.length; i++) {
     const order = openOrders[i];
@@ -283,7 +301,13 @@ export async function cancelOrder({ market, connection, wallet, orderId }: {
     return;
   }
 
-  transaction.add(await market.makeCancelOrderInstruction(orderIndex, orderId, wallet.publicKey));
+  transaction.add(
+    await market.makeCancelOrderInstruction(
+      orderIndex,
+      orderId,
+      wallet.publicKey,
+    ),
+  );
 
   return await sendTransaction({
     transaction,
@@ -395,55 +419,88 @@ export async function placeOrder({
   if (payer.equals(owner)) {
     const newAccount = Keypair.generate();
 
-    transaction.add(SystemProgram.createAccount({
-      fromPubkey: owner,
-      newAccountPubkey: newAccount.publicKey,
-      lamports: await Token.getMinBalanceRentForExemptAccount(connection),
-      space: AccountLayout.span,
-      programId: TOKEN_PROGRAM_ID,
-    })); // Send lamports to it (these will be wrapped into native tokens by the token program)
+    transaction.add(
+      SystemProgram.createAccount({
+        fromPubkey: owner,
+        newAccountPubkey: newAccount.publicKey,
+        lamports: await Token.getMinBalanceRentForExemptAccount(connection),
+        space: AccountLayout.span,
+        programId: TOKEN_PROGRAM_ID,
+      }),
+    ); // Send lamports to it (these will be wrapped into native tokens by the token program)
 
-    transaction.add(SystemProgram.transfer({
-      fromPubkey: owner,
-      toPubkey: newAccount.publicKey,
-      lamports: side === Side.Ask ? Math.floor(size * LAMPORTS_PER_SOL) : Math.floor(size * price * LAMPORTS_PER_SOL),
-    })); // Assign the new account to the native token mint.
+    transaction.add(
+      SystemProgram.transfer({
+        fromPubkey: owner,
+        toPubkey: newAccount.publicKey,
+        lamports:
+          side === Side.Ask
+            ? Math.floor(size * LAMPORTS_PER_SOL)
+            : Math.floor(size * price * LAMPORTS_PER_SOL),
+      }),
+    ); // Assign the new account to the native token mint.
     // the account will be initialized with a balance equal to the native token balance.
     // (i.e. amount)
 
-    transaction.add(Token.createInitAccountInstruction(TOKEN_PROGRAM_ID, NATIVE_MINT, newAccount.publicKey, owner)); // Send the three instructions
+    transaction.add(
+      Token.createInitAccountInstruction(
+        TOKEN_PROGRAM_ID,
+        NATIVE_MINT,
+        newAccount.publicKey,
+        owner,
+      ),
+    ); // Send the three instructions
 
     payer = newAccount.publicKey;
 
     signers.push(newAccount);
   }
 
-
   try {
-    await OpenOrders.load(connection, market.address, owner)
+    await OpenOrders.load(
+      connection,
+      market.address,
+      owner,
+      market.marketState,
+    );
   } catch (e) {
-    const initOpenOrders = await OpenOrders.makeCreateAccountTransaction(market.address, owner);
+    const initOpenOrders = await OpenOrders.makeCreateAccountTransaction(
+      market.address,
+      owner,
+    );
     transaction.add(initOpenOrders);
   }
 
   const startTime = getUnixTs();
 
   let placeOrderTx = await market.makePlaceOrderTransaction(
-    side, price, size, orderType, SelfTradeBehavior.DecrementTake, payer, owner, new BN(0), // feeDiscountPubkey TODO FIX
+    side,
+    price,
+    size,
+    orderType,
+    SelfTradeBehavior.DecrementTake,
+    payer,
+    owner, // feeDiscountPubkey TODO FIX
   );
   const endTime = getUnixTs();
   console.log(`Creating order transaction took ${endTime - startTime}`);
   transaction.add(placeOrderTx);
 
   if (payer.equals(owner)) {
-    Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, payer, owner, owner, signers);
+    Token.createCloseAccountInstruction(
+      TOKEN_PROGRAM_ID,
+      payer,
+      owner,
+      owner,
+      signers,
+    );
   }
 
   return await sendTransaction({
     transaction,
     wallet,
     connection,
-    signers: signers.map(signer => new Account(signer.secretKey)),
+    signers: signers.map((signer) => new Account(signer.secretKey)),
     sendingMessage: 'Sending order...',
   });
 }
@@ -471,17 +528,18 @@ export async function listMarket({
     wallet.publicKey,
     wallet.publicKey,
     new BN(quoteLotSize * 2 ** 32),
-    new BN(50000),
   );
 
   // Hack for now
   const market = primedTransactions[0][0][0];
 
   const signedTransactions = await signTransactions({
-    transactionsAndSigners: primedTransactions.map(([keypairs, instructions]) => ({
-      transaction: new Transaction().add(...instructions),
-      signers: keypairs.map(keypair => new Account(keypair.secretKey)),
-    })),
+    transactionsAndSigners: primedTransactions.map(
+      ([keypairs, instructions]) => ({
+        transaction: new Transaction().add(...instructions),
+        signers: keypairs.map((keypair) => new Account(keypair.secretKey)),
+      }),
+    ),
     wallet,
     connection,
   });
@@ -643,7 +701,7 @@ export async function sendSignedTransaction({
       simulateResult = (
         await simulateTransaction(connection, signedTransaction, 'single')
       ).value;
-    } catch (e) { }
+    } catch (e) {}
     if (simulateResult && simulateResult.err) {
       if (simulateResult.logs) {
         for (let i = simulateResult.logs.length - 1; i >= 0; --i) {
@@ -815,9 +873,9 @@ export async function getMultipleSolanaAccounts(
   if (res.error) {
     throw new Error(
       'failed to get info about accounts ' +
-      publicKeys.map((k) => k.toBase58()).join(', ') +
-      ': ' +
-      res.error.message,
+        publicKeys.map((k) => k.toBase58()).join(', ') +
+        ': ' +
+        res.error.message,
     );
   }
   assert(typeof res.result !== 'undefined');

@@ -3,8 +3,8 @@ import {
   TransactionInstruction,
   PublicKey,
   Commitment,
-} from '@solana/web3.js';
-import BN from 'bn.js';
+} from "@solana/web3.js";
+import BN from "bn.js";
 
 export type PrimedTransaction = [Keypair[], TransactionInstruction[]];
 

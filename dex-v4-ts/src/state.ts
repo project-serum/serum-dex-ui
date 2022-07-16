@@ -1,6 +1,6 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-import BN from 'bn.js';
-import { deserialize, deserializeUnchecked, Schema } from 'borsh';
+import { Connection, PublicKey } from "@solana/web3.js";
+import BN from "bn.js";
+import { deserialize, deserializeUnchecked, Schema } from "borsh";
 
 export const CALLBACK_INFO_LEN = 33;
 
@@ -37,6 +37,8 @@ export class MarketState {
   minBaseOrderSize: BN;
   royaltiesBps: BN;
   accumulatedRoyalties: BN;
+  baseCurrencyMultiplier: BN;
+  quoteCurrencyMultiplier: BN;
   signerNonce: number;
   feeType: number;
 
@@ -44,25 +46,27 @@ export class MarketState {
     [
       MarketState,
       {
-        kind: 'struct',
+        kind: "struct",
         fields: [
-          ['tag', 'u64'],
-          ['baseMint', [32]],
-          ['quoteMint', [32]],
-          ['baseVault', [32]],
-          ['quoteVault', [32]],
-          ['orderbook', [32]],
-          ['admin', [32]],
-          ['creationTimestamp', 'u64'],
-          ['baseVolume', 'u64'],
-          ['quoteVolume', 'u64'],
-          ['accumulatedFees', 'u64'],
-          ['minBaseOrderSize', 'u64'],
-          ['royaltiesBps', 'u64'],
-          ['accumulatedRoyalties', 'u64'],
-          ['signerNonce', 'u8'],
-          ['feeType', 'u8'],
-          ['padding', [6]],
+          ["tag", "u64"],
+          ["baseMint", [32]],
+          ["quoteMint", [32]],
+          ["baseVault", [32]],
+          ["quoteVault", [32]],
+          ["orderbook", [32]],
+          ["admin", [32]],
+          ["creationTimestamp", "u64"],
+          ["baseVolume", "u64"],
+          ["quoteVolume", "u64"],
+          ["accumulatedFees", "u64"],
+          ["minBaseOrderSize", "u64"],
+          ["royaltiesBps", "u64"],
+          ["accumulatedRoyalties", "u64"],
+          ["baseCurrencyMultiplier", "u64"],
+          ["quoteCurrencyMultiplier", "u64"],
+          ["signerNonce", "u8"],
+          ["feeType", "u8"],
+          ["padding", [6]],
         ],
       },
     ],
@@ -83,6 +87,8 @@ export class MarketState {
     accumulatedFees: BN;
     minBaseOrderSize: BN;
     royaltiesBps: BN;
+    baseCurrencyMultiplier: BN;
+    quoteCurrencyMultiplier: BN;
     accumulatedRoyalties: BN;
     feeType: number;
   }) {
@@ -95,24 +101,30 @@ export class MarketState {
     this.orderbook = new PublicKey(obj.orderbook);
     this.admin = new PublicKey(obj.admin);
     this.creationTimestamp = obj.creationTimestamp;
-    this.baseVolume = obj.baseVolume;
-    this.quoteVolume = obj.quoteVolume;
-    this.accumulatedFees = obj.accumulatedFees;
-    this.minBaseOrderSize = obj.minBaseOrderSize;
+    this.baseVolume = obj.baseVolume.mul(obj.baseCurrencyMultiplier);
+    this.quoteVolume = obj.quoteVolume.mul(obj.quoteCurrencyMultiplier);
+    this.accumulatedFees = obj.accumulatedFees.mul(obj.quoteCurrencyMultiplier);
+    this.minBaseOrderSize = obj.minBaseOrderSize.mul(
+      obj.baseCurrencyMultiplier
+    );
     this.royaltiesBps = obj.royaltiesBps;
-    this.accumulatedRoyalties = obj.accumulatedRoyalties;
+    this.accumulatedRoyalties = obj.accumulatedRoyalties.mul(
+      obj.quoteCurrencyMultiplier
+    );
+    this.quoteCurrencyMultiplier = obj.quoteCurrencyMultiplier;
+    this.baseCurrencyMultiplier = obj.baseCurrencyMultiplier;
     this.feeType = obj.feeType;
   }
 
   static async retrieve(connection: Connection, market: PublicKey) {
     const accountInfo = await connection.getAccountInfo(market);
     if (!accountInfo?.data) {
-      throw new Error('Invalid account provided');
+      throw new Error("Invalid account provided");
     }
     return deserialize(
       this.schema,
       MarketState,
-      accountInfo.data,
+      accountInfo.data
     ) as MarketState;
   }
 }
@@ -147,32 +159,32 @@ export class UserAccount {
     [
       UserAccount,
       {
-        kind: 'struct',
+        kind: "struct",
         fields: [
-          ['tag', 'u64'],
-          ['market', [32]],
-          ['owner', [32]],
-          ['baseTokenFree', 'u64'],
-          ['baseTokenLocked', 'u64'],
-          ['quoteTokenFree', 'u64'],
-          ['quoteTokenLocked', 'u64'],
-          ['accumulatedRebates', 'u64'],
-          ['accumulatedMakerQuoteVolume', 'u64'],
-          ['accumulatedMakerBaseVolume', 'u64'],
-          ['accumulatedTakerQuoteVolume', 'u64'],
-          ['accumulatedTakerBaseVolume', 'u64'],
-          ['_padding', 'u32'],
-          ['orders', [Order]],
+          ["tag", "u64"],
+          ["market", [32]],
+          ["owner", [32]],
+          ["baseTokenFree", "u64"],
+          ["baseTokenLocked", "u64"],
+          ["quoteTokenFree", "u64"],
+          ["quoteTokenLocked", "u64"],
+          ["accumulatedRebates", "u64"],
+          ["accumulatedMakerQuoteVolume", "u64"],
+          ["accumulatedMakerBaseVolume", "u64"],
+          ["accumulatedTakerQuoteVolume", "u64"],
+          ["accumulatedTakerBaseVolume", "u64"],
+          ["_padding", "u32"],
+          ["orders", [Order]],
         ],
       },
     ],
     [
       Order,
       {
-        kind: 'struct',
+        kind: "struct",
         fields: [
-          ['id', 'u128'],
-          ['clientId', 'u128'],
+          ["id", "u128"],
+          ["clientId", "u128"],
         ],
       },
     ],
@@ -208,16 +220,31 @@ export class UserAccount {
     this.accumulatedTakerBaseVolume = obj.accumulatedTakerBaseVolume;
   }
 
-  static async retrieve(connection: Connection, userAccount: PublicKey) {
+  static async retrieve(
+    connection: Connection,
+    userAccount: PublicKey,
+    marketState: MarketState
+  ) {
+    const { baseCurrencyMultiplier, quoteCurrencyMultiplier } = marketState;
     const accountInfo = await connection.getAccountInfo(userAccount);
     if (!accountInfo?.data) {
-      throw new Error('Invalid account provided');
+      throw new Error("Invalid account provided");
     }
-    return deserializeUnchecked(
+    let u = deserializeUnchecked(
       this.schema,
       UserAccount,
-      accountInfo.data,
+      accountInfo.data
     ) as UserAccount;
+    u.baseTokenFree.imul(baseCurrencyMultiplier);
+    u.baseTokenLocked.imul(baseCurrencyMultiplier);
+    u.quoteTokenFree.imul(quoteCurrencyMultiplier);
+    u.quoteTokenLocked.imul(quoteCurrencyMultiplier);
+    u.accumulatedRebates.imul(quoteCurrencyMultiplier);
+    u.accumulatedMakerQuoteVolume.imul(quoteCurrencyMultiplier);
+    u.accumulatedTakerQuoteVolume.imul(quoteCurrencyMultiplier);
+    u.accumulatedMakerBaseVolume.imul(baseCurrencyMultiplier);
+    u.accumulatedTakerBaseVolume.imul(baseCurrencyMultiplier);
+    return u;
   }
 
   getOrderId(clientOrderId: BN): BN | undefined {

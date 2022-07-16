@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/dex-v4",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "license": "MIT",
   "repository": {
     "type": "git"
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
+    "@types/bn.js": "^5.1.0",
     "@types/bs58": "^4.0.1",
     "@types/jest": "^27.0.3",
     "@types/node": "^14.14.20",
@@ -40,7 +41,7 @@
     "typescript": "^4.1.3"
   },
   "dependencies": {
-    "@bonfida/aaob": "^0.0.5",
+    "@bonfida/aaob": "^0.1.2",
     "@bonfida/utils": "^0.0.4",
     "@metaplex-foundation/mpl-token-metadata": "^2.1.2",
     "@solana/spl-token": "0.2.0",

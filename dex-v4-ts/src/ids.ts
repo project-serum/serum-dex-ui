@@ -2,7 +2,7 @@ import { PublicKey } from '@solana/web3.js';
 
 // Devnet
 export const DEX_ID = new PublicKey(
-  '5Zbg3ZtBTUbNqeKecuXwd1sk5kQXk3J3WmJcnzTuYUTc',
+  'Fw2n4Hq2CKbbC9J1HZ3couDiKVBhUE9f1c7uads9hsGy',
 );
 
 export const SRM_MINT = new PublicKey(

@@ -8,25 +8,35 @@ import {
 import { placeOrder, settle, consumeEvents } from "../src/bindings";
 import BN from "bn.js";
 import { expect } from "@jest/globals";
-import { AccountTag, UserAccount } from "../src/state";
+import { AccountTag, UserAccount, MarketState } from "../src/state";
 import { Side } from "@bonfida/aaob";
 import { OrderType, SelfTradeBehavior } from "../src/types";
 import { Market } from "../src/market";
 import { createContext, initializeTraders } from "./utils/context";
 import { computeFp32Price } from "../src/utils";
 import { computeTakerFee } from "./utils/fee";
+import { random } from "./utils/random";
 
 export const selfTradeTest = async (
   connection: Connection,
   feePayer: Keypair,
   baseDecimals: number,
-  quoteDecimals: number
+  quoteDecimals: number,
+  minPrice: number,
+  maxPrice: number,
+  minUiTradeSize: number,
+  maxUiTradeSize: number
 ) => {
-  const tokenAmount = 10_000_000 * Math.pow(10, 6);
+  const baseTokenAmount =
+    random(maxUiTradeSize, 10 * maxUiTradeSize, true) *
+    Math.pow(10, baseDecimals);
+  const quoteTokenAmount =
+    random(10 * maxUiTradeSize, maxPrice * (10 * maxUiTradeSize), true) *
+    Math.pow(10, quoteDecimals);
   /**
    * Initialize market and traders
    */
-  const tickSize = new BN(2 ** 32);
+  const tickSize = new BN(random(0, 5) * 2 ** 32);
   const minBaseOrderSize = new BN(1);
   const { marketKey, base, quote, Alice, Bob } = await createContext(
     connection,
@@ -36,7 +46,7 @@ export const selfTradeTest = async (
     baseDecimals,
     quoteDecimals
   );
-
+  const marketState = await MarketState.retrieve(connection, marketKey);
   const {
     aliceBaseAta,
     aliceQuoteAta,
@@ -52,7 +62,8 @@ export const selfTradeTest = async (
     Bob,
     feePayer,
     marketKey,
-    tokenAmount
+    baseTokenAmount,
+    quoteTokenAmount
   );
   let market = await Market.load(connection, marketKey);
 
@@ -67,17 +78,11 @@ export const selfTradeTest = async (
    * With bidsPrice_1 < bidPrice_2 < bidPrice_3
    */
 
-  const minBid = Math.random() * 100_000;
-  const maxBid = minBid + 40_000 * Math.random();
+  const bidPrices = [minPrice, random(minPrice, maxPrice), maxPrice];
 
-  const bidPrices = [
-    minBid,
-    minBid + (maxBid - minBid) * Math.random(),
-    maxBid,
-  ];
   const bidSizes = new Array(3)
     .fill(0)
-    .map((e) => Math.floor(Math.random() * Math.pow(10, 8)));
+    .map(() => random(minUiTradeSize, maxUiTradeSize, true));
 
   /**
    * Place orders
@@ -171,7 +176,7 @@ export const selfTradeTest = async (
     await placeOrder(
       market,
       Side.Ask,
-      1,
+      minPrice / 2,
       askSize,
       OrderType.Limit,
       SelfTradeBehavior.CancelProvide,
@@ -190,6 +195,7 @@ export const selfTradeTest = async (
       new BN(1)
     ),
   ]);
+  console.log(tx);
 
   const executionPrice1 = computeFp32Price(market, bidPrices[0]);
   const executionPrice2 = computeFp32Price(market, bidPrices[1]);
@@ -201,20 +207,26 @@ export const selfTradeTest = async (
   let bidsSlab = await market.loadBids(connection);
   let asksSlab = await market.loadAsks(connection);
 
-  let bids = bidsSlab.getL2DepthJS(3, false);
-  let asks = asksSlab.getL2DepthJS(3, true);
+  let bids = market.parseBidsSlab(bidsSlab, 3);
+  let asks = market.parseAsksSlab(asksSlab, 3);
 
   expect(bids.length).toBe(0);
   expect(asks.length).toBe(1);
-  expect(asks[0].price).toBe(computeFp32Price(market, 1).toNumber());
-  expect(asks[0].size).toBeCloseTo(bidSizes[1], -1);
+  expect(asks[0].priceRaw.toString()).toBe(
+    computeFp32Price(market, minPrice / 2).toString()
+  );
+  expect(asks[0].size.toNumber()).toBeCloseTo(bidSizes[1], -1);
 
   /**
    * Verify user account
    */
 
   // Alice
-  let aliceUserAccount = await UserAccount.retrieve(connection, aliceUa);
+  let aliceUserAccount = await UserAccount.retrieve(
+    connection,
+    aliceUa,
+    marketState
+  );
   const quoteTokenFree = new BN(bidSizes[0])
     .mul(executionPrice1)
     .add(new BN(bidSizes[2]).mul(executionPrice3))
@@ -253,7 +265,11 @@ export const selfTradeTest = async (
 
   // Bob
 
-  let bobUserAccount = await UserAccount.retrieve(connection, bobUa);
+  let bobUserAccount = await UserAccount.retrieve(
+    connection,
+    bobUa,
+    marketState
+  );
 
   expect(bobUserAccount.tag).toBe(AccountTag.UserAccount);
   expect(bobUserAccount.market.toBase58()).toBe(marketKey.toBase58());
@@ -297,7 +313,7 @@ export const selfTradeTest = async (
     await placeOrder(
       market,
       Side.Ask,
-      1,
+      minPrice / 2,
       bidSizes[1],
       OrderType.Limit,
       SelfTradeBehavior.AbortTransaction,
@@ -310,14 +326,14 @@ export const selfTradeTest = async (
   bidsSlab = await market.loadBids(connection);
   asksSlab = await market.loadAsks(connection);
 
-  bids = bidsSlab.getL2DepthJS(3, false);
-  asks = asksSlab.getL2DepthJS(3, true);
+  bids = market.parseBidsSlab(bidsSlab, 3);
+  asks = market.parseAsksSlab(asksSlab, 3);
 
   tx = await signAndSendInstructions(connection, [Bob], feePayer, [
     await placeOrder(
       market,
       Side.Bid,
-      2,
+      minPrice / 2,
       bidSizes[1] * 2,
       OrderType.Limit,
       SelfTradeBehavior.DecrementTake,
@@ -330,8 +346,8 @@ export const selfTradeTest = async (
   bidsSlab = await market.loadBids(connection);
   asksSlab = await market.loadAsks(connection);
 
-  bids = bidsSlab.getL2DepthJS(3, false);
-  asks = asksSlab.getL2DepthJS(3, true);
+  bids = market.parseBidsSlab(bidsSlab, 3);
+  asks = market.parseAsksSlab(asksSlab, 3);
 
   expect(bids.length).toBe(0);
   expect(asks.length).toBe(0);
@@ -341,10 +357,12 @@ export const selfTradeTest = async (
    */
 
   // Bob
-  bobUserAccount = await UserAccount.retrieve(connection, bobUa);
-  const takerVolume = new BN(2 * bidSizes[1]).mul(
-    computeFp32Price(market, 1).shrn(32)
-  );
+  bobUserAccount = await UserAccount.retrieve(connection, bobUa, marketState);
+  const takerVolume = new BN(2 * bidSizes[1])
+    .mul(computeFp32Price(market, minPrice / 2))
+    .shrn(32)
+    .mul(market.quoteCurrencyMultiplier)
+    .div(market.baseCurrencyMultiplier);
 
   expect(bobUserAccount.baseTokenFree.toNumber()).toBeCloseTo(
     2 * bidSizes[1],
@@ -365,8 +383,9 @@ export const selfTradeTest = async (
   expect(bobUserAccount.accumulatedTakerBaseVolume.toNumber()).toBe(
     bidSizes[1] * 2
   );
-  expect(bobUserAccount.accumulatedTakerQuoteVolume.toNumber()).toBe(
-    takerVolume.add(computeTakerFee(takerVolume)).toNumber()
+  expect(bobUserAccount.accumulatedTakerQuoteVolume.toNumber()).toBeCloseTo(
+    takerVolume.add(computeTakerFee(takerVolume)).toNumber(),
+    -1
   );
   expect(bobUserAccount.orders.length).toBe(0);
 };

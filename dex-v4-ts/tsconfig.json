@@ -5,7 +5,9 @@
       "module": "commonjs",
       "baseUrl": "./",
       "paths": {
-        "*": ["types/*"]
+        "*": [
+          "types/*"
+        ]
       }
     }
   },
@@ -22,10 +24,20 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*", "src/types/*"]
+      "*": [
+        "node_modules/*",
+        "src/types/*"
+      ]
     },
     "resolveJsonModule": true,
   },
-  "include": ["src/*", "src/.ts"],
-  "exclude": ["src/**/*.test.ts", "**/node_modules", "dist"]
+  "include": [
+    "src/*",
+    "src/.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "**/node_modules",
+    "dist"
+  ]
 }

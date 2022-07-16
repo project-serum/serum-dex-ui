@@ -1,8 +1,9 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 import { DEX_ID } from './ids';
-import { Order, UserAccount } from './state';
+import { MarketState, Order, UserAccount } from './state';
 import { closeAccount, initializeAccount } from './bindings';
+import { BuiltInParserName } from 'prettier';
 
 /**
  * Open Orders class
@@ -156,13 +157,23 @@ export class OpenOrders {
     connection: Connection,
     market: PublicKey,
     owner: PublicKey,
+    marketState?: MarketState,
+    programId = DEX_ID,
   ) {
+    if (!marketState) {
+      marketState = await MarketState.retrieve(connection, market);
+    }
+
     const [address] = await PublicKey.findProgramAddress(
       [market.toBuffer(), owner.toBuffer()],
-      DEX_ID,
+      programId,
     );
 
-    const userAccount = await UserAccount.retrieve(connection, address);
+    const userAccount = await UserAccount.retrieve(
+      connection,
+      address,
+      marketState,
+    );
 
     return new OpenOrders(
       address,
@@ -211,19 +222,24 @@ export class OpenOrders {
     connection: Connection,
     market: PublicKey,
     owner: PublicKey,
+    programId = DEX_ID,
   ) {
     const [address] = await PublicKey.findProgramAddress(
       [market.toBuffer(), owner.toBuffer()],
-      DEX_ID,
+      programId,
     );
     const info = await connection.getAccountInfo(address);
     return !!info?.data;
   }
 
-  static async addressForOwner(market: PublicKey, owner: PublicKey) {
+  static async addressForOwner(
+    market: PublicKey,
+    owner: PublicKey,
+    programId = DEX_ID,
+  ) {
     const [address] = await PublicKey.findProgramAddress(
       [market.toBuffer(), owner.toBuffer()],
-      DEX_ID,
+      programId,
     );
     return address;
   }

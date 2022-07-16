@@ -14,7 +14,11 @@ import {
 } from '../utils/markets';
 import { useWallet } from '../utils/wallet';
 import { notify } from '../utils/notifications';
-import { floorToDecimal, getDecimalCount, roundToDecimal, } from '../utils/utils';
+import {
+  floorToDecimal,
+  getDecimalCount,
+  roundToDecimal,
+} from '../utils/utils';
 import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
 import { getUnixTs, placeOrder } from '../utils/send';
@@ -114,7 +118,8 @@ export default function TradeForm({
         console.log(`Refreshing accounts for ${market.address}`);
         const endTime = getUnixTs();
         console.log(
-          `Finished refreshing accounts for ${market.address} after ${endTime - startTime
+          `Finished refreshing accounts for ${market.address} after ${
+            endTime - startTime
           }`,
         );
       } catch (e) {
@@ -174,7 +179,9 @@ export default function TradeForm({
 
   const updateSizeFraction = () => {
     const rawMaxSize =
-      side === Side.Bid ? quoteBalance / (price || markPrice || 1) : baseBalance;
+      side === Side.Bid
+        ? quoteBalance / (price || markPrice || 1)
+        : baseBalance;
     const maxSize = floorToDecimal(rawMaxSize, sizeDecimalCount);
     const sizeFraction = Math.min(((baseSize || 0) / maxSize) * 100, 100);
     setSizeFraction(sizeFraction);
@@ -247,7 +254,11 @@ export default function TradeForm({
         side,
         price,
         size: baseSize,
-        orderType: ioc ? OrderType.ImmediateOrCancel : postOnly ? OrderType.PostOnly : OrderType.Limit,
+        orderType: ioc
+          ? OrderType.ImmediateOrCancel
+          : postOnly
+          ? OrderType.PostOnly
+          : OrderType.Limit,
         market,
         connection: sendConnection,
         wallet,
@@ -277,7 +288,9 @@ export default function TradeForm({
     >
       <div style={{ flex: 1 }}>
         <Radio.Group
-          onChange={(e) => setSide(e.target.value === 'bid' ? Side.Bid : Side.Ask)}
+          onChange={(e) =>
+            setSide(e.target.value === 'bid' ? Side.Bid : Side.Ask)
+          }
           value={side === Side.Bid ? 'bid' : 'ask'}
           buttonStyle="solid"
           style={{
@@ -286,7 +299,7 @@ export default function TradeForm({
           }}
         >
           <Radio.Button
-            value="buy"
+            value="bid"
             style={{
               width: '50%',
               textAlign: 'center',
@@ -297,7 +310,7 @@ export default function TradeForm({
             BUY
           </Radio.Button>
           <Radio.Button
-            value="sell"
+            value="ask"
             style={{
               width: '50%',
               textAlign: 'center',

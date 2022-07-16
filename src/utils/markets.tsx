@@ -1,14 +1,24 @@
-import { MARKETS, TOKEN_MINTS, TokenInstructions, } from '@project-serum/serum';
+import { MARKETS, TOKEN_MINTS, TokenInstructions } from '@project-serum/serum';
 import { PublicKey } from '@solana/web3.js';
 import React, { useContext, useEffect, useState } from 'react';
-import { divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState, } from './utils';
+import {
+  divideBnToNumber,
+  floorToDecimal,
+  getTokenMultiplierFromDecimals,
+  sleep,
+  useLocalStorageState,
+} from './utils';
 import { refreshCache, useAsyncData } from './fetch-loop';
 import { useAccountData, useAccountInfo, useConnection } from './connection';
 import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
 import { notify } from './notifications';
 import BN from 'bn.js';
-import { getTokenAccountInfo, parseTokenAccountData, useMintInfos, } from './tokens';
+import {
+  getTokenAccountInfo,
+  parseTokenAccountData,
+  useMintInfos,
+} from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -32,7 +42,10 @@ export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   : MARKETS;
 
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
+  return USE_MARKETS.filter(
+    ({ name, deprecated }) =>
+      !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name),
+  );
 }
 
 export function useAllMarkets() {
@@ -317,14 +330,17 @@ export function useOrderbookAccounts() {
   }, [market]);
 
   const getSidedOrderbook = (orderbook: Orderbook, asks: boolean) => ({
-    getL2: (depth) => orderbook.getL2(depth, asks, true).map(({ price, size }) => [price, size])
+    getL2: (depth) =>
+      orderbook
+        .getL2(depth, asks, true)
+        .map(({ price, size }) => [price, size]),
   });
 
   return {
     bidOrderbook: orderbook && getSidedOrderbook(orderbook, false),
     askOrderbook: orderbook && getSidedOrderbook(orderbook, true),
     orderbook,
-  }
+  };
 }
 
 export function useOrderbook(
@@ -333,14 +349,8 @@ export function useOrderbook(
   const { bidOrderbook, askOrderbook } = useOrderbookAccounts();
   const { market } = useMarket();
 
-  const bids =
-    !bidOrderbook || !market
-      ? []
-      : bidOrderbook.getL2(depth);
-  const asks =
-    !askOrderbook || !market
-      ? []
-      : askOrderbook.getL2(depth);
+  const bids = !bidOrderbook || !market ? [] : bidOrderbook.getL2(depth);
+  const asks = !askOrderbook || !market ? [] : askOrderbook.getL2(depth);
   return [{ bids, asks }, !!bids || !!asks];
 }
 
@@ -357,10 +367,9 @@ export function useOpenOrdersAccounts(fast = false) {
     if (!market) {
       return null;
     }
-    return [await market.findOpenOrdersAccountForOwner(
-      connection,
-      wallet.publicKey,
-    )];
+    return [
+      await market.findOpenOrdersAccountForOwner(connection, wallet.publicKey),
+    ];
   }
   return useAsyncData<OpenOrders[] | null>(
     getOpenOrdersAccounts,
@@ -516,11 +525,11 @@ export function useLocallyStoredFeeDiscountKey(): {
 export function useFeeDiscountKeys(): [
   (
     | {
-      pubkey: PublicKey;
-      feeTier: number;
-      balance: number;
-      mint: PublicKey;
-    }[]
+        pubkey: PublicKey;
+        feeTier: number;
+        balance: number;
+        mint: PublicKey;
+      }[]
     | null
     | undefined
   ),
@@ -585,7 +594,9 @@ export function useAllOpenOrdersAccounts() {
       return [];
     }
     return Promise.all(
-      marketInfos.map(market => OpenOrders.load(connection, market.address, wallet.publicKey))
+      marketInfos.map((market) =>
+        OpenOrders.load(connection, market.address, wallet.publicKey),
+      ),
     );
   };
   return useAsyncData(
@@ -751,8 +762,8 @@ export function useBalances(): Balances[] {
       orders:
         baseExists && market && openOrders
           ? market.baseSplSizeToNumber(
-            openOrders.baseTokenTotal.sub(openOrders.baseTokenFree),
-          )
+              openOrders.baseTokenTotal.sub(openOrders.baseTokenFree),
+            )
           : null,
       openOrders,
       unsettled:
@@ -769,8 +780,8 @@ export function useBalances(): Balances[] {
       orders:
         quoteExists && market && openOrders
           ? market.quoteSplSizeToNumber(
-            openOrders.quoteTokenTotal.sub(openOrders.quoteTokenFree),
-          )
+              openOrders.quoteTokenTotal.sub(openOrders.quoteTokenFree),
+            )
           : null,
       unsettled:
         quoteExists && market && openOrders
@@ -888,7 +899,10 @@ export function getExpectedFillPrice(
   let spentCost = 0;
   let avgPrice = 0;
   let price, sizeAtLevel, costAtLevel: number;
-  for ({ price, size: sizeAtLevel } of orderbook.getL2(1000, side === Side.Ask)) {
+  for ({ price, size: sizeAtLevel } of orderbook.getL2(
+    1000,
+    side === Side.Ask,
+  )) {
     costAtLevel = (side === Side.Bid ? 1 : price) * sizeAtLevel;
     if (spentCost + costAtLevel > cost) {
       avgPrice += (cost - spentCost) * price;
@@ -908,7 +922,12 @@ export function getExpectedFillPrice(
   return formattedPrice;
 }
 
-export function useCurrentlyAutoSettling(): [boolean, (currentlyAutoSettling: boolean) => void] {
-  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(false);
+export function useCurrentlyAutoSettling(): [
+  boolean,
+  (currentlyAutoSettling: boolean) => void,
+] {
+  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(
+    false,
+  );
   return [currentlyAutoSettling, setCurrentlyAutosettling];
 }

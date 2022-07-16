@@ -8,12 +8,13 @@ import { DEX_ID } from "../src/ids";
 import { AccountLayout, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Market } from "../src/market";
 import { createContext } from "./utils/context";
+import { random } from "./utils/random";
 
 export const createMarketTest = async (
   connection: Connection,
   feePayer: Keypair
 ) => {
-  const tickSize = new BN(2 ** 32);
+  const tickSize = new BN(random(0, 4) * 2 ** 32);
   const minBaseOrderSize = new BN(1);
   const { marketKey, base, quote } = await createContext(
     connection,

@@ -5,7 +5,7 @@
   "homepage": "https://dex.projectserum.com/",
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
-    "@bonfida/dex-v4": "file:dex-v4-ts",
+    "@bonfida/dex-v4": "file:./dex-v4-ts",
     "@craco/craco": "^5.6.4",
     "@ledgerhq/hw-transport-webusb": "^5.41.0",
     "@project-serum/associated-token": "0.1.0",
@@ -21,7 +21,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "@tsconfig/node12": "^1.0.7",
-    "@types/bn.js": "^4.11.6",
+    "@types/bn.js": "^5.1.0",
     "@types/jest": "^26.0.14",
     "@types/node": "^14.11.4",
     "@types/react": "^16.9.51",

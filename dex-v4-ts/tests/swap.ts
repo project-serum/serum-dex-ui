@@ -11,18 +11,33 @@ import { OrderType, SelfTradeBehavior } from "../src/types";
 import { Market } from "../src/market";
 import { createContext, initializeTraders } from "./utils/context";
 import { computeTakerFee } from "./utils/fee";
+import { random } from "./utils/random";
+import { computeFp32Price } from "../src/utils";
+import { checkTokenBalances } from "./utils/token-balances";
 
 export const swapTest = async (
   connection: Connection,
   feePayer: Keypair,
   baseDecimals: number,
-  quoteDecimals: number
+  quoteDecimals: number,
+  minPrice: number,
+  maxPrice: number,
+  minUiTradeSize: number,
+  maxUiTradeSize: number,
+  maxTickSize: number,
+  baseCurrencyMultiplier?: BN,
+  quoteCurrencyMultiplier?: BN
 ) => {
-  const tokenAmount = 10_000_000 * Math.pow(10, 6);
+  const baseTokenAmount =
+    random(maxUiTradeSize, 2 * maxUiTradeSize, true) *
+    Math.pow(10, baseDecimals);
+  const quoteTokenAmount =
+    random(2 * maxUiTradeSize, maxPrice * (2 * maxUiTradeSize), true) *
+    Math.pow(10, quoteDecimals);
   /**
    * Initialize market and traders
    */
-  const tickSize = new BN(2 ** 32);
+  const tickSize = new BN(random(0, maxTickSize) * 2 ** 32);
   const minBaseOrderSize = new BN(1);
   const { marketKey, base, quote, Alice, Bob } = await createContext(
     connection,
@@ -30,9 +45,11 @@ export const swapTest = async (
     tickSize,
     minBaseOrderSize,
     baseDecimals,
-    quoteDecimals
+    quoteDecimals,
+    baseCurrencyMultiplier,
+    quoteCurrencyMultiplier
   );
-
+  let marketState = await MarketState.retrieve(connection, marketKey);
   const { aliceBaseAta, bobBaseAta, bobQuoteAta } = await initializeTraders(
     connection,
     base,
@@ -41,7 +58,8 @@ export const swapTest = async (
     Bob,
     feePayer,
     marketKey,
-    tokenAmount
+    baseTokenAmount,
+    quoteTokenAmount
   );
 
   let market = await Market.load(connection, marketKey);
@@ -49,9 +67,10 @@ export const swapTest = async (
   /**
    * Alice places an ask
    */
-  const swapSize = Math.floor(Math.random() * Math.pow(10, 8));
-  const swapPrice = 100_000 * Math.random();
-
+  const swapSize =
+    Math.pow(10, baseDecimals) * random(minUiTradeSize, maxUiTradeSize, true);
+  const swapPrice = random(minPrice, maxPrice);
+  console.log(swapSize, swapPrice);
   let tx = await signAndSendInstructions(connection, [Alice], feePayer, [
     await placeOrder(
       market,
@@ -77,7 +96,11 @@ export const swapTest = async (
     [marketKey.toBuffer(), Alice.publicKey.toBuffer()],
     DEX_ID
   );
-  let aliceUserAccount = await UserAccount.retrieve(connection, aliceUa);
+  let aliceUserAccount = await UserAccount.retrieve(
+    connection,
+    aliceUa,
+    marketState
+  );
   expect(aliceUserAccount.baseTokenFree.toNumber()).toBe(0);
   expect(aliceUserAccount.baseTokenLocked.toNumber()).toBe(swapSize);
   expect(aliceUserAccount.quoteTokenFree.toNumber()).toBe(0);
@@ -90,14 +113,24 @@ export const swapTest = async (
   expect(aliceUserAccount.orders.length).toBe(1);
 
   /**
+   * Check token account
+   */
+  checkTokenBalances(
+    connection,
+    aliceBaseAta,
+    new BN(baseTokenAmount - swapSize)
+  );
+
+  /**
    * Bob swaps against Alice
    */
+  console.log("swap size", swapSize);
   tx = await signAndSendInstructions(connection, [Bob], feePayer, [
     await swap(
       market,
       Side.Bid,
       swapSize,
-      tokenAmount,
+      quoteTokenAmount,
       SelfTradeBehavior.AbortTransaction,
       bobBaseAta,
       bobQuoteAta,
@@ -113,21 +146,28 @@ export const swapTest = async (
   ]);
   console.log(`Bob swapped ${tx}`);
 
-  const executionPrice = new BN(swapPrice).mul(new BN(Math.pow(2, 32)));
+  const executionPrice = computeFp32Price(market, swapPrice);
   const takerFees = computeTakerFee(
-    new BN(swapSize).mul(executionPrice.shrn(32))
-  );
+    new BN(swapSize).mul(executionPrice).shrn(32)
+  )
+    .mul(market.quoteCurrencyMultiplier)
+    .div(market.baseCurrencyMultiplier);
 
   /**
    * Check market state
    */
 
-  const marketState = await MarketState.retrieve(connection, marketKey);
+  marketState = await MarketState.retrieve(connection, marketKey);
   expect(marketState.accumulatedFees.toNumber()).toBe(takerFees.toNumber());
   expect(marketState.accumulatedRoyalties.toNumber()).toBe(0);
   expect(marketState.baseVolume.toNumber()).toBe(swapSize);
   expect(marketState.quoteVolume.toNumber()).toBe(
-    new BN(swapSize).mul(executionPrice.shrn(32)).toNumber()
+    new BN(swapSize)
+      .mul(executionPrice)
+      .shrn(32)
+      .mul(market.quoteCurrencyMultiplier)
+      .div(market.baseCurrencyMultiplier)
+      .toNumber()
   );
 
   /**
@@ -143,28 +183,48 @@ export const swapTest = async (
   const bobBaseAccount = AccountLayout.decode(bobBaseRaw.data);
 
   expect(bobQuoteAccount.amount.toString()).toBe(
-    new BN(tokenAmount)
-      .sub(new BN(swapSize).mul(executionPrice).shrn(32))
+    new BN(quoteTokenAmount)
+      .sub(
+        new BN(swapSize)
+          .mul(executionPrice)
+          .shrn(32)
+          .mul(market.quoteCurrencyMultiplier)
+          .div(market.baseCurrencyMultiplier)
+      )
       .sub(takerFees)
       .toString()
   );
   expect(bobBaseAccount.amount.toString()).toBe(
-    (tokenAmount + swapSize).toString()
+    (baseTokenAmount + swapSize).toString()
   );
 
   /**
    * Verify Alice user account
    */
-  aliceUserAccount = await UserAccount.retrieve(connection, aliceUa);
+  aliceUserAccount = await UserAccount.retrieve(
+    connection,
+    aliceUa,
+    marketState
+  );
   expect(aliceUserAccount.baseTokenFree.toNumber()).toBe(0);
   expect(aliceUserAccount.baseTokenLocked.toNumber()).toBe(0);
   expect(aliceUserAccount.quoteTokenFree.toNumber()).toBe(
-    new BN(swapSize).mul(executionPrice).shrn(32).toNumber()
+    new BN(swapSize)
+      .mul(executionPrice)
+      .shrn(32)
+      .mul(market.quoteCurrencyMultiplier)
+      .div(market.baseCurrencyMultiplier)
+      .toNumber()
   );
   expect(aliceUserAccount.quoteTokenLocked.toNumber()).toBe(0);
   expect(aliceUserAccount.accumulatedRebates.toNumber()).toBe(0);
   expect(aliceUserAccount.accumulatedMakerQuoteVolume.toNumber()).toBe(
-    new BN(swapSize).mul(executionPrice).shrn(32).toNumber()
+    new BN(swapSize)
+      .mul(executionPrice)
+      .shrn(32)
+      .mul(market.quoteCurrencyMultiplier)
+      .div(market.baseCurrencyMultiplier)
+      .toNumber()
   );
   expect(aliceUserAccount.accumulatedMakerBaseVolume.toNumber()).toBe(
     new BN(swapSize).toNumber()

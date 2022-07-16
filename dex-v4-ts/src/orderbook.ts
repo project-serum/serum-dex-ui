@@ -1,7 +1,7 @@
 import { Slab } from '@bonfida/aaob';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { Market } from './market';
-import { computeUiPrice, computeUiSize, throwIfNull } from './utils';
+import { computeUiPrice, divideBnToNumber, throwIfNull } from './utils';
 import * as aaob from '@bonfida/aaob';
 import { CALLBACK_INFO_LEN } from './state';
 import BN from 'bn.js';
@@ -9,7 +9,7 @@ import BN from 'bn.js';
 /**
  * Orderbook class
  */
-export class Orderbook {
+export class Orderbook implements GetL2 {
   /** Market of the orderbook
    * @private
    */
@@ -60,7 +60,7 @@ export class Orderbook {
    */
   static async loadSlab(connection, slabAddress: PublicKey) {
     const { data } = throwIfNull(await connection.getAccountInfo(slabAddress));
-    const slab = aaob.Slab.deserialize(data, new BN(CALLBACK_INFO_LEN));
+    const slab = aaob.Slab.deserialize(data, CALLBACK_INFO_LEN);
     return slab;
   }
 
@@ -85,21 +85,37 @@ export class Orderbook {
    * @param uiAmount Optional, whether to return the amounts in uiAmount
    * @returns Returns an L2 orderbook
    */
-  getL2(depth: number, asks: boolean, uiAmount?: boolean) {
-    // TODO AAOB price / sizes should be BNs to start with
+  getL2(depth: number, asks: boolean, uiAmount = false) {
     const convert = (p: aaob.Price) => {
       return {
-        price: computeUiPrice(this.market, new BN(p.price)),
-        size: computeUiSize(this.market, new BN(p.size)),
+        price: computeUiPrice(this._market, p.price),
+        size: divideBnToNumber(
+          p.size,
+          new BN(10).pow(new BN(this.market.baseDecimals)),
+        ),
       };
     };
     if (uiAmount) {
-      return asks
-        ? this._slabAsks.getL2DepthJS(depth, asks).map(convert)
-        : this._slabBids.getL2DepthJS(depth, asks).map(convert);
+      return (
+        asks
+          ? this._slabAsks.getL2DepthJS(depth, asks).map(convert)
+          : this._slabBids.getL2DepthJS(depth, asks).map(convert)
+      ) as any;
     }
-    return asks
-      ? this._slabAsks.getL2DepthJS(depth, asks)
-      : this._slabBids.getL2DepthJS(depth, asks);
+    return (
+      asks
+        ? this._slabAsks.getL2DepthJS(depth, asks)
+        : this._slabBids.getL2DepthJS(depth, asks)
+    ) as any;
   }
+}
+
+export interface GetL2 {
+  getL2: {
+    (depth: number, asks: boolean, uiAmount: false): aaob.Price[];
+    (depth: number, asks: boolean, uiAmount: true): {
+      price: number;
+      size: number;
+    };
+  };
 }

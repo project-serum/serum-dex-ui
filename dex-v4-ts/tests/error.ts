@@ -13,9 +13,10 @@ import {
 import { Market } from "../src/market";
 import { OrderType, SelfTradeBehavior } from "../src/types";
 import { Side } from "@bonfida/aaob";
+import { random } from "./utils/random";
 
 export const error = async (connection: Connection, feePayer: Keypair) => {
-  const tickSize = new BN(2 ** 32);
+  const tickSize = new BN(random(0, 5) * 2 ** 32);
   const minBaseOrderSize = new BN(1);
   const { marketKey, base, quote, Alice, Bob } = await createContext(
     connection,

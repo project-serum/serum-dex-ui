@@ -1,4 +1,4 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 import { Market } from './market';
 
@@ -43,33 +43,32 @@ export const divideBnToNumber = (numerator: BN, denominator: BN): number => {
   return quotient + rem.div(gcd).toNumber() / denominator.div(gcd).toNumber();
 };
 
-export const computeUiPrice = (market: Market, fp32Price: BN) => {
-  return roundUiAmount(
-    2 ** -32 *
-      10 ** (market.baseDecimals - market.quoteDecimals) *
-      fp32Price.toNumber(),
-  );
-};
-
-export const computeUiSize = (market: Market, bnSize: BN) => {
-  return bnSize.toNumber() * 10 ** -market.baseDecimals;
-};
-
-export const roundUiAmount = (uiAmount: number) =>
-  Number(uiAmount.toPrecision(5));
-
+// uiPrice * (baseMultiplier * 10^quoteDecimals * 2^32) / (quoteMultiplier * 10^baseDecimals)
 export const computeFp32Price = (market: Market, uiPrice: number) => {
-  const price = new BN(Math.pow(2, 32) * uiPrice);
-  const remainder = price.umod(market.tickSizeBN);
-  const roundedPrice = price.sub(remainder);
+  const tickSize = market.tickSizeBN;
 
-  const scalingExponent = market.quoteDecimals - market.baseDecimals;
+  const decimalsMul = Math.pow(10, market.quoteDecimals - market.baseDecimals);
+  const baseQuoteMul =
+    market.baseCurrencyMultiplier.toNumber() /
+    market.quoteCurrencyMultiplier.toNumber();
 
-  return scalingExponent >= 0
-    ? roundedPrice.muln(10 ** scalingExponent)
-    : roundedPrice.divn(10 ** -scalingExponent);
+  const x = uiPrice * baseQuoteMul * decimalsMul;
+  const fracX = Math.pow(2, 32) * (x - Math.floor(x));
+
+  const price = new BN(x).mul(new BN(2 ** 32)).add(new BN(fracX));
+  const rem = price.umod(tickSize);
+
+  return price.sub(rem);
 };
 
-export const computeSize = (market: Market, size: number) => {
-  return new BN(size - (size % market.minOrderSizeBN.toNumber()));
+// fp32Price * (quoteMultiplier * 10^baseDecimals) / (baseMultiplier * 10^quoteDecimals * 2^32)
+export const computeUiPrice = (market: Market, fp32Price: BN) => {
+  const numerator = fp32Price
+    .mul(market.quoteCurrencyMultiplier)
+    .mul(new BN(10).pow(new BN(market.baseDecimals)));
+  const denominator = market.baseCurrencyMultiplier.mul(
+    new BN(10).pow(new BN(market.quoteDecimals)).mul(new BN(2).pow(new BN(32))),
+  );
+
+  return Number(divideBnToNumber(numerator, denominator).toPrecision(5));
 };

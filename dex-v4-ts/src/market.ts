@@ -12,8 +12,6 @@ import {
   getTokenBalance,
   divideBnToNumber,
   computeUiPrice,
-  computeUiSize,
-  roundUiAmount,
 } from './utils';
 import { CALLBACK_INFO_LEN, MarketState, SelfTradeBehavior } from './state';
 import { DEX_ID, SRM_MINT, MSRM_MINT } from './ids';
@@ -110,6 +108,8 @@ export class Market {
   private _minOrderSize: number;
   private _minOrderSizeBN: BN;
   private _admin: PublicKey;
+  private _baseCurrencyMultiplier: BN;
+  private _quoteCurrencyMultiplier: BN;
 
   constructor(
     marketState: MarketState,
@@ -138,12 +138,13 @@ export class Market {
     this._orderbookAddress = orderbookAddress;
     this._baseSplTokenMultiplier = new BN(10).pow(new BN(baseDecimals));
     this._quoteSplTokenMultiplier = new BN(10).pow(new BN(quoteDecimals));
-    this._tickSize = roundUiAmount(
-      orderbookState.tickSize.toNumber() * Math.pow(2, -32),
-    );
+    this._baseCurrencyMultiplier = marketState.baseCurrencyMultiplier;
+    this._quoteCurrencyMultiplier = marketState.quoteCurrencyMultiplier;
+    this._tickSize = computeUiPrice(this, orderbookState.tickSize);
     this._tickSizeBN = orderbookState.tickSize;
-    this._minOrderSize =
-      marketState.minBaseOrderSize.toNumber() * Math.pow(10, -baseDecimals);
+    this._minOrderSize = this.baseSplSizeToNumber(
+      orderbookState.minBaseOrderSize,
+    );
     this._minOrderSizeBN = marketState.minBaseOrderSize;
     this._admin = marketState.admin;
   }
@@ -167,6 +168,7 @@ export class Market {
     const orderbookState = await AaobMarketState.retrieve(
       connection,
       marketState.orderbook,
+      CALLBACK_INFO_LEN,
     );
 
     const [baseDecimals, quoteDecimals] = await Promise.all([
@@ -264,6 +266,7 @@ export class Market {
     return this._tickSize;
   }
 
+  /** Returns the big number tick size of the market */
   get tickSizeBN(): BN {
     return this._tickSizeBN;
   }
@@ -273,12 +276,21 @@ export class Market {
     return this._minOrderSize;
   }
 
+  /** Returns the big number min order size of the market */
   get minOrderSizeBN(): BN {
     return this._minOrderSizeBN;
   }
 
   get marketAdmin(): PublicKey {
     return this._admin;
+  }
+
+  get baseCurrencyMultiplier(): BN {
+    return this._baseCurrencyMultiplier;
+  }
+
+  get quoteCurrencyMultiplier(): BN {
+    return this._quoteCurrencyMultiplier;
   }
 
   /** Returns the inception base volume */
@@ -376,7 +388,12 @@ export class Market {
     connection: Connection,
     owner: PublicKey,
   ) {
-    const openOrders = OpenOrders.load(connection, this.address, owner);
+    const openOrders = OpenOrders.load(
+      connection,
+      this.address,
+      owner,
+      this._marketState,
+    );
     return openOrders;
   }
 
@@ -543,6 +560,7 @@ export class Market {
       connection,
       this.address,
       owner.publicKey,
+      this._marketState,
     );
     const orderId = openOrders.orders[orderIndex].id;
     if (!orderId) {
@@ -573,6 +591,7 @@ export class Market {
       connection,
       this.address,
       owner.publicKey,
+      this._marketState,
     );
     const orderIndex = openOrders.orders
       .map((o) => o.id.eq(orderId))
@@ -688,20 +707,14 @@ export class Market {
    */
   filterForOpenOrdersFromSlab(slab: Slab, openOrders: OpenOrders, side: Side) {
     return [...slab]
-      .filter((o) =>
-        openOrders?.address.equals(
-          new PublicKey(slab.getCallBackInfo(o.callBackInfoPt).slice(0, 32)),
-        ),
-      )
+      .filter((o) => openOrders?.address.equals(new PublicKey(o.callbackInfo)))
       .map((o) => {
         return {
-          orderId: o.key,
-          price: computeUiPrice(this, getPriceFromKey(o.key)),
-          feeTier: slab.getCallBackInfo(o.callBackInfoPt).slice(32)[0],
-          size: computeUiSize(this, o.baseQuantity),
-          openOrdersAddress: new PublicKey(
-            slab.getCallBackInfo(o.callBackInfoPt).slice(0, 32),
-          ),
+          orderId: o.leafNode.key,
+          price: getPriceFromKey(o.leafNode.key).toNumber(),
+          feeTier: o.callbackInfo.slice(32)[0],
+          size: o.leafNode.baseQuantity.toNumber(),
+          openOrdersAddress: new PublicKey(o.callbackInfo.slice(0, 32)),
           side: side,
         };
       });
@@ -725,5 +738,25 @@ export class Market {
       Side.Ask,
     );
     return [...bids, ...asks];
+  }
+
+  private _parseSlab(slab: Slab, depth: number, increasing: boolean) {
+    const parsed = slab.getL2DepthJS(depth, increasing);
+    return parsed.map((e) => {
+      return {
+        price: e.price
+          .mul(this.baseCurrencyMultiplier)
+          .div(this.quoteCurrencyMultiplier),
+        priceRaw: e.price,
+        size: e.size.mul(this.baseCurrencyMultiplier),
+      };
+    });
+  }
+
+  parseAsksSlab(slab: Slab, depth: number) {
+    return this._parseSlab(slab, depth, true);
+  }
+  parseBidsSlab(slab: Slab, depth: number) {
+    return this._parseSlab(slab, depth, false);
   }
 }
