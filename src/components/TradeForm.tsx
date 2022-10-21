@@ -1,5 +1,5 @@
-import {Button, Input, Radio, Slider, Switch} from 'antd';
-import React, {useEffect, useState} from 'react';
+import { Button, Input, Radio, Slider, Switch } from 'antd';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import {
   useFeeDiscountKeys,
@@ -12,14 +12,19 @@ import {
   useSelectedQuoteCurrencyAccount,
   useSelectedQuoteCurrencyBalances,
 } from '../utils/markets';
-import {useWallet} from '../utils/wallet';
-import {notify} from '../utils/notifications';
-import {floorToDecimal, getDecimalCount, roundToDecimal,} from '../utils/utils';
-import {useSendConnection} from '../utils/connection';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { notify } from '../utils/notifications';
+import {
+  floorToDecimal,
+  getDecimalCount,
+  roundToDecimal,
+} from '../utils/utils';
+import { BaseSignerWalletAdapter } from '@solana/wallet-adapter-base';
+import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
-import {getUnixTs, placeOrder} from '../utils/send';
-import {SwitchChangeEventHandler} from 'antd/es/switch';
-import {refreshCache} from '../utils/fetch-loop';
+import { getUnixTs, placeOrder } from '../utils/send';
+import { SwitchChangeEventHandler } from 'antd/es/switch';
+import { refreshCache } from '../utils/fetch-loop';
 import tuple from 'immutable-tuple';
 
 const SellButton = styled(Button)`
@@ -58,7 +63,7 @@ export default function TradeForm({
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
-  const { wallet, connected } = useWallet();
+  const { connected, publicKey, wallet } = useWallet();
   const sendConnection = useSendConnection();
   const markPrice = useMarkPrice();
   useFeeDiscountKeys();
@@ -85,8 +90,6 @@ export default function TradeForm({
     market?.minOrderSize && getDecimalCount(market.minOrderSize);
   let priceDecimalCount = market?.tickSize && getDecimalCount(market.tickSize);
 
-  const publicKey = wallet?.publicKey;
-
   useEffect(() => {
     setChangeOrderRef && setChangeOrderRef(doChangeOrder);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,7 +108,7 @@ export default function TradeForm({
   useEffect(() => {
     const warmUpCache = async () => {
       try {
-        if (!wallet || !publicKey || !market) {
+        if (!publicKey || !market) {
           console.log(`Skipping refreshing accounts`);
           return;
         }
@@ -126,7 +129,7 @@ export default function TradeForm({
     warmUpCache();
     const id = setInterval(warmUpCache, 30_000);
     return () => clearInterval(id);
-  }, [market, sendConnection, wallet, publicKey]);
+  }, [market, sendConnection, publicKey]);
 
   const onSetBaseSize = (baseSize: number | undefined) => {
     setBaseSize(baseSize);
@@ -252,7 +255,7 @@ export default function TradeForm({
         orderType: ioc ? 'ioc' : postOnly ? 'postOnly' : 'limit',
         market,
         connection: sendConnection,
-        wallet,
+        wallet: wallet.adapter as BaseSignerWalletAdapter,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
         feeDiscountPubkey: feeDiscountKey,

@@ -32,7 +32,10 @@ import { Order } from '@project-serum/serum/lib/market';
 import { Buffer } from 'buffer';
 import assert from 'assert';
 import { struct } from 'superstruct';
-import { WalletAdapter } from '../wallet-adapters';
+import {
+  BaseSignerWalletAdapter,
+  WalletAdapter,
+} from '@solana/wallet-adapter-base';
 
 export async function createTokenAccountTransaction({
   connection,
@@ -46,6 +49,7 @@ export async function createTokenAccountTransaction({
   transaction: Transaction;
   newAccountPubkey: PublicKey;
 }> {
+  assert(wallet.publicKey, 'Expected `publicKey` to be non-null');
   const ata = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
@@ -83,7 +87,7 @@ export async function settleFunds({
   market: Market;
   openOrders: OpenOrders;
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   baseCurrencyAccount: TokenAccount;
   quoteCurrencyAccount: TokenAccount;
   sendNotification?: boolean;
@@ -173,7 +177,7 @@ export async function settleAllFunds({
   selectedTokenAccounts,
 }: {
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   tokenAccounts: TokenAccount[];
   markets: Market[];
   selectedTokenAccounts?: SelectedTokenAccounts;
@@ -196,6 +200,7 @@ export async function settleAllFunds({
     });
 
   const getOpenOrdersAccountsForProgramId = async (programId) => {
+    assert(wallet.publicKey, 'Expected `publicKey` to be non-null');
     const openOrdersAccounts = await OpenOrders.findForOwner(
       connection,
       wallet.publicKey,
@@ -237,15 +242,15 @@ export async function settleAllFunds({
           tokenAccounts,
           baseMint,
           baseMint &&
-          selectedTokenAccounts &&
-          selectedTokenAccounts[baseMint.toBase58()],
+            selectedTokenAccounts &&
+            selectedTokenAccounts[baseMint.toBase58()],
         )?.pubkey;
         const selectedQuoteTokenAccount = getSelectedTokenAccountForMint(
           tokenAccounts,
           quoteMint,
           quoteMint &&
-          selectedTokenAccounts &&
-          selectedTokenAccounts[quoteMint.toBase58()],
+            selectedTokenAccounts &&
+            selectedTokenAccounts[quoteMint.toBase58()],
         )?.pubkey;
         if (!selectedBaseTokenAccount || !selectedQuoteTokenAccount) {
           return null;
@@ -295,7 +300,7 @@ export async function settleAllFunds({
 export async function cancelOrder(params: {
   market: Market;
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   order: Order;
 }) {
   return cancelOrders({ ...params, orders: [params.order] });
@@ -308,14 +313,16 @@ export async function cancelOrders({
   orders,
 }: {
   market: Market;
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   connection: Connection;
   orders: Order[];
 }) {
   const transaction = market.makeMatchOrdersTransaction(5);
+  assert(wallet.publicKey, 'Expected `publicKey` to be non-null');
+  const publicKey = wallet.publicKey;
   orders.forEach((order) => {
     transaction.add(
-      market.makeCancelOrderInstruction(connection, wallet.publicKey, order),
+      market.makeCancelOrderInstruction(connection, publicKey, order),
     );
   });
   transaction.add(market.makeMatchOrdersTransaction(5));
@@ -345,7 +352,7 @@ export async function placeOrder({
   orderType: 'ioc' | 'postOnly' | 'limit';
   market: Market | undefined | null;
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   baseCurrencyAccount: PublicKey | undefined;
   quoteCurrencyAccount: PublicKey | undefined;
   feeDiscountPubkey: PublicKey | undefined;
@@ -482,13 +489,15 @@ export async function listMarket({
   dexProgramId,
 }: {
   connection: Connection;
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   baseMint: PublicKey;
   quoteMint: PublicKey;
   baseLotSize: number;
   quoteLotSize: number;
   dexProgramId: PublicKey;
 }) {
+  assert(wallet.publicKey, 'Expected `publicKey` to be non-null');
+
   const market = new Account();
   const requestQueue = new Account();
   const eventQueue = new Account();
@@ -641,7 +650,7 @@ export async function sendTransaction({
   sendNotification = true,
 }: {
   transaction: Transaction;
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   signers?: Array<Account>;
   connection: Connection;
   sendingMessage?: string;
@@ -674,10 +683,11 @@ export async function signTransaction({
   connection,
 }: {
   transaction: Transaction;
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   signers?: Array<Account>;
   connection: Connection;
 }) {
+  assert(wallet.publicKey, 'Expected `publicKey` to be non-null');
   transaction.recentBlockhash = (
     await connection.getRecentBlockhash('max')
   ).blockhash;
@@ -697,16 +707,15 @@ export async function signTransactions({
     transaction: Transaction;
     signers?: Array<Account>;
   }[];
-  wallet: WalletAdapter;
+  wallet: BaseSignerWalletAdapter;
   connection: Connection;
 }) {
+  assert(wallet.publicKey, 'Expected `publicKey` to be non-null');
+  const publicKey = wallet.publicKey;
   const blockhash = (await connection.getRecentBlockhash('max')).blockhash;
   transactionsAndSigners.forEach(({ transaction, signers = [] }) => {
     transaction.recentBlockhash = blockhash;
-    transaction.setSigners(
-      wallet.publicKey,
-      ...signers.map((s) => s.publicKey),
-    );
+    transaction.setSigners(publicKey, ...signers.map((s) => s.publicKey));
     if (signers?.length > 0) {
       transaction.partialSign(...signers);
     }
@@ -770,7 +779,7 @@ export async function sendSignedTransaction({
       simulateResult = (
         await simulateTransaction(connection, signedTransaction, 'single')
       ).value;
-    } catch (e) { }
+    } catch (e) {}
     if (simulateResult && simulateResult.err) {
       if (simulateResult.logs) {
         for (let i = simulateResult.logs.length - 1; i >= 0; --i) {
@@ -942,9 +951,9 @@ export async function getMultipleSolanaAccounts(
   if (res.error) {
     throw new Error(
       'failed to get info about accounts ' +
-      publicKeys.map((k) => k.toBase58()).join(', ') +
-      ': ' +
-      res.error.message,
+        publicKeys.map((k) => k.toBase58()).join(', ') +
+        ': ' +
+        res.error.message,
     );
   }
   assert(typeof res.result !== 'undefined');

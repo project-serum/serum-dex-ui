@@ -16,7 +16,7 @@ import {
   useTokenAccounts,
 } from '../utils/markets';
 import { notify } from '../utils/notifications';
-import { useWallet } from '../utils/wallet';
+import { useWallet, Wallet } from '@solana/wallet-adapter-react';
 import { useConnection, useSendConnection } from '../utils/connection';
 import { placeOrder } from '../utils/send';
 import { floorToDecimal, getDecimalCount } from '../utils/utils';
@@ -24,7 +24,7 @@ import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
 import { SwapOutlined } from '@ant-design/icons';
 import { CustomMarketInfo } from '../utils/types';
-import { WalletAdapter } from '../wallet-adapters';
+import { BaseSignerWalletAdapter } from '@solana/wallet-adapter-base';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -103,7 +103,7 @@ export default function ConvertForm() {
           </Col>
         </Row>
       )}
-      {tokenConvertMap && connected && (
+      {tokenConvertMap && wallet && connected && (
         <>
           <Row style={{ marginBottom: 8 }}>
             <Col>
@@ -174,7 +174,7 @@ function ConvertFormSubmit({
   setSize: (newSize: number | undefined) => void;
   fromToken: string;
   toToken: string;
-  wallet?: WalletAdapter;
+  wallet?: Wallet;
   customMarkets: CustomMarketInfo[];
 }) {
   const { market } = useMarket();
@@ -283,7 +283,7 @@ function ConvertFormSubmit({
         orderType: 'ioc',
         market,
         connection: sendConnection,
-        wallet,
+        wallet: wallet.adapter as BaseSignerWalletAdapter,
         baseCurrencyAccount: baseCurrencyAccount?.pubkey,
         quoteCurrencyAccount: quoteCurrencyAccount?.pubkey,
         feeDiscountPubkey: feeDiscountKey,

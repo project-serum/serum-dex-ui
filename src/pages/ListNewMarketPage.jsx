@@ -5,7 +5,7 @@ import { MARKETS } from '@project-serum/serum';
 import { useConnection } from '../utils/connection';
 import FloatingElement from '../components/layout/FloatingElement';
 import styled from 'styled-components';
-import { useWallet } from '../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { listMarket } from '../utils/send';
 import { useMintInput } from '../components/useMintInput';
 

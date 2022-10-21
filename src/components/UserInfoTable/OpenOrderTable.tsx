@@ -4,11 +4,12 @@ import DataTable from '../layout/DataTable';
 import styled from 'styled-components';
 import { Button, Col, Row, Tag } from 'antd';
 import { cancelOrder } from '../../utils/send';
-import { useWallet } from '../../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useSendConnection } from '../../utils/connection';
 import { notify } from '../../utils/notifications';
 import { DeleteOutlined } from '@ant-design/icons';
 import { OrderWithMarketAndMarketName } from '../../utils/types';
+import { BaseSignerWalletAdapter } from '@solana/wallet-adapter-base';
 
 const CancelButton = styled(Button)`
   color: #f23b69;
@@ -44,7 +45,7 @@ export default function OpenOrderTable({
         order,
         market: order.market,
         connection,
-        wallet,
+        wallet: wallet.adapter as BaseSignerWalletAdapter,
       });
     } catch (e) {
       notify({

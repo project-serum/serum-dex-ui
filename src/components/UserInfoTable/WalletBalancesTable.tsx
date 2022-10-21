@@ -4,7 +4,7 @@ import { Button, Row } from 'antd';
 import { settleAllFunds } from '../../utils/send';
 import { notify } from '../../utils/notifications';
 import { useConnection } from '../../utils/connection';
-import { useWallet } from '../../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import {
   useAllMarkets,
   useSelectedTokenAccounts,
@@ -13,6 +13,7 @@ import {
 import StandaloneTokenAccountsSelect from '../StandaloneTokenAccountSelect';
 import { abbreviateAddress } from '../../utils/utils';
 import { PublicKey } from '@solana/web3.js';
+import { BaseSignerWalletAdapter } from '@solana/wallet-adapter-base';
 
 export default function WalletBalancesTable({
   walletBalances,
@@ -64,7 +65,7 @@ export default function WalletBalancesTable({
         connection,
         tokenAccounts,
         selectedTokenAccounts,
-        wallet,
+        wallet: wallet.adapter as BaseSignerWalletAdapter,
         markets: allMarkets.map((marketInfo) => marketInfo.market),
       });
     } catch (e) {
