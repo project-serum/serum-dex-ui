@@ -83,6 +83,9 @@
     }
   },
   "devDependencies": {
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",
+    "@babel/plugin-proposal-optional-chaining": "^7.18.9",
+    "@babel/plugin-transform-shorthand-properties": "^7.18.6",
     "@types/ledgerhq__hw-transport": "^4.21.3",
     "@types/ledgerhq__hw-transport-webusb": "^4.70.1",
     "gh-pages": "^3.1.0",
