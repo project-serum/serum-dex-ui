@@ -11,7 +11,7 @@ import {
   useTokenAccounts,
 } from '../utils/markets';
 import DepositDialog from './DepositDialog';
-import { useWallet } from '../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import Link from './Link';
 import { settleFunds } from '../utils/send';
 import { useSendConnection } from '../utils/connection';
@@ -24,6 +24,7 @@ import { useInterval } from '../utils/useInterval';
 import { useLocalStorageState } from '../utils/utils';
 import { AUTO_SETTLE_DISABLED_OVERRIDE } from '../utils/preferences';
 import { useReferrer } from '../utils/referrer';
+import { BaseSignerWalletAdapter } from '@solana/wallet-adapter-base';
 
 const RowBox = styled(Row)`
   padding-bottom: 20px;
@@ -45,7 +46,7 @@ export default function StandaloneBalancesDisplay() {
   const balances = useBalances();
   const openOrdersAccount = useSelectedOpenOrdersAccount(true);
   const connection = useSendConnection();
-  const { providerUrl, providerName, wallet, connected } = useWallet();
+  const { wallet, connected } = useWallet();
   const [baseOrQuote, setBaseOrQuote] = useState('');
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
@@ -105,7 +106,7 @@ export default function StandaloneBalancesDisplay() {
         market,
         openOrders: openOrdersAccount,
         connection,
-        wallet,
+        wallet: wallet.adapter as BaseSignerWalletAdapter,
         baseCurrencyAccount,
         quoteCurrencyAccount,
         usdcRef,
@@ -149,7 +150,7 @@ export default function StandaloneBalancesDisplay() {
           market,
           openOrders: openOrdersAccount,
           connection,
-          wallet,
+          wallet: wallet.adapter as BaseSignerWalletAdapter,
           baseCurrencyAccount,
           quoteCurrencyAccount,
           usdcRef,
@@ -161,7 +162,10 @@ export default function StandaloneBalancesDisplay() {
       }
       console.log('Finished settling funds.');
     };
-    connected && wallet?.autoApprove && autoSettleEnabled && autoSettle();
+    connected &&
+      (wallet?.adapter as any).autoApprove &&
+      autoSettleEnabled &&
+      autoSettle();
   }, 1000);
 
   const formattedBalances: [
@@ -247,8 +251,8 @@ export default function StandaloneBalancesDisplay() {
             </RowBox>
             <Tip>
               All deposits go to your{' '}
-              <Link external to={providerUrl}>
-                {providerName}
+              <Link external to={wallet?.adapter.url}>
+                {wallet?.adapter.name}
               </Link>{' '}
               wallet
             </Tip>

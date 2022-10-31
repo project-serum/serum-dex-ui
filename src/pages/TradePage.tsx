@@ -29,7 +29,7 @@ import { nanoid } from 'nanoid';
 import { TVChartContainer } from '../components/TradingView';
 // Use following stub for quick setup without the TradingView private dependency
 // function TVChartContainer() {
-//   return <></>
+//   return <></>;
 // }
 
 const { Option, OptGroup } = Select;

@@ -10,9 +10,11 @@ import tuple from 'immutable-tuple';
 import PoolBasketDisplay from './PoolBasketDisplay';
 import BN from 'bn.js';
 import { notify } from '../../../utils/notifications';
-import { useWallet } from '../../../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useTokenAccounts } from '../../../utils/markets';
 import { sendTransaction } from '../../../utils/send';
+import { BaseSignerWalletAdapter } from '@solana/wallet-adapter-base';
+import assert from 'assert';
 
 const { Text } = Typography;
 const { TabPane } = Tabs;
@@ -56,7 +58,7 @@ interface CreateRedeemInnerPanel {
 
 function CreateRedeemTab({ poolInfo, mintInfo, tab }: CreateRedeemInnerPanel) {
   const connection = useConnection();
-  const { wallet, connected } = useWallet();
+  const { connected, publicKey, wallet } = useWallet();
   const [quantity, setQuantity] = useState('');
   const [tokenAccounts] = useTokenAccounts();
   const [submitting, setSubmitting] = useState(false);
@@ -100,11 +102,12 @@ function CreateRedeemTab({ poolInfo, mintInfo, tab }: CreateRedeemInnerPanel) {
     }
     setSubmitting(true);
     try {
+      assert(publicKey, 'Expected `publicKey` to be non-null');
       const { transaction, signers } = PoolTransactions.execute(
         poolInfo,
         action,
         {
-          owner: wallet.publicKey,
+          owner: publicKey,
           poolTokenAccount: findTokenAccount(poolInfo.state.poolTokenMint),
           assetAccounts: poolInfo.state.assets.map((asset) =>
             findTokenAccount(asset.mint),
@@ -112,7 +115,12 @@ function CreateRedeemTab({ poolInfo, mintInfo, tab }: CreateRedeemInnerPanel) {
         },
         basket,
       );
-      await sendTransaction({ connection, wallet, transaction, signers });
+      await sendTransaction({
+        connection,
+        wallet: wallet.adapter as BaseSignerWalletAdapter,
+        transaction,
+        signers,
+      });
     } catch (e) {
       console.warn(e);
       notify({

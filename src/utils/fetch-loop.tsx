@@ -262,8 +262,6 @@ export function setCache(
   }
 }
 
-export function getCache(
-  cacheKey: any
-) {
+export function getCache(cacheKey: any) {
   return globalCache.get(cacheKey);
 }

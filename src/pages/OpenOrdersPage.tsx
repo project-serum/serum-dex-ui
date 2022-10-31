@@ -8,7 +8,7 @@ import {
 import OpenOrderTable from '../components/UserInfoTable/OpenOrderTable';
 import { Button, Row } from 'antd';
 import { OrderWithMarketAndMarketName } from '../utils/types';
-import { useWallet } from '../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import WalletConnect from '../components/WalletConnect';
 
 export default function OpenOrdersPage() {

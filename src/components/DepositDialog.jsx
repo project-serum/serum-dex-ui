@@ -5,7 +5,7 @@ import {
   useMarket,
   useSelectedQuoteCurrencyAccount,
 } from '../utils/markets';
-import { useWallet } from '../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import Link from './Link';
 
 export default function DepositDialog({ onClose, baseOrQuote }) {

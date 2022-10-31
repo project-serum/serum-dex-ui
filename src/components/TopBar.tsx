@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.svg';
 import styled from 'styled-components';
-import { useWallet } from '../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
 import Settings from './Settings';
 import CustomClusterEndpointDialog from './CustomClusterEndpointDialog';
@@ -40,7 +40,8 @@ const LogoWrapper = styled.div`
 `;
 
 const EXTERNAL_LINKS = {
-  '/learn': 'https://docs.projectserum.com/trade-on-serum-dex/trade-on-serum-dex-1',
+  '/learn':
+    'https://docs.projectserum.com/trade-on-serum-dex/trade-on-serum-dex-1',
   '/add-market': 'https://serum-academy.com/en/add-market/',
   '/wallet-support': 'https://serum-academy.com/en/wallet-support',
   '/dex-list': 'https://serum-academy.com/en/dex-list/',
@@ -309,7 +310,9 @@ export default function TopBar() {
         {connected && (
           <div>
             <Popover
-              content={<Settings autoApprove={wallet?.autoApprove} />}
+              content={
+                <Settings autoApprove={(wallet?.adapter as any).autoApprove} />
+              }
               placement="bottomRight"
               title="Settings"
               trigger="click"

@@ -15,7 +15,7 @@ import PoolCreateRedeemPanel from './PoolCreateRedeemPanel';
 import PoolBalancesPanel from './PoolBalancesPanel';
 import { useHistory } from 'react-router-dom';
 import { PoolAdminPanel } from './PoolAdminPanel';
-import { useWallet } from '../../../utils/wallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 const { Text } = Typography;
 
@@ -47,9 +47,9 @@ export default function PoolPage() {
     () => (mintAccountInfo ? parseTokenMintData(mintAccountInfo.data) : null),
     [mintAccountInfo],
   );
-  const { wallet } = useWallet();
+  const { publicKey } = useWallet();
 
-  if (poolInfo && mintInfo && wallet) {
+  if (poolInfo && mintInfo && publicKey) {
     return (
       <>
         <PageHeader
@@ -67,8 +67,7 @@ export default function PoolPage() {
           <Col xs={24}>
             <PoolBalancesPanel poolInfo={poolInfo} />
           </Col>
-          {wallet.connected &&
-          poolInfo.state.adminKey?.equals(wallet.publicKey) &&
+          {poolInfo.state.adminKey?.equals(publicKey) &&
           isAdminControlledPool(poolInfo) ? (
             <Col xs={24}>
               <PoolAdminPanel poolInfo={poolInfo} />

@@ -1,15 +1,15 @@
 import * as BufferLayout from 'buffer-layout';
-import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
-import {TokenAccount} from './types';
-import {TOKEN_MINTS} from '@project-serum/serum';
-import {useAllMarkets, useCustomMarkets, useTokenAccounts} from './markets';
-import {getMultipleSolanaAccounts} from './send';
-import {useConnection} from './connection';
-import {useAsyncData} from './fetch-loop';
+import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { TokenAccount } from './types';
+import { TOKEN_MINTS } from '@project-serum/serum';
+import { useAllMarkets, useCustomMarkets, useTokenAccounts } from './markets';
+import { getMultipleSolanaAccounts } from './send';
+import { useConnection } from './connection';
+import { useAsyncData } from './fetch-loop';
 import tuple from 'immutable-tuple';
 import BN from 'bn.js';
-import {useMemo} from 'react';
+import { useMemo } from 'react';
 
 export const ACCOUNT_LAYOUT = BufferLayout.struct([
   BufferLayout.blob(32, 'mint'),
@@ -75,14 +75,11 @@ export async function getOwnedTokenAccounts(
   publicKey: PublicKey,
 ): Promise<Array<{ publicKey: PublicKey; accountInfo: AccountInfo<Buffer> }>> {
   let filters = getOwnedAccountsFilters(publicKey);
-  let resp = await connection.getProgramAccounts(
-    TOKEN_PROGRAM_ID,
-    {
-      filters,
-    },
-  );
-  return resp
-    .map(({ pubkey, account: { data, executable, owner, lamports } }) => ({
+  let resp = await connection.getProgramAccounts(TOKEN_PROGRAM_ID, {
+    filters,
+  });
+  return resp.map(
+    ({ pubkey, account: { data, executable, owner, lamports } }) => ({
       publicKey: new PublicKey(pubkey),
       accountInfo: {
         data,
@@ -90,7 +87,8 @@ export async function getOwnedTokenAccounts(
         owner: new PublicKey(owner),
         lamports,
       },
-    }))
+    }),
+  );
 }
 
 export async function getTokenAccountInfo(

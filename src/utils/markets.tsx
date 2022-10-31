@@ -1,14 +1,31 @@
-import {Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions,} from '@project-serum/serum';
-import {PublicKey} from '@solana/web3.js';
-import React, {useContext, useEffect, useState} from 'react';
-import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState,} from './utils';
-import {refreshCache, useAsyncData} from './fetch-loop';
-import {useAccountData, useAccountInfo, useConnection} from './connection';
-import {useWallet} from './wallet';
+import {
+  Market,
+  MARKETS,
+  OpenOrders,
+  Orderbook,
+  TOKEN_MINTS,
+  TokenInstructions,
+} from '@project-serum/serum';
+import { PublicKey } from '@solana/web3.js';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  divideBnToNumber,
+  floorToDecimal,
+  getTokenMultiplierFromDecimals,
+  sleep,
+  useLocalStorageState,
+} from './utils';
+import { refreshCache, useAsyncData } from './fetch-loop';
+import { useAccountData, useAccountInfo, useConnection } from './connection';
+import { useWallet } from '@solana/wallet-adapter-react';
 import tuple from 'immutable-tuple';
-import {notify} from './notifications';
+import { notify } from './notifications';
 import BN from 'bn.js';
-import {getTokenAccountInfo, parseTokenAccountData, useMintInfos,} from './tokens';
+import {
+  getTokenAccountInfo,
+  parseTokenAccountData,
+  useMintInfos,
+} from './tokens';
 import {
   Balances,
   CustomMarketInfo,
@@ -20,8 +37,8 @@ import {
   SelectedTokenAccounts,
   TokenAccount,
 } from './types';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
-import {Order} from '@project-serum/serum/lib/market';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { Order } from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
 
 // Used in debugging, should be false in production
@@ -32,7 +49,10 @@ export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   : MARKETS;
 
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
+  return USE_MARKETS.filter(
+    ({ name, deprecated }) =>
+      !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name),
+  );
 }
 
 export function useAllMarkets() {
@@ -82,10 +102,10 @@ export function useAllMarkets() {
 
 export function useUnmigratedOpenOrdersAccounts() {
   const connection = useConnection();
-  const { wallet } = useWallet();
+  const { publicKey } = useWallet();
 
   async function getUnmigratedOpenOrdersAccounts(): Promise<OpenOrders[]> {
-    if (!wallet || !connection || !wallet.publicKey) {
+    if (!connection || !publicKey) {
       return [];
     }
     console.log('refreshing useUnmigratedOpenOrdersAccounts');
@@ -102,7 +122,7 @@ export function useUnmigratedOpenOrdersAccounts() {
       try {
         const openOrdersAccounts = await OpenOrders.findForOwner(
           connection,
-          wallet.publicKey,
+          publicKey,
           programId,
         );
         deprecatedOpenOrdersAccounts = deprecatedOpenOrdersAccounts.concat(
@@ -134,7 +154,7 @@ export function useUnmigratedOpenOrdersAccounts() {
   const cacheKey = tuple(
     'getUnmigratedOpenOrdersAccounts',
     connection,
-    wallet?.publicKey?.toBase58(),
+    publicKey?.toBase58(),
   );
   const [accounts] = useAsyncData(getUnmigratedOpenOrdersAccounts, cacheKey, {
     refreshInterval: _VERY_SLOW_REFRESH_INTERVAL,
@@ -401,19 +421,16 @@ export function useOrderbook(
 // TODO: Update to use websocket
 export function useOpenOrdersAccounts(fast = false) {
   const { market } = useMarket();
-  const { connected, wallet } = useWallet();
+  const { connected, publicKey, wallet } = useWallet();
   const connection = useConnection();
   async function getOpenOrdersAccounts() {
-    if (!connected || !wallet) {
+    if (!connected || !publicKey || !wallet) {
       return null;
     }
     if (!market) {
       return null;
     }
-    return await market.findOpenOrdersAccountsForOwner(
-      connection,
-      wallet.publicKey,
-    );
+    return await market.findOpenOrdersAccountsForOwner(connection, publicKey);
   }
   return useAsyncData<OpenOrders[] | null>(
     getOpenOrdersAccounts,
@@ -434,13 +451,13 @@ export function useTokenAccounts(): [
   TokenAccount[] | null | undefined,
   boolean,
 ] {
-  const { connected, wallet } = useWallet();
+  const { connected, publicKey, wallet } = useWallet();
   const connection = useConnection();
   async function getTokenAccounts() {
-    if (!connected || !wallet) {
+    if (!connected || !publicKey || !wallet) {
       return null;
     }
-    return await getTokenAccountInfo(connection, wallet.publicKey);
+    return await getTokenAccountInfo(connection, publicKey);
   }
   return useAsyncData(
     getTokenAccounts,
@@ -580,11 +597,11 @@ export function useFeeDiscountKeys(): [
   boolean,
 ] {
   const { market } = useMarket();
-  const { connected, wallet } = useWallet();
+  const { connected, publicKey, wallet } = useWallet();
   const connection = useConnection();
   const { setStoredFeeDiscountKey } = useLocallyStoredFeeDiscountKey();
   let getFeeDiscountKeys = async () => {
-    if (!connected || !wallet) {
+    if (!connected || !publicKey || !wallet) {
       return null;
     }
     if (!market) {
@@ -592,7 +609,7 @@ export function useFeeDiscountKeys(): [
     }
     const feeDiscountKey = await market.findFeeDiscountKeys(
       connection,
-      wallet.publicKey,
+      publicKey,
     );
     if (feeDiscountKey) {
       setStoredFeeDiscountKey(feeDiscountKey[0].pubkey.toBase58());
@@ -626,7 +643,7 @@ export function useFills(limit = 100) {
 }
 
 export function useAllOpenOrdersAccounts() {
-  const { wallet, connected } = useWallet();
+  const { connected, publicKey } = useWallet();
   const connection = useConnection();
   const marketInfos = useMarketInfos();
   const programIds = [
@@ -634,13 +651,13 @@ export function useAllOpenOrdersAccounts() {
   ].map((stringProgramId) => new PublicKey(stringProgramId));
 
   const getAllOpenOrdersAccounts = async () => {
-    if (!connected || !wallet) {
+    if (!connected || !publicKey) {
       return [];
     }
     return (
       await Promise.all(
         programIds.map((programId) =>
-          OpenOrders.findForOwner(connection, wallet.publicKey, programId),
+          OpenOrders.findForOwner(connection, publicKey, programId),
         ),
       )
     ).flat();
@@ -651,7 +668,7 @@ export function useAllOpenOrdersAccounts() {
       'getAllOpenOrdersAccounts',
       connection,
       connected,
-      wallet?.publicKey?.toBase58(),
+      publicKey?.toBase58(),
       marketInfos.length,
       (programIds || []).length,
     ),
@@ -726,7 +743,7 @@ export const useAllOpenOrders = (): {
   refreshOpenOrders: () => void;
 } => {
   const connection = useConnection();
-  const { connected, wallet } = useWallet();
+  const { connected, publicKey } = useWallet();
   const [loaded, setLoaded] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [openOrders, setOpenOrders] = useState<
@@ -743,7 +760,7 @@ export const useAllOpenOrders = (): {
   };
 
   useEffect(() => {
-    if (connected && wallet) {
+    if (connected && publicKey) {
       const getAllOpenOrders = async () => {
         setLoaded(false);
         const _openOrders: { orders: Order[]; marketAddress: string }[] = [];
@@ -758,7 +775,7 @@ export const useAllOpenOrders = (): {
             );
             const orders = await market.loadOrdersForOwner(
               connection,
-              wallet?.publicKey,
+              publicKey,
               30000,
             );
             _openOrders.push({
@@ -776,7 +793,7 @@ export const useAllOpenOrders = (): {
       };
       getAllOpenOrders();
     }
-  }, [connection, connected, wallet, refresh]);
+  }, [connection, connected, refresh, publicKey]);
   return {
     openOrders: openOrders,
     loaded: loaded,
@@ -951,7 +968,7 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
   loaded: boolean;
   refreshOpenOrders: () => void;
 } {
-  const { connected, wallet } = useWallet();
+  const { connected, publicKey, wallet } = useWallet();
   const { customMarkets } = useCustomMarkets();
   const connection = useConnection();
   const marketsAndOrders = useUnmigratedDeprecatedMarkets();
@@ -966,7 +983,7 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
       .map((market) => market.address.toBase58());
 
   async function getOpenOrdersForDeprecatedMarkets() {
-    if (!connected || !wallet) {
+    if (!connected || !publicKey) {
       return null;
     }
     if (!marketsList) {
@@ -982,7 +999,7 @@ export function useGetOpenOrdersForDeprecatedMarkets(): {
         console.log('Fetching open orders for', marketName);
         // Can do better than this, we have the open orders accounts already
         return (
-          await market.loadOrdersForOwner(connection, wallet.publicKey)
+          await market.loadOrdersForOwner(connection, publicKey)
         ).map((order) => ({ marketName, market, ...order }));
       } catch (e) {
         console.log('Failed loading open orders', market.address.toBase58(), e);
@@ -1167,7 +1184,12 @@ export function getExpectedFillPrice(
   return formattedPrice;
 }
 
-export function useCurrentlyAutoSettling(): [boolean, (currentlyAutoSettling: boolean) => void] {
-  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(false);
+export function useCurrentlyAutoSettling(): [
+  boolean,
+  (currentlyAutoSettling: boolean) => void,
+] {
+  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(
+    false,
+  );
   return [currentlyAutoSettling, setCurrentlyAutosettling];
 }
