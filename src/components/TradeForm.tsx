@@ -266,7 +266,7 @@ export default function TradeForm({
     } catch (e) {
       console.warn(e);
       notify({
-        message: 'Error placing order',
+        message: "Error placing order\nDo you have enough SOL to cover fees?",
         description: e.message,
         type: 'error',
       });
