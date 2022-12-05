@@ -8,6 +8,11 @@ import styled from 'styled-components';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { listMarket } from '../utils/send';
 import { useMintInput } from '../components/useMintInput';
+import { PublicKey } from '@solana/web3.js';
+import {
+  BaseSignerWalletAdapter,
+  BaseWalletAdapter,
+} from '@solana/wallet-adapter-base';
 
 const { Text, Title } = Typography;
 
@@ -18,6 +23,8 @@ const Wrapper = styled.div`
   margin-top: 24px;
   margin-bottom: 24px;
 `;
+
+type ListedMarketState = PublicKey | null;
 
 export default function ListNewMarketPage() {
   const connection = useConnection();
@@ -56,10 +63,9 @@ export default function ListNewMarketPage() {
   );
   const [lotSize, setLotSize] = useState('1');
   const [tickSize, setTickSize] = useState('0.01');
-  const dexProgramId = MARKETS.find(({ deprecated }) => !deprecated).programId;
+  const dexProgramId = MARKETS.find(({ deprecated }) => !deprecated)?.programId;
   const [submitting, setSubmitting] = useState(false);
-
-  const [listedMarket, setListedMarket] = useState(null);
+  const [listedMarket, setListedMarket] = useState<ListedMarketState>(null);
 
   let baseLotSize;
   let quoteLotSize;
@@ -86,15 +92,25 @@ export default function ListNewMarketPage() {
       return;
     }
     setSubmitting(true);
+
+    if (!dexProgramId) {
+      notify({
+        message: 'Selected market was deprecated or does not exist.',
+        description: 'Selected market was deprecated or does not exist.',
+        type: 'error',
+      });
+      setSubmitting(false);
+    }
+
     try {
       const marketAddress = await listMarket({
         connection,
-        wallet,
+        wallet: wallet!.adapter as BaseSignerWalletAdapter,
         baseMint: baseMintInfo.address,
         quoteMint: quoteMintInfo.address,
         baseLotSize,
         quoteLotSize,
-        dexProgramId,
+        dexProgramId: dexProgramId!,
       });
       setListedMarket(marketAddress);
     } catch (e) {
@@ -135,9 +151,9 @@ export default function ListNewMarketPage() {
                 ? baseLotSize
                   ? 'success'
                   : 'error'
-                : null
+                : undefined
             }
-            hasFeedback={baseMintInfo && quoteMintInfo}
+            hasFeedback={Boolean(baseMintInfo && quoteMintInfo)}
           >
             <Input
               value={lotSize}
@@ -161,9 +177,9 @@ export default function ListNewMarketPage() {
                 ? quoteLotSize
                   ? 'success'
                   : 'error'
-                : null
+                : undefined
             }
-            hasFeedback={baseMintInfo && quoteMintInfo}
+            hasFeedback={Boolean(baseMintInfo && quoteMintInfo)}
           >
             <Input
               value={tickSize}
